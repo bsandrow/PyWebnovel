@@ -1,0 +1,41 @@
+[tool.poetry]
+name = "pyWebNovel"
+version = "1"
+description = "Library for scraping and dealing with webnovels.""
+authors = ["Brandy Sandrowicz <brandy@sandrowicz.org>"]
+
+# [[tool.poetry.source]]
+# name = "private pypi"
+# url = "https://devpi.example.com/example/example/+simple/"
+
+[tool.poetry.dependencies]
+python = "~3.9.10"
+
+
+[tool.poetry.dev-dependencies]
+freezegun = "^1.0.0"
+black = "^22.3.0"
+pydocstyle = "^6.1.1"
+deepdiff = "^5.0.2"
+pylint = "^2.12.2"
+
+[tool.black]
+line-length = 120
+target-version = ['py39']
+
+[tool.isort]
+line_length = 120
+force_single_line = false
+sections = "FUTURE,STDLIB,DJANGO,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
+force_sort_within_sections = true
+# Compatibility with black. Taken directly from the black docs here:
+# https://black.readthedocs.io/en/stable/the_black_code_style.html
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+profile = "black"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
