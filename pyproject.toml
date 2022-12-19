@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "pyWebNovel"
 version = "1"
-description = "Library for scraping and dealing with webnovels.""
+description = "Library for scraping and dealing with webnovels."
 authors = ["Brandy Sandrowicz <brandy@sandrowicz.org>"]
 
 # [[tool.poetry.source]]
@@ -11,8 +11,8 @@ authors = ["Brandy Sandrowicz <brandy@sandrowicz.org>"]
 [tool.poetry.dependencies]
 python = "~3.9.10"
 
-
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.2.0"
 freezegun = "^1.0.0"
 black = "^22.3.0"
 pydocstyle = "^6.1.1"
