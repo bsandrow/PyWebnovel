@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from enum import Enum
+from typing import Optional
 
 
 class NovelStatus(Enum):
@@ -34,6 +35,6 @@ class Novel:
     summary: str = None
     genres: list[str] = None
     tags: list[str] = None
-    author: Person = None
+    author: Optional[Person] = None
     translator: Person = None
     chapters: list[Chapter] = None

@@ -114,7 +114,7 @@ class NovelBinScraperTestCase(TestCase):
         self.assertEqual(novel, expected_novel)
 
         # Assert that Novel.chapters looks like it should.
-        self.assertTrue(len(novel.chapters) == 309, "Novel.chapters should have 309 chapters.")
+        self.assertEqual(len(novel.chapters), 309)
         self.assertTrue(
             all(isinstance(ch, Chapter) for ch in novel.chapters),
             "Novel.chapters needs to be a list of Chapter instances."
