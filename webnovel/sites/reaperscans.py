@@ -15,6 +15,8 @@ class ReaperScansScraper(NovelScraper):
     chapter_selector = Selector("MAIN > DIV:nth-child(2) > DIV UL[role=\"list\"] LI")
     status_map = {
         "Ongoing": NovelStatus.ONGOING,
+        # I haven't seen any with this on the site, so I'm only guessing that the status would be "Complete" when they
+        # finish the novel.
         "Completed": NovelStatus.COMPLETED,
         "Dropped": NovelStatus.DROPPED,
         "On hold": NovelStatus.HIATUS
