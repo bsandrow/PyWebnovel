@@ -70,6 +70,9 @@ class NovelScraper:
         assert self.summary_selector is not None, "summary_selector is not defined. Define it or override get_summary."
         return "\n".join(self.summary_selector.parse(page))
 
+    def get_chapters(self, page: BeautifulSoup, url: str) -> list:
+        pass
+
     def scrape(self, url) -> Novel:
         page = self.get_page(url)
         return Novel(
@@ -80,6 +83,7 @@ class NovelScraper:
             tags=self.get_tags(page),
             author=self.get_author(page),
             summary=self.get_summary(page),
+            chapters=self.get_chapters(page, url=url),
         )
 
 
