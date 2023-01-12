@@ -1,9 +1,9 @@
 import re
 
 from webnovel.data import NovelStatus, Chapter
-from webnovel.scraping import NovelScraper, Selector
+from webnovel.scraping import NovelScraper, Selector, HTTPS_PREFIX
 
-NOVEL_URL_PATTERN = r"https?://(?:www\.)?novelbin\.net/n/([\w-]+)"
+NOVEL_URL_PATTERN = HTTPS_PREFIX + r"novelbin\.net/n/([\w-]+)"
 
 
 def validate_url(url: str) -> bool:

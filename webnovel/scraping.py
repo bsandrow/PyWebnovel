@@ -4,9 +4,10 @@ from apptk.html import Selector
 from apptk.http import HttpClient
 from bs4 import BeautifulSoup
 
-from webnovel.data import Novel, NovelStatus, Person
+from webnovel.data import Image, Novel, NovelStatus, Person
 
 
+HTTPS_PREFIX = r"https?://(?:www\.)?"
 http_client = HttpClient()
 
 
@@ -22,18 +23,20 @@ class NovelScraper:
     author_email_selector: Selector = None
     author_url_selector: Selector = None
     summary_selector: Selector = None
+    cover_image_url_selector: Selector = None
 
     def __init__(self):
         """Initialize the HttpClient."""
-        self.http_client = HttpClient()
+        self.http_client = HttpClient(use_cloudscraper=True)
 
     def get_soup(self, content, parser: str = None):
         parser = parser or self.parser
         return BeautifulSoup(content, parser)
 
-    def get_page(self, url) -> BeautifulSoup:
+    def get_page(self, url, method="get") -> BeautifulSoup:
         """Fetch the page at the url and return it as a BeautifulSoup instance."""
-        response = self.http_client.get(url)
+        client_method = getattr(self.http_client, method)
+        response = client_method(url)
         response.raise_for_status()
         return self.get_soup(response.text)
 
@@ -70,6 +73,14 @@ class NovelScraper:
         assert self.summary_selector is not None, "summary_selector is not defined. Define it or override get_summary."
         return "\n".join(self.summary_selector.parse(page))
 
+    def get_cover_image(self, page: BeautifulSoup) -> Optional[Image]:
+        if self.cover_image_url_selector is not None:
+            a = self.cover_image_url_selector.parse_one(html=page)
+            print(f"a => {a}")
+
+            return Image(url=self.cover_image_url_selector.parse_one(html=page, use_attribute=True))
+        return None
+
     def get_chapters(self, page: BeautifulSoup, url: str) -> list:
         pass
 
@@ -84,6 +95,7 @@ class NovelScraper:
             author=self.get_author(page),
             summary=self.get_summary(page),
             chapters=self.get_chapters(page, url=url),
+            cover_image=self.get_cover_image(page),
         )
 
 

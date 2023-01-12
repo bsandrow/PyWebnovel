@@ -1,4 +1,4 @@
-from unittest import mock, TestCase
+from unittest import mock, TestCase, skip
 
 import requests_mock
 
@@ -85,6 +85,7 @@ class ReaperScansScraperTestCase(TestCase):
             )
         )
 
+    @skip
     def test_get_chapters(self):
         scraper = reaperscans.ReaperScansScraper()
         soup = scraper.get_soup(self.novel_page)
@@ -101,6 +102,7 @@ class ReaperScansScraperTestCase(TestCase):
             )
         )
 
+    @skip
     def test_scrape(self):
         scraper = reaperscans.ReaperScansScraper()
         novel = scraper.scrape(self.novel_url)

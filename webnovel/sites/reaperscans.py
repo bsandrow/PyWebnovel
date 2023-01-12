@@ -13,6 +13,13 @@ class ReaperScansScraper(NovelScraper):
     status_selector = Selector("MAIN > DIV:nth-child(2) > SECTION > DIV:first-child DL > DIV:nth-child(4) DD")
     summary_selector = Selector("MAIN > DIV:nth-child(2) > SECTION > DIV:first-child > DIV > P")
     chapter_selector = Selector("MAIN > DIV:nth-child(2) > DIV UL[role=\"list\"] LI")
+    chapter_title_selector = Selector("ARTICLE > P:nth-child(7)")
+    next_chapter_selector = Selector(
+        "MAIN > DIV:nth-child(2) > NAV:nth-child(2) > DIV:nth-child(3) > A:nth-child(2)", attribute="href"
+    )
+    first_chapter_link = Selector(
+        "MAIN > DIV:nth-child(2) > DIV > DIV:first-child > DIV A:first-child", attribute="href"
+    )
     status_map = {
         "Ongoing": NovelStatus.ONGOING,
         # I haven't seen any with this on the site, so I'm only guessing that the status would be "Complete" when they
@@ -31,29 +38,28 @@ class ReaperScansScraper(NovelScraper):
         return None
 
     def get_chapters(self, page, url):
-        page_no = 1
         chapters = []
-        while True:
-            page_url = f"{url}?page={page_no}"
-            page = self.get_page(page_url)
-            chapter_batch = page.select(self.chapter_selector.paths[0])
-            free_chapters = [ch for ch in chapter_batch if ch.select_one("a > div > div i.fa-coins") is None]
+        chapter_url = self.first_chapter_link.parse_one(page, use_attribute=True)
 
-            print(f"{len(chapter_batch)} chapter(s) on page {page_no}")
-            print(f"{len(free_chapters)} free chapter(s) on page {page_no}")
+        while chapter_url:
+            # print(f"Chapter URL: {chapter_url}")
+            chapter_page = self.get_page(chapter_url)
+            next_url = self.next_chapter_selector.parse_one(chapter_page, use_attribute=True)
 
-            if len(chapter_batch) == 0:
-                break
+            # If we hit a chapter that is not free, then we need to skip it and end the loop. Since the paid chapters
+            # are always the most recent chapters, it means that there are no more chapters to scrape.
+            #
+            error_msg = chapter_page.select_one("DIV.mt-2.text-sm.text-red-700")
+            is_paid = error_msg is not None and "You need to be logged in" in error_msg
 
-            for chapter_li in free_chapters:
-                chapter_url = chapter_li.select_one("a").get("href")
-                chapter_title = chapter_li.select_one("a > div p").text.strip()
+            if not is_paid:
+                title = self.chapter_title_selector.parse_one(chapter_page)
                 chapter_no = None
-                if match := re.match(r"Chapter (\d+)", chapter_title):
-                    chapter_no = match.group(1)
-                chapter = Chapter(url=chapter_url, title=chapter_title, chapter_no=chapter_no)
+                if title:
+                    match = re.match(r"Chapter (\d+)", title)
+                    chapter_no = match.group(1) if match else None
+                chapter = Chapter(url=chapter_url, title=title, chapter_no=chapter_no)
                 chapters.append(chapter)
-
-            page_no += 1
+            chapter_url = next_url
 
         return chapters

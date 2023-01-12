@@ -14,6 +14,12 @@ class NovelStatus(Enum):
 
 
 @dataclass
+class Image:
+    url: str
+    data: bytes = None
+
+
+@dataclass
 class Person:
     name: str
     email: str = None
@@ -38,3 +44,4 @@ class Novel:
     author: Optional[Person] = None
     translator: Person = None
     chapters: list[Chapter] = None
+    cover_image: Image = None
