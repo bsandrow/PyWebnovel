@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>{{ novel.title }} by {{ novel.author.name }}</title>
+    <link href="{{ stylesheet }}" type="text/css" rel="stylesheet"/>
+  </head>
+  <body class="{{ title_page_css }}">
+    <h3><a href="{{ novel.url }}">{{ novel.title }}</a> by {{ novel.author.name }}</h3>
+    <div>
+        {%- if items is defined and items|length > 0 -%}
+            {% for item in items %}
+                <b>{{ item.name }}:</b> {{ item.value }}<br />
+            {% endfor %}
+        {%- else -%}
+            <br />
+        {%- endif -%}
+    </div>
+  </body>
+</html>
