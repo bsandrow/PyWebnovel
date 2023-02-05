@@ -9,6 +9,8 @@ def validate_url(url: str) -> bool:
 
 
 class ReaperScansScraper(NovelScraper):
+    site_name = "ReaperScans.com"
+
     title_selector = Selector("MAIN > DIV:nth-child(2) > DIV > DIV:first-child H1")
     status_selector = Selector("MAIN > DIV:nth-child(2) > SECTION > DIV:first-child DL > DIV:nth-child(4) DD")
     summary_selector = Selector("MAIN > DIV:nth-child(2) > SECTION > DIV:first-child > DIV > P")

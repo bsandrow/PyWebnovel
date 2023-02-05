@@ -11,6 +11,8 @@ def validate_url(url: str) -> bool:
 
 
 class NovelBinScraper(NovelScraper):
+    site_name = "NovelBin.com"
+
     title_selector = Selector(".col-novel-main > .col-info-desc > .desc > .title")
     status_selector = Selector(".col-novel-main > .col-info-desc > .desc > .info-meta > li:nth-child(5) > a")
     status_map = {"Ongoing": NovelStatus.ONGOING, "Completed": NovelStatus.COMPLETED}

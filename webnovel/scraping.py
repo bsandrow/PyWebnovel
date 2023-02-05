@@ -12,6 +12,7 @@ http_client = HttpClient()
 
 
 class NovelScraper:
+    site_name: str
     http_client: HttpClient
     parser: str = "html.parser"
     status_map: dict[str, NovelStatus] = None
@@ -28,6 +29,7 @@ class NovelScraper:
     def __init__(self):
         """Initialize the HttpClient."""
         self.http_client = HttpClient(use_cloudscraper=True)
+        assert self.site_name is not None
 
     def get_soup(self, content, parser: str = None):
         parser = parser or self.parser

@@ -11,6 +11,8 @@ def validate_url(url: str) -> bool:
 
 
 class WuxiaWorldDotSiteScraper(NovelScraper):
+    site_name = "WuxiaWorld.site"
+
     title_selector = Selector("div.post-title > h1")
     summary_selector = Selector("div.description-summary > div.summary__content")
     status_selector = Selector("div.post-status > div:nth-child(2) > .summary-content")
