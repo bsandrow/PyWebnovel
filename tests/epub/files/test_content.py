@@ -9,7 +9,7 @@ from ...helpers import get_test_data
 
 
 class StylesheetsTestCase(TestCase):
-
+    pass
 
 
 class TitlePageTestCase(TestCase):
