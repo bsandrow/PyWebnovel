@@ -1,6 +1,7 @@
 """Representations of scraper data to be stored within the EPUB file."""
 
 from dataclasses import dataclass
+import urllib.parse
 
 from webnovel.data import Chapter, Image, Novel
 
@@ -24,4 +25,12 @@ class EpubMetadata:
 
 
 class EpubNovel(Novel):
-    pass
+    @property
+    def novel_id(self):
+        result = urllib.parse.urlparse(self.url)
+        return ":".join(result.path)
+
+    @property
+    def site_id(self):
+        result = urllib.parse.urlparse(self.url)
+        return result.hostname
