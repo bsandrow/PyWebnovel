@@ -65,3 +65,4 @@ django.db
 
 # Vim
 *.sw[po]
+run.py
