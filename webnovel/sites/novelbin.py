@@ -1,16 +1,16 @@
+"""NovelBin scrapers and utilities."""
+
 import re
 
-from webnovel.data import NovelStatus, Chapter
-from webnovel.scraping import NovelScraper, Selector, HTTPS_PREFIX
+from webnovel.data import Chapter, NovelStatus
+from webnovel.scraping import HTTPS_PREFIX, NovelScraper, Selector
 
 NOVEL_URL_PATTERN = HTTPS_PREFIX + r"novelbin\.net/n/([\w-]+)"
 
 
-def validate_url(url: str) -> bool:
-    return re.match(NOVEL_URL_PATTERN, url) is not None
-
-
 class NovelBinScraper(NovelScraper):
+    """Scraper for NovelBin.net."""
+
     site_name = "NovelBin.com"
 
     title_selector = Selector(".col-novel-main > .col-info-desc > .desc > .title")
@@ -18,18 +18,25 @@ class NovelBinScraper(NovelScraper):
     status_map = {"Ongoing": NovelStatus.ONGOING, "Completed": NovelStatus.COMPLETED}
     genre_selector = Selector(".col-novel-main > .col-info-desc > .desc > .info-meta > li:nth-child(3) > a")
     author_name_selector = Selector(".col-novel-main > .col-info-desc > .desc > .info-meta > li:nth-child(2) > a")
-    author_url_selector = Selector(".col-novel-main > .col-info-desc > .desc > .info-meta > li:nth-child(2) > a", attribute="href")
+    author_url_selector = Selector(
+        ".col-novel-main > .col-info-desc > .desc > .info-meta > li:nth-child(2) > a", attribute="href"
+    )
     summary_selector = Selector("div.tab-content div.desc-text")
 
     @staticmethod
     def get_novel_id(url: str) -> str:
+        """Return the novel id from the URL."""
         match = re.match(NOVEL_URL_PATTERN, url)
         return match.group(1) if match is not None else None
 
+    @staticmethod
+    def validate_url(url: str) -> bool:
+        """Validate that a URL matches something that works for NovelBin.net and the scraper should support."""
+        return re.match(NOVEL_URL_PATTERN, url) is not None
+
     def get_chapters(self, page, url: str) -> list:
+        """Return the list of Chapter instances for NovelBin.net."""
         novel_id = self.get_novel_id(url)
-        print(f"URL: {url}")
-        print(f"NOVEL ID: {novel_id}")
         page = self.get_page(f"https://novelbin.net/ajax/chapter-archive?novelId={novel_id}")
 
         def get_chapter_no(title: str):

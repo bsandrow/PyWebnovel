@@ -8,11 +8,6 @@ from webnovel.scraping import HTTPS_PREFIX, NovelScraper, Selector
 NOVEL_URL_PATTERN = HTTPS_PREFIX + r"wuxiaworld\.site/novel/([\w-]+)/"
 
 
-def validate_url(url: str) -> bool:
-    """Validate that a URL matches something that works for WuxiaWorld.site and the scraper should support."""
-    return re.match(NOVEL_URL_PATTERN, url) is not None
-
-
 class WuxiaWorldDotSiteScraper(NovelScraper):
     """Scraper for WuxiaWorld.site."""
 
@@ -26,6 +21,11 @@ class WuxiaWorldDotSiteScraper(NovelScraper):
     genre_selector = Selector("div.genres-content > a")
     cover_image_url_selector = Selector("div.summary_image img", attribute="data-src")
     chapter_content_selector = Selector("div.reading-content > div:nth-child(2)")
+
+    @staticmethod
+    def validate_url(url: str) -> bool:
+        """Validate that a URL matches something that works for WuxiaWorld.site and the scraper should support."""
+        return re.match(NOVEL_URL_PATTERN, url) is not None
 
     @staticmethod
     def get_novel_id(url: str) -> str:

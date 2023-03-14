@@ -11,11 +11,6 @@ from webnovel.livewire import LiveWireAPI
 from webnovel.scraping import NovelScraper, Selector
 
 
-def validate_url(url: str) -> bool:
-    """Validate that a URL matches something that works for ReaperScans.com and the scraper should support."""
-    return re.match(r"https?://(www\.)?reaperscans\.com/novels/\d+-\w+", url) is not None
-
-
 def get_csrf_token(element: Tag) -> str:
     """Return the CSRF token from the page."""
     results = element.select("[name=csrf-token]")
@@ -197,6 +192,11 @@ class ReaperScansScraper(NovelScraper):
         "Dropped": NovelStatus.DROPPED,
         "On hold": NovelStatus.HIATUS,
     }
+
+    @staticmethod
+    def validate_url(url: str) -> bool:
+        """Validate that a URL matches something that works for ReaperScans.com and the scraper should support."""
+        return re.match(r"https?://(www\.)?reaperscans\.com/novels/\d+-\w+", url) is not None
 
     def get_genres(self, page):
         """Return empty list since ReaperScans doesn't have genres listed on the novel page."""
