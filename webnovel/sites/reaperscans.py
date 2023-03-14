@@ -196,7 +196,7 @@ class ReaperScansScraper(NovelScraper):
     @staticmethod
     def validate_url(url: str) -> bool:
         """Validate that a URL matches something that works for ReaperScans.com and the scraper should support."""
-        return re.match(r"https?://(www\.)?reaperscans\.com/novels/\d+-\w+", url) is not None
+        return re.match(r"https?://(?:www\.)?reaperscans\.com/novels/(\d+-\w+)", url) is not None
 
     def get_genres(self, page):
         """Return empty list since ReaperScans doesn't have genres listed on the novel page."""
