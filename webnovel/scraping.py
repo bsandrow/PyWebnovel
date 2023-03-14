@@ -1,17 +1,21 @@
+"""Base Functionality for Scraping Webnovel Content."""
+
 from typing import Optional
 
 from apptk.html import Selector
 from apptk.http import HttpClient
 from bs4 import BeautifulSoup
 
-from webnovel.data import Image, Novel, NovelStatus, Person
-
+from webnovel import html
+from webnovel.data import Chapter, Image, Novel, NovelStatus, Person
 
 HTTPS_PREFIX = r"https?://(?:www\.)?"
 http_client = HttpClient()
 
 
 class NovelScraper:
+    """Base Class for Webnovel Scrapers."""
+
     site_name: str
     http_client: HttpClient
     parser: str = "html.parser"
@@ -25,6 +29,8 @@ class NovelScraper:
     author_url_selector: Selector = None
     summary_selector: Selector = None
     cover_image_url_selector: Selector = None
+    chapter_content_selector: Selector = None
+    chapter_content_filters: list[html.HtmlFilter] = None
 
     def __init__(self):
         """Initialize the HttpClient."""
@@ -32,6 +38,13 @@ class NovelScraper:
         assert self.site_name is not None
 
     def get_soup(self, content, parser: str = None):
+        """
+        Return a BeautifulSoup instance for HTML content passed in.
+
+        :param content: The HTML content to pass to the parser.
+        :param parser: (optional) The specific parser for BeautifulSoup to use.
+                       Defaults to the class-level parser value.
+        """
         parser = parser or self.parser
         return BeautifulSoup(content, parser)
 
@@ -63,19 +76,25 @@ class NovelScraper:
         return self.tag_selector.parse(page) if self.tag_selector is not None else None
 
     def get_author(self, page: BeautifulSoup) -> Person:
-        assert self.author_name_selector is not None, \
-            "author_name_selector is not defined. Define it or override get_author."
+        """Extract the author from the page."""
+        assert (
+            self.author_name_selector is not None
+        ), "author_name_selector is not defined. Define it or override get_author."
         return Person(
             name=self.author_name_selector.parse_one(page),
             email=self.author_email_selector.parse_one(page) if self.author_email_selector is not None else None,
-            url=self.author_url_selector.parse_one(page, use_attribute=True) if self.author_url_selector is not None else None,
+            url=self.author_url_selector.parse_one(page, use_attribute=True)
+            if self.author_url_selector is not None
+            else None,
         )
 
     def get_summary(self, page: BeautifulSoup) -> str:
+        """Extract the novel's summary/description from the novel page."""
         assert self.summary_selector is not None, "summary_selector is not defined. Define it or override get_summary."
         return "\n".join(self.summary_selector.parse(page))
 
     def get_cover_image(self, page: BeautifulSoup) -> Optional[Image]:
+        """Extract an Image() for the cover image of the novel from the novel's page."""
         if self.cover_image_url_selector is not None:
             a = self.cover_image_url_selector.parse_one(html=page)
             print(f"a => {a}")
@@ -84,9 +103,37 @@ class NovelScraper:
         return None
 
     def get_chapters(self, page: BeautifulSoup, url: str) -> list:
-        pass
+        """
+        Return the list of Chapters for a webnovel.
+
+        The URL option is required to be passed in, but only a few scrapers will
+        probably need to use it.  Some scrapers might need that URL to call a separate
+        API that returns the chapter list, while most are probably able to just use the
+        content of the novel's page itself to extract said list.
+
+        Extraction of this list will be different from site to site, and there doesn't seem
+        to be enough commonalities for there to be a general implemenation that will only
+        need to have a specific version in special cases. It really seems like this will just
+        have to be custom most of the time.
+
+        :param page: The novel page's HTML content.
+        :param url: The url of the novel's page.
+        """
+
+    def process_chapters(self, chapters: list[Chapter]) -> None:
+        """
+        Populate html_content attribute of a list of Chapters.
+
+        Use chapter_content_selector / chapter_content_filters to process the content of
+        a Chapter fetched via Chapter.url.
+        """
+        for chapter in chapters:
+            page = self.get_page(chapter.url)
+            chapter.html_content = self.chapter_content_selector.parse_one(page, use_attribute=False)
+            html.run_filters(chapter.html_content, filters=self.chapter_content_filters)
 
     def scrape(self, url) -> Novel:
+        """Scrape URL to return a Novel instance populated from extracted information."""
         page = self.get_page(url)
         return Novel(
             url=url,
@@ -99,7 +146,3 @@ class NovelScraper:
             chapters=self.get_chapters(page, url=url),
             cover_image=self.get_cover_image(page),
         )
-
-
-class ChapterScraper:
-    pass
