@@ -5,8 +5,8 @@ import re
 from bs4 import Tag
 from requests import Response
 
+from webnovel import html
 from webnovel.data import NovelStatus
-from webnovel.html import HtmlFilter, remove_element
 from webnovel.livewire import LiveWireAPI
 from webnovel.scraping import NovelScraper, Selector
 
@@ -130,7 +130,7 @@ class ChapterListAPI(LiveWireAPI):
         return html
 
 
-class RemoveTrailingHorizontalBarsFilter(HtmlFilter):
+class RemoveTrailingHorizontalBarsFilter(html.HtmlFilter):
     """Remove the trailing '----' bars and 'blank' <p> elements at the end of the chapter."""
 
     def filter(self, element: Tag) -> None:
@@ -149,7 +149,7 @@ class RemoveTrailingHorizontalBarsFilter(HtmlFilter):
                 break
 
 
-class RemoveStartingBannerFilter(HtmlFilter):
+class RemoveStartingBannerFilter(html.HtmlFilter):
     """
     Remove the "REAPERSCANS" at the top of each chapter.
 
@@ -160,10 +160,10 @@ class RemoveStartingBannerFilter(HtmlFilter):
         """Remove 'blank' elements and the REAPERSCANS banner. Bail the first time we find something else."""
         for child in element.children:
             if child.text.strip() == "":
-                remove_element(child)
+                html.remove_element(child)
                 continue
             elif child.text.strip().lower() == "REAPERSCANS":
-                remove_element(child)
+                html.remove_element(child)
             else:
                 break
 
