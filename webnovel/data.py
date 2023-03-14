@@ -4,8 +4,12 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
+from bs4 import Tag
+
 
 class NovelStatus(Enum):
+    """Representation of the status of a webnovel."""
+
     ONGOING = "On Going"
     HIATUS = "Hiatus"
     DROPPED = "Dropped"
@@ -15,6 +19,8 @@ class NovelStatus(Enum):
 
 @dataclass
 class Image:
+    """An (web-hosted) Image."""
+
     url: str
     data: bytes = None
     mimetype: str = None
@@ -30,6 +36,7 @@ class Image:
 
     @property
     def extension(self):
+        """Return the filename extension to use for this image (based on the mime-type)."""
         return None if self.mimetype is None else self.extension_map[self.mimetype]
 
     def load(self, force: bool = False) -> bool:
@@ -43,6 +50,7 @@ class Image:
         """
         if not self.did_load or force:
             from webnovel.scraping import http_client
+
             response = http_client.get(self.url)
             response.raise_for_status()
             self.data = response.content
@@ -55,6 +63,23 @@ class Image:
 
 @dataclass
 class Person:
+    """
+    A Person associated with a novel.
+
+    A generic class meant to represent any person that might be associated with
+    a webnovel (e.g. author, translator, editor, etc). Rather than just having a
+    string field with the name of the person, this allows for a URL and/or email
+    to be associated with the person.
+
+    This allows credits information generated at the start of the ebooks to also
+    contain this information. For example, the author's name could be wrapped in
+    a link if the url is provided, or the author's name could be formatted as::
+
+      Author Name <author.name@gmail.com>
+
+    if the email was provided.
+    """
+
     name: str
     email: str = None
     url: str = None
@@ -62,13 +87,19 @@ class Person:
 
 @dataclass
 class Chapter:
+    """Representation of a chapter of a webnovel."""
+
     url: str
     title: str = None
     chapter_no: str = None
+    slug: str = None
+    html_content: Tag = None
 
 
 @dataclass
 class Novel:
+    """Representation of the webnovel itself."""
+
     url: str
     title: str = None
     status: NovelStatus = None
