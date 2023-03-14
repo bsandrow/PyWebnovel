@@ -6,7 +6,7 @@ from bs4 import Tag
 from requests import Response
 
 from webnovel import html
-from webnovel.data import NovelStatus
+from webnovel.data import Chapter, NovelStatus
 from webnovel.livewire import LiveWireAPI
 from webnovel.scraping import NovelScraper, Selector
 
@@ -184,6 +184,11 @@ class ReaperScansScraper(NovelScraper):
     # first_chapter_link = Selector(
     #     "MAIN > DIV:nth-child(2) > DIV > DIV:first-child > DIV A:first-child", attribute="href"
     # )
+    chapter_content_selector = Selector("ARTICLE.prose")
+    chapter_content_filters = html.DEFAULT_FILTERS + [
+        # RemoveStartingBannerFilter(),
+        RemoveTrailingHorizontalBarsFilter()
+    ]
     status_map = {
         "Ongoing": NovelStatus.ONGOING,
         # I haven't seen any with this on the site, so I'm only guessing that the status would be "Complete" when they
@@ -203,13 +208,14 @@ class ReaperScansScraper(NovelScraper):
         #       obviously isn't scrape-able.
         return None
 
-    def get_chapters(self, page, url):
+    def get_chapters(self, page, url) -> list[Chapter]:
         """
         Return the list of Chapter instances for ReaperScans.com.
 
         :param page: The BeautifulSoup instance for the novel page.
         :param url: Not used here, but part of the api so we need to accept it.
         """
+        chapters = []
         chapter_list = self.chapter_selector.parse_one(page, use_attribute=False)
         csrf_token = get_csrf_token(page)
         wire_id = get_wire_id(chapter_list)
@@ -224,32 +230,18 @@ class ReaperScansScraper(NovelScraper):
         while chapter_list_items:
             chapter_item = chapter_list_items.pop()
             chapter_slug = chapter_item["wire:key"]
-            print(f"Chapter: {chapter_slug}")
+            url = chapter_item.select_one("a")["href"]
+            title = chapter_item.select_one("p").text.strip()
+            match = re.match(r"Chapter (\d+(?:\.\d+)?)", title)
+            chapter_no = match.group(1)
+            chapter = Chapter(url=url, title=title, chapter_no=chapter_no, slug=chapter_slug)
+            chapters.append(chapter)
 
             if len(chapter_list_items) < 1:
-                html = api.next_page()
-                chapter_list = self.get_soup(html)
+                # NOTE: next_page() will always return content, but after the last page extracting chapter_list_items
+                #       will end up with and empty list which will break the loop.
+                page_html = api.next_page()
+                chapter_list = self.get_soup(page_html)
                 chapter_list_items = chapter_list.select(r"LI[wire\:key]")
 
-        # while chapter_url:
-        #     # print(f"Chapter URL: {chapter_url}")
-        #     chapter_page = self.get_page(chapter_url)
-        #     next_url = self.next_chapter_selector.parse_one(chapter_page, use_attribute=True)
-        #
-        #     # If we hit a chapter that is not free, then we need to skip it and end the loop. Since the paid chapters
-        #     # are always the most recent chapters, it means that there are no more chapters to scrape.
-        #     #
-        #     error_msg = chapter_page.select_one("DIV.mt-2.text-sm.text-red-700")
-        #     is_paid = error_msg is not None and "You need to be logged in" in error_msg
-        #
-        #     if not is_paid:
-        #         title = self.chapter_title_selector.parse_one(chapter_page)
-        #         chapter_no = None
-        #         if title:
-        #             match = re.match(r"Chapter (\d+)", title)
-        #             chapter_no = match.group(1) if match else None
-        #         chapter = Chapter(url=chapter_url, title=title, chapter_no=chapter_no)
-        #         chapters.append(chapter)
-        #     chapter_url = next_url
-
-        # return chapters
+        return chapters
