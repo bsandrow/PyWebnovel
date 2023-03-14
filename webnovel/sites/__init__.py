@@ -1,5 +1,7 @@
 """Scrapers for specific sites."""
 
+import inspect
+
 from webnovel.scraping import NovelScraper
 from webnovel.sites import novelbin, reaperscans, wuxiaworld_site
 
@@ -16,7 +18,12 @@ SITES = [
     wuxiaworld_site,
 ]
 
-SCRAPERS = [item for site in SITES for item in dir(site) if issubclass(item, NovelScraper)]
+SCRAPERS = [
+    item
+    for site in SITES
+    for item in map(lambda x: getattr(site, x), dir(site))
+    if inspect.isclass(item) and issubclass(item, NovelScraper) and item != NovelScraper
+]
 
 
 def find_scraper(url: str) -> type[NovelScraper]:
