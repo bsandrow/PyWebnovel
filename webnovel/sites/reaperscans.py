@@ -142,8 +142,8 @@ class RemoveTrailingHorizontalBarsFilter(HtmlFilter):
         "manual" horizontal bars.
         """
         for child in reversed(tuple(element.children)):
-            if child.text.strip() == "" or re.match(r"^[-—]+$", child.text.strip()) is not None:
-                remove_element(child)
+            if child.text.strip() == "" or re.match(r"^[-—–_—⸺﹘⸻]+$", child.text.strip()) is not None:
+                html.remove_element(child)
                 continue
             else:
                 break
