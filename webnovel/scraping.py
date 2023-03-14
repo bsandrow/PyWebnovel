@@ -132,7 +132,7 @@ class NovelScraper:
             chapter.html_content = self.chapter_content_selector.parse_one(page, use_attribute=False)
             html.run_filters(chapter.html_content, filters=self.chapter_content_filters)
 
-    def scrape(self, url) -> Novel:
+    def scrape(self, url: str) -> Novel:
         """Scrape URL to return a Novel instance populated from extracted information."""
         page = self.get_page(url)
         return Novel(
