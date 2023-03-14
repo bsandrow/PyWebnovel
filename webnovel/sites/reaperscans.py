@@ -162,7 +162,7 @@ class RemoveStartingBannerFilter(html.HtmlFilter):
             if child.text.strip() == "":
                 html.remove_element(child)
                 continue
-            elif child.text.strip().lower() == "REAPERSCANS":
+            elif child.text.strip().lower() in ("reaperscans", "reaper scans"):
                 html.remove_element(child)
             else:
                 break
