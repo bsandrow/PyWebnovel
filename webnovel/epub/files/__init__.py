@@ -17,7 +17,9 @@ if TYPE_CHECKING:
     from webnovel.epub.pkg import EpubPackage
 
 
-JINJA = Environment(loader=PackageLoader("webnovel.epub"), autoescape=select_autoescape())
+JINJA = Environment(
+    loader=PackageLoader("webnovel.epub", package_path="content/templates"), autoescape=select_autoescape()
+)
 
 
 class PyWebNovelJSON(EpubFileInterface):
