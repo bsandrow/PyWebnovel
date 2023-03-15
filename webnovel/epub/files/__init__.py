@@ -5,6 +5,8 @@ import pkgutil
 from typing import TYPE_CHECKING
 from xml.dom.minidom import getDOMImplementation
 
+from jinja2 import Environment, PackageLoader, select_autoescape
+
 from webnovel.xml import create_element, set_element_attributes
 
 from .base import BasicFileInterface, EpubFile, EpubFileInterface
@@ -13,6 +15,9 @@ from .images import EpubImage, EpubImages
 
 if TYPE_CHECKING:
     from webnovel.epub.pkg import EpubPackage
+
+
+JINJA = Environment(loader=PackageLoader("webnovel.epub"), autoescape=select_autoescape())
 
 
 class PyWebNovelJSON(EpubFileInterface):
