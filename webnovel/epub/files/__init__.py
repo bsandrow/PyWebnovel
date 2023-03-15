@@ -194,7 +194,7 @@ class TitlePage(EpubFileInterface):
         self.pkg = pkg
 
     def generate(self):
-        """Generate."""
+        """Generate title page XHMTL file."""
         template = JINJA.get_template("title_page.xhtml")
         self.data = template.render(
             novel=self.pkg.novel, stylesheet=Stylesheet.filename, title_page_css=self.title_page_css
