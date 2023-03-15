@@ -137,11 +137,12 @@ class NavigationControlFile(EpubFileInterface):
     data: bytes = None
     pkg: "EpubPackage" = None
 
-    # Skip: cover.xhtml, toc.ncx, stylesheet.css (and images)
-    files_to_ignore = ("cover", "ncx", "style", "mimetype", "container-xml", "pywebnovel-meta")
-
     def __init__(self, pkg: "EpubPackage") -> None:
         self.pkg = pkg
+
+    def get_whitelisted_files(self):
+        """Return a list of files from the package that user-facing and should be made into jump points."""
+        return [epub_file for epub_file in self.pkg.files if isinstance(epub_file, (TitlePage,))]
 
     def generate(self):
         """Generate XML Contents into data attribute."""
@@ -155,7 +156,7 @@ class NavigationControlFile(EpubFileInterface):
         )
         head = create_element(dom, "head", parent=dom.documentElement)
         doc_title = create_element(dom, "docTitle", parent=dom.documentElement)
-        navmap = create_element(dom, "navMap", parent=dom.documentElement)
+        navmap_node = create_element(dom, "navMap", parent=dom.documentElement)
 
         create_element(dom, "meta", parent=head, attributes={"name": "dtb:uid", "content": self.pkg.epub_uid})
         create_element(dom, "meta", parent=head, attributes={"name": "dtb:depth", "content": "1"})
@@ -163,19 +164,13 @@ class NavigationControlFile(EpubFileInterface):
         create_element(dom, "meta", parent=head, attributes={"name": "dtb:maxPageNumber", "content": "0"})
         create_element(dom, "text", parent=doc_title, text=self.pkg.novel.title)
 
-        for index, epub_file in enumerate(self.pkg.files):
-            # TODO: There's probably a better way to just label the files that
-            #       need to be included here rather than maintaining a
-            #       blacklist.  A property off the file class or a whitelist of
-            #       classes, etc.
-            if epub_file.file_id in self.files_to_ignore:
-                continue
-            nav_point = create_element(
-                dom, "navPoint", parent=navmap, attributes={"id": epub_file.file_id, "playOrder": index}
+        for index, epub_file in enumerate(self.get_whitelisted_files()):
+            nav_point_node = create_element(
+                dom, "navPoint", parent=navmap_node, attributes={"id": epub_file.file_id, "playOrder": index}
             )
-            nav_label = create_element(dom, "navLabel", parent=nav_point)
-            create_element(dom, "text", parent=nav_label, text=epub_file)
-            create_element(dom, "content", parent=nav_point, attributes={"src": epub_file.filename})
+            nav_label = create_element(dom, "navLabel", parent=nav_point_node)
+            create_element(dom, "text", parent=nav_label, text=epub_file.title)
+            create_element(dom, "content", parent=nav_point_node, attributes={"src": epub_file.filename})
 
         self.data = dom.toxml(encoding="utf-8")
 
