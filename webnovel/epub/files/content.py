@@ -10,22 +10,6 @@ if TYPE_CHECKING:
     from webnovel.epub.pkg import EpubPackage
 
 
-class CoverPage(EpubFileInterface):
-    """The cover page (containing the cover image) of the epub."""
-
-    file_id: str = "cover"
-    filename: str = "OEBPS/cover.xhtml"
-    mimetype: str = "application/xhtml+xml"
-    title: str = None
-    include_in_spine: bool = True
-    data: bytes = None
-
-    def generate(self, **template_kwargs):
-        """Generate."""
-        template = JINJA.get_template("cover.xhtml")
-        self.data = template.render(**template_kwargs).encode("utf-8")
-
-
 class TableOfContentsPage(EpubFileInterface):
     """The page containing the Table of Contents for the epub."""
 

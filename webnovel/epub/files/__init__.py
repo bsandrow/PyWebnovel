@@ -9,9 +9,8 @@ from jinja2 import Environment, PackageLoader, select_autoescape
 
 from webnovel.xml import create_element, set_element_attributes
 
-from .base import BasicFileInterface, EpubFile, EpubFileInterface
-from .content import CoverPage, TableOfContentsPage
-from .images import EpubImage, EpubImages
+from .base import BasicFileInterface, EpubFile, EpubFileInterface, EpubImage
+from .content import TableOfContentsPage
 
 if TYPE_CHECKING:
     from webnovel.epub.pkg import EpubPackage
@@ -196,3 +195,24 @@ class TitlePage(EpubFileInterface):
         self.data = template.render(
             novel=self.pkg.novel, stylesheet=Stylesheet.filename, title_page_css=self.title_page_css
         ).encode("utf-8")
+
+
+class CoverPage(EpubFileInterface):
+    """The cover page (containing the cover image) of the epub."""
+
+    file_id: str = "cover"
+    filename: str = "OEBPS/cover.xhtml"
+    mimetype: str = "application/xhtml+xml"
+    title: str = None
+    include_in_spine: bool = True
+    data: bytes = None
+    pkg: "EpubPackage"
+
+    def __init__(self, pkg: "EpubPackage") -> None:
+        self.pkg = pkg
+
+    def generate(self, **template_kwargs):
+        """Generate cover page XHTML."""
+        template_kwargs.setdefault("cover_image", self.pkg.cover_image)
+        template = JINJA.get_template("cover.xhtml")
+        self.data = template.render(**template_kwargs).encode("utf-8")
