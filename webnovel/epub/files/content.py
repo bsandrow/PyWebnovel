@@ -11,29 +11,6 @@ if TYPE_CHECKING:
     from webnovel.epub.pkg import EpubPackage
 
 
-class TitlePage(EpubFileInterface):
-    """The title page of the epub."""
-
-    file_id: str = "title_page"
-    filename: str = "OEBPS/title_page.xhtml"
-    mimetype: str = "application/xhtml+xml"
-    title: str = "Title Page"
-    include_in_spine: bool = True
-    data: bytes = None
-    title_page_css: str = "pywebnovel-titlepage"
-    pkg: "EpubPackage"
-
-    def __init__(self, pkg: "EpubPackage") -> None:
-        self.pkg = pkg
-
-    def generate(self):
-        """Generate."""
-        template = JINJA.get_template("title_page.xhtml")
-        self.data = template.render(
-            novel=self.pkg.novel, stylesheet=self.pkg.stylesheet_path, title_page_css=self.title_page_css
-        ).encode("utf-8")
-
-
 class CoverPage(EpubFileInterface):
     """The cover page (containing the cover image) of the epub."""
 

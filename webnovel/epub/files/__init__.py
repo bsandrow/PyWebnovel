@@ -176,3 +176,26 @@ class NavigationControlFile(EpubFileInterface):
             create_element(dom, "content", parent=nav_point, attributes={"src": epub_file.filename})
 
         self.data = dom.toxml(encoding="utf-8")
+
+
+class TitlePage(EpubFileInterface):
+    """The title page of the epub."""
+
+    file_id: str = "title_page"
+    filename: str = "OEBPS/title_page.xhtml"
+    mimetype: str = "application/xhtml+xml"
+    title: str = "Title Page"
+    include_in_spine: bool = True
+    data: bytes = None
+    title_page_css: str = "pywebnovel-titlepage"
+    pkg: "EpubPackage"
+
+    def __init__(self, pkg: "EpubPackage") -> None:
+        self.pkg = pkg
+
+    def generate(self):
+        """Generate."""
+        template = JINJA.get_template("title_page.xhtml")
+        self.data = template.render(
+            novel=self.pkg.novel, stylesheet=Stylesheet.filename, title_page_css=self.title_page_css
+        ).encode("utf-8")
