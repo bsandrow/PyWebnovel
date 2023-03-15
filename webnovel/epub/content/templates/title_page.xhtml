@@ -1,11 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+    {% if novel.author is not none %}
     <title>{{ novel.title }} by {{ novel.author.name }}</title>
+    {% else %}
+    <title>{{ novel.title }}</title>
+    {% endif %}
     <link href="{{ stylesheet }}" type="text/css" rel="stylesheet"/>
   </head>
   <body class="{{ title_page_css }}">
-    <h3><a href="{{ novel.url }}">{{ novel.title }}</a> by {{ novel.author.name }}</h3>
+    {% if novel.author is not none %}
+    <h3>{{novel.title}} by {{novel.author.name}}</h3>
+    {% else %}
+    <h3>{{novel.title}}</h3>
+    {% endif %}
     <div>
         {%- if items is defined and items|length > 0 -%}
             {% for item in items %}
@@ -14,6 +22,9 @@
         {%- else -%}
             <br />
         {%- endif -%}
+    </div>
+    <div>
+      Scraped from {{novel.site_id}}.
     </div>
   </body>
 </html>
