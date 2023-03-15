@@ -1,5 +1,6 @@
-from typing import TYPE_CHECKING
+"""File."""
 
+from typing import TYPE_CHECKING
 from xml.dom.minidom import getDOMImplementation
 
 from webnovel.epub.files import EpubFileInterface
@@ -8,18 +9,6 @@ from webnovel.xml import create_element, set_element_attributes
 
 if TYPE_CHECKING:
     from webnovel.epub.pkg import EpubPackage
-
-
-class Stylesheet(EpubFileInterface):
-    """"""
-
-    file_id: str = "style"
-    filename: str = "OEBPS/stylesheet.css"
-    mimetype: str = "text/css"
-    pkg: "EpubPackage"
-
-    def __init__(self, pkg: "EpubPackage") -> None:
-        self.pkg = pkg
 
 
 class TitlePage(EpubFileInterface):
@@ -38,11 +27,10 @@ class TitlePage(EpubFileInterface):
         self.pkg = pkg
 
     def generate(self):
+        """Generate."""
         template = JINJA.get_template("title_page.xhtml")
         self.data = template.render(
-            novel=self.pkg.novel,
-            stylesheet=self.pkg.stylesheet_path,
-            title_page_css=self.title_page_css
+            novel=self.pkg.novel, stylesheet=self.pkg.stylesheet_path, title_page_css=self.title_page_css
         ).encode("utf-8")
 
 
@@ -57,6 +45,7 @@ class CoverPage(EpubFileInterface):
     data: bytes = None
 
     def generate(self, **template_kwargs):
+        """Generate."""
         template = JINJA.get_template("cover.xhtml")
         self.data = template.render(**template_kwargs).encode("utf-8")
 
@@ -85,13 +74,14 @@ class NavigationControlFile(EpubFileInterface):
         self.pkg = pkg
 
     def generate(self):
+        """Generate."""
         dom = getDOMImplementation().createDocument(None, "ncx", None)
         set_element_attributes(
             dom.documentElement,
             {
                 "version": "2005-1",
                 "xmlns": "http://www.daisy.org/z3986/2005/ncx/",
-            }
+            },
         )
         head = create_element(dom, "head", parent=dom.documentElement)
         doc_title = create_element(dom, "docTitle", parent=dom.documentElement)
@@ -133,11 +123,12 @@ class TableOfContentsPage(EpubFileInterface):
         self.pkg = pkg
 
     def generate(self):
-        pass
+        """Generate."""
 
 
 class NavXhtml(EpubFileInterface):
     """Class for the nav.xhtml file."""
+
     file_id: str = "nav"
     filename: str = "nav.xhtml"
     mimetype: str = "application/xhtml+xml"
@@ -150,4 +141,4 @@ class NavXhtml(EpubFileInterface):
         self.pkg = pkg
 
     def generate(self):
-        pass
+        """Generate."""
