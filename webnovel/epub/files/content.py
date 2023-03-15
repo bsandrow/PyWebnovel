@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 from xml.dom.minidom import getDOMImplementation
 
 from webnovel.epub.files import EpubFileInterface
-from webnovel.epub.files.jinja import JINJA
 from webnovel.xml import create_element, set_element_attributes
 
 if TYPE_CHECKING:
