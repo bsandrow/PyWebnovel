@@ -103,4 +103,4 @@ class Stylesheet(EpubFileInterface):
 
     def generate(self) -> None:
         """Load the stylesheet data from embeded stylesheet."""
-        self.data = pkgutil.get_data("webnovel", "content/stylesheet.css")
+        self.data = pkgutil.get_data("webnovel.epub", "content/stylesheet.css")
