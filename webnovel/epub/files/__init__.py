@@ -10,7 +10,7 @@ from jinja2 import Environment, PackageLoader, select_autoescape
 from webnovel.xml import create_element, set_element_attributes
 
 from .base import BasicFileInterface, EpubFile, EpubFileInterface
-from .content import CoverPage, TableOfContentsPage, TitlePage
+from .content import CoverPage, TableOfContentsPage
 from .images import EpubImage, EpubImages
 
 if TYPE_CHECKING:
