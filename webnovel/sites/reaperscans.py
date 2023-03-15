@@ -10,6 +10,8 @@ from webnovel.data import Chapter, NovelStatus
 from webnovel.livewire import LiveWireAPI
 from webnovel.scraping import NovelScraper, Selector
 
+URL_PATTERN = r"https?://(?:www\.)?reaperscans\.com/novels/(\d+-[\w-]+)"
+
 
 def get_csrf_token(element: Tag) -> str:
     """Return the CSRF token from the page."""
@@ -195,9 +197,15 @@ class ReaperScansScraper(NovelScraper):
     }
 
     @staticmethod
+    def get_novel_id(url: str) -> str:
+        """Return the id of the novel that ReaperScans uses."""
+        match = re.match(URL_PATTERN, url)
+        return match.group(1) if match is not None else None
+
+    @staticmethod
     def validate_url(url: str) -> bool:
         """Validate that a URL matches something that works for ReaperScans.com and the scraper should support."""
-        return re.match(r"https?://(?:www\.)?reaperscans\.com/novels/(\d+-\w+)", url) is not None
+        return re.match(URL_PATTERN, url) is not None
 
     def get_genres(self, page):
         """Return empty list since ReaperScans doesn't have genres listed on the novel page."""

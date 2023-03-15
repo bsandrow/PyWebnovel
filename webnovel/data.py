@@ -101,6 +101,8 @@ class Novel:
     """Representation of the webnovel itself."""
 
     url: str
+    novel_id: str
+    site_id: str = None
     title: str = None
     status: NovelStatus = None
     summary: str = None

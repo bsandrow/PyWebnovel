@@ -23,6 +23,12 @@ class WuxiaWorldDotSiteScraper(NovelScraper):
     chapter_content_selector = Selector("div.reading-content > div:nth-child(2)")
 
     @staticmethod
+    def get_novel_id(url: str) -> str:
+        """Return the id of the novel that WuxiaWorld.site uses."""
+        match = re.match(NOVEL_URL_PATTERN, url)
+        return match.group(1) if match else None
+
+    @staticmethod
     def validate_url(url: str) -> bool:
         """Validate that a URL matches something that works for WuxiaWorld.site and the scraper should support."""
         return re.match(NOVEL_URL_PATTERN, url) is not None

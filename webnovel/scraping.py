@@ -97,8 +97,6 @@ class NovelScraper:
         """Extract an Image() for the cover image of the novel from the novel's page."""
         if self.cover_image_url_selector is not None:
             a = self.cover_image_url_selector.parse_one(html=page)
-            print(f"a => {a}")
-
             return Image(url=self.cover_image_url_selector.parse_one(html=page, use_attribute=True))
         return None
 
@@ -135,8 +133,11 @@ class NovelScraper:
     def scrape(self, url: str) -> Novel:
         """Scrape URL to return a Novel instance populated from extracted information."""
         page = self.get_page(url)
+        novel_id = self.get_novel_id(url)
         return Novel(
             url=url,
+            site_id=self.site_name,
+            novel_id=novel_id,
             title=self.get_title(page),
             status=self.get_status(page),
             genres=self.get_genres(page),
