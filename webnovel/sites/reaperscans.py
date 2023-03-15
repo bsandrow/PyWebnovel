@@ -172,6 +172,7 @@ class ReaperScansScraper(NovelScraper):
     status_selector = Selector("MAIN > DIV:nth-child(2) > SECTION > DIV:first-child DL > DIV:nth-child(4) DD")
     summary_selector = Selector("MAIN > DIV:nth-child(2) > SECTION > DIV:first-child > DIV > P")
     chapter_selector = Selector(r"MAIN > DIV:nth-child(2) > DIV DIV[wire\:id]")
+    cover_image_url_selector = Selector("main > div:nth-child(2) > div img", attribute="src")
     chapter_title_selector = Selector("ARTICLE > P:nth-child(7)")
     # next_chapter_selector = Selector(
     #     "MAIN > DIV:nth-child(2) > NAV:nth-child(2) > DIV:nth-child(3) > A:nth-child(2)", attribute="href"
