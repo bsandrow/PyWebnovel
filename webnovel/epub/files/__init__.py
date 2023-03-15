@@ -11,7 +11,7 @@ from jinja2 import Environment, PackageLoader, select_autoescape
 from webnovel.data import Image
 from webnovel.xml import create_element, set_element_attributes
 
-from .content import TableOfContentsPage
+# from .content import TableOfContentsPage
 
 if TYPE_CHECKING:
     from webnovel.epub.pkg import EpubPackage
