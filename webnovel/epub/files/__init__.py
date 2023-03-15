@@ -1,5 +1,6 @@
 """Classes to represent and generate the files that will be in the epub package."""
 
+from dataclasses import dataclass
 import json
 import pkgutil
 from typing import TYPE_CHECKING
@@ -7,9 +8,9 @@ from xml.dom.minidom import getDOMImplementation
 
 from jinja2 import Environment, PackageLoader, select_autoescape
 
+from webnovel.data import Image
 from webnovel.xml import create_element, set_element_attributes
 
-from .base import BasicFileInterface, EpubFile, EpubFileInterface, EpubImage
 from .content import TableOfContentsPage
 
 if TYPE_CHECKING:
@@ -19,6 +20,54 @@ if TYPE_CHECKING:
 JINJA = Environment(
     loader=PackageLoader("webnovel.epub", package_path="content/templates"), autoescape=select_autoescape()
 )
+
+
+class BasicFileInterface:
+    """Interface use for simple files in the epub package."""
+
+    file_id: str
+    filename: str
+    data: bytes = None
+    pkg: "EpubPackage" = None
+
+
+class EpubFileInterface(BasicFileInterface):
+    """More advanced interface used for files in the epub package."""
+
+    file_id: str
+    filename: str
+    mimetype: str
+    title: str = None
+    include_in_spine: bool = False
+    data: bytes = None
+    pkg: "EpubPackage" = None
+
+
+@dataclass
+class EpubFile(EpubFileInterface):
+    """Class representing a file in the epub package."""
+
+    file_id: str
+    filename: str
+    mimetype: str
+    title: str = None
+    include_in_spine: bool = False
+    data: bytes = None
+    pkg: "EpubPackage" = None
+
+
+class EpubImage(EpubFile):
+    """Class representing an image in the epub package."""
+
+    @classmethod
+    def from_image(cls, image: Image, image_id: str) -> "EpubImage":
+        """Create an EpubImage from an Image."""
+        return EpubImage(
+            file_id=image_id,
+            filename=f"OEBPS/{image_id}{image.extension}",
+            mimetype=image.mimetype,
+            data=image.data,
+        )
 
 
 class PyWebNovelJSON(EpubFileInterface):
