@@ -188,6 +188,8 @@ class NavigationControlFile(EpubFileInterface):
             files.append(self.pkg.files.cover_page)
         if self.pkg.files.title_page:
             files.append(self.pkg.files.title_page)
+        if self.pkg.files.toc_page:
+            files.append(self.pkg.files.toc_page)
         files.extend(self.pkg.files.chapters)
         return files
 
@@ -251,7 +253,7 @@ class CoverPage(EpubFileInterface):
     file_id: str = "cover"
     filename: str = "OEBPS/cover.xhtml"
     mimetype: str = "application/xhtml+xml"
-    title: str = None
+    title: str = "Cover"
     include_in_spine: bool = True
     data: bytes = None
     pkg: "EpubPackage"
@@ -438,7 +440,7 @@ class TableOfContentsPage(EpubFileInterface):
     file_id: str = "toc_page"
     filename: str = "OEBPS/toc_page.xhtml"
     mimetype: str = "application/xhtml+xml"
-    title: str = "Table of Contents"
+    title: str = "Contents"
     include_in_spine: bool = True
     include_in_manifest: bool = True
     data: bytes = None
@@ -449,7 +451,19 @@ class TableOfContentsPage(EpubFileInterface):
 
     def generate(self):
         """Generate TableOfContents Page."""
-        template_kwargs = {"items": self.pkg.files.generate_toc_list()}
+        template_kwargs = {
+            "items": [
+                {
+                    "title": item.title,
+                    "filename": (
+                        item.filename.replace("OEBPS/", "")
+                        if item.filename.startswith("OEBPS/")
+                        else f"../{item.filename}"
+                    ),
+                }
+                for item in self.pkg.files.generate_toc_list()
+            ]
+        }
         template = JINJA.get_template("toc_page.xhtml")
         self.data = template.render(**template_kwargs).encode("utf-8")
 

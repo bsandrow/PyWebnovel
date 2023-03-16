@@ -132,10 +132,12 @@ class EpubFileList:
     def generate_toc_list(self) -> list:
         """Generate the list of items to include in the TOC."""
         toc_files = []
-        # if self.cover_page:
-        #     toc_files.append(self.cover_page)
+        if self.cover_page:
+            toc_files.append(self.cover_page)
         if self.title_page:
             toc_files.append(self.title_page)
+        if self.toc_page:
+            toc_files.append(self.toc_page)
         toc_files += sorted(self.chapters, key=lambda ch: ch.file_id)
         return toc_files
 
