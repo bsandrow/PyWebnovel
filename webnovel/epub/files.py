@@ -181,9 +181,15 @@ class NavigationControlFile(EpubFileInterface):
     def __init__(self, pkg: "EpubPackage") -> None:
         self.pkg = pkg
 
-    def get_whitelisted_files(self):
+    def get_whitelisted_files(self) -> list:
         """Return a list of files from the package that user-facing and should be made into jump points."""
-        return [epub_file for epub_file in self.pkg.files if isinstance(epub_file, (TitlePage,))]
+        files = []
+        if self.pkg.files.cover_page:
+            files.append(self.pkg.files.cover_page)
+        if self.pkg.files.title_page:
+            files.append(self.pkg.files.title_page)
+        files.extend(self.pkg.files.chapters)
+        return files
 
     def generate(self):
         """Generate XML Contents into data attribute."""
@@ -207,7 +213,7 @@ class NavigationControlFile(EpubFileInterface):
 
         for index, epub_file in enumerate(self.get_whitelisted_files()):
             nav_point_node = create_element(
-                dom, "navPoint", parent=navmap_node, attributes={"id": epub_file.file_id, "playOrder": index}
+                dom, "navPoint", parent=navmap_node, attributes={"id": epub_file.file_id, "playOrder": str(index)}
             )
             nav_label = create_element(dom, "navLabel", parent=nav_point_node)
             create_element(dom, "text", parent=nav_label, text=epub_file.title)
