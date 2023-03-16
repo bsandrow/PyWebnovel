@@ -1,6 +1,7 @@
 """Command to create an epub file from a link to a webnovel."""
 
 import argparse
+import time
 
 from webnovel import epub, sites
 
@@ -28,10 +29,11 @@ def run():
         epub_pkg.add_image(novel.cover_image, is_cover_image=True)
 
     assert novel.chapters
-    chapters = sorted(novel.chapters, key=lambda ch: int(ch.chapter_no))
-    for chapter in chapters[:2]:
+    # for chapter in chapters[:2]:
+    for chapter in sorted(novel.chapters, key=lambda ch: int(ch.chapter_no)):
         print(f"Processing chapter: {chapter.title}")
         scraper.process_chapters(chapters=[chapter])
+        time.sleep(5)
         epub_pkg.add_chapter(chapter)
 
     epub_pkg.save(filename)
