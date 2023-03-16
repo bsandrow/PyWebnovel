@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="{{langcode}}" lang="{{langcode}}">
+<head>
+  <title>Navigation</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+<body>
+	<nav epub:type="toc">
+		<ol>
+			{% for item in toc %}
+			<li>
+				<a href="{{item.filename}}">{{item.title}}</a>
+			</li>
+			{% endif %}
+		</ol>
+	</nav>
+	<nav epub:type="landmarks" hidden="">
+		<ol>
+		{% if cover_page %}
+			<li>
+				<a href="{{cover_page.filename}}" epub:type="cover">Cover</a>
+			</li>
+		{% endif %}
+		</ol>
+	</nav>
+</body>
+</html>

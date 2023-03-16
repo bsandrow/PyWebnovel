@@ -1,19 +1,19 @@
 """Class representing the EPUB file."""
 
 from inspect import isclass
-from typing import IO, Union
+from typing import IO, Optional, Union
 from zipfile import ZIP_STORED, ZipFile
 
-from apptk.func import cached_property
-
-from webnovel.data import Image
+from webnovel.data import Chapter, Image
 from webnovel.epub.files import (  # TableOfContentsPage,
+    ChapterFile,
     ContainerXML,
     CoverPage,
     EpubFileInterface,
     EpubImage,
     MimetypeFile,
     NavigationControlFile,
+    PackageOPF,
     PyWebNovelJSON,
     Stylesheet,
     TitlePage,
@@ -26,13 +26,15 @@ from .data import EpubNovel
 class EpubFileList:
     """The file list of the contents of the epub file."""
 
-    files: dict = None
-    image_id_counter: int = None
-    cover_image_id: str = None
-    cover_image: EpubImage = None
+    files: dict
+    image_id_counter: int
+    chapter_id_counter: int
+    cover_image_id: Optional[str] = None
+    cover_image: Optional[EpubImage] = None
 
     def __init__(self):
         self.image_id_counter = 0
+        self.chapter_id_counter = 0
         self.files = {}
 
     def has_file(self, key) -> bool:
@@ -77,6 +79,21 @@ class EpubFileList:
 
         return image.file_id
 
+    def generate_chapter_id(self) -> str:
+        """Generate a new, unused file_id for an chapter."""
+        chapter_id = None
+        while chapter_id is None or chapter_id in self:
+            chapter_id = f"ch{self.chapter_id_counter:05d}"
+            self.chapter_id_counter += 1
+        return chapter_id
+
+    def add_chapter(self, chapter: Chapter, pkg: "EpubPackage") -> str:
+        """Create a ChapterFile from Chapter and add to the file list."""
+        file_id = self.generate_chapter_id()
+        chap_file = ChapterFile(pkg=pkg, chapter=chapter, file_id=file_id)
+        self.files[file_id] = chap_file
+        return file_id
+
     def add(self, epub_file: EpubFileInterface) -> str:
         """Add a file to the list."""
         if isinstance(epub_file, (Image, EpubImage)):
@@ -91,10 +108,10 @@ class EpubFileList:
         """Return a list of all images in the file list."""
         return [item for _, item in self.files.items() if isinstance(item, EpubImage)]
 
-    # @property
-    # def chapters(self):
-    #     return []
-    #     # return [item for _, item in self.files.items() if isinstance(item, EpubChapter)]
+    @property
+    def chapters(self):
+        """Return a list of all of the chapter files."""
+        return sorted([item for item in self.files if isinstance(item, ChapterFile)], key=lambda i: i.file_id)
 
     def __iter__(self):
         """Return an iterator over all files in the list."""
@@ -110,6 +127,16 @@ class EpubFileList:
         """Test of file_id is in the file list."""
         return key in self.files
 
+    def generate_toc_list(self) -> list:
+        """Generate the list of items to include in the TOC."""
+        toc_files = []
+        if self.cover_page:
+            toc_files.append(self.cover_page)
+        if self.title_page:
+            toc_files.append(self.title_page)
+        toc_files += sorted(self.chapters, key=lambda ch: ch.file_id)
+        return toc_files
+
     @property
     def has_toc_page(self) -> bool:
         """Test if a table of contents page is in the list."""
@@ -118,7 +145,19 @@ class EpubFileList:
     @property
     def has_cover_page(self) -> bool:
         """Test if the cover page is included in the file list."""
-        return CoverPage.file_id in self
+        return self.cover_page is not None
+
+    @property
+    def cover_page(self) -> Optional[CoverPage]:
+        """Return the cover page, if one exists."""
+        file_id = CoverPage.file_id
+        return self[file_id] if file_id in self else None
+
+    @property
+    def title_page(self) -> Optional[TitlePage]:
+        """Return the title page, if one exists."""
+        file_id = TitlePage.file_id
+        return self[file_id] if file_id in self else None
 
 
 class EpubPackage:
@@ -133,7 +172,7 @@ class EpubPackage:
     default_language_code: str
     include_images: bool
     stylesheet_path: str = "stylesheet.css"  # TODO connect this with file
-    files: EpubFileList = None
+    files: EpubFileList
 
     def __init__(
         self,
@@ -161,6 +200,7 @@ class EpubPackage:
         files = EpubFileList()
         files.add(MimetypeFile(self))
         files.add(ContainerXML(self))
+        files.add(PackageOPF(self))
         files.add(NavigationControlFile(self))
         files.add(Stylesheet(self))
 
@@ -183,10 +223,11 @@ class EpubPackage:
         if is_cover_image and not self.files.has_cover_page:
             self.files.add(CoverPage(self))
 
-    # def add_chapter(self, chapter) -> None:
-    #     self.files.add(chapter)
-    #     if self.include_title_page:
-    #         self.files.add(TableOfContentsPage(self))
+    def add_chapter(self, chapter) -> None:
+        """Add a Chapter to the epub file."""
+        self.files.add_chapter(chapter, self)
+        # if self.include_title_page:
+        #     self.files.add(TableOfContentsPage(self))
 
     @property
     def is_epub3(self) -> bool:
@@ -200,7 +241,7 @@ class EpubPackage:
         return f"urn:pywebnovel:uid:{self.novel.site_id}:{self.novel.novel_id}"
 
     @property
-    def cover_image(self) -> EpubImage:
+    def cover_image(self) -> Optional[EpubImage]:
         """Return the cover image file."""
         return self.files.cover_image
 

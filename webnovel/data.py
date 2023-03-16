@@ -22,8 +22,8 @@ class Image:
     """An (web-hosted) Image."""
 
     url: str
-    data: bytes = None
-    mimetype: str = None
+    data: Optional[bytes] = None
+    mimetype: Optional[str] = None
     did_load: bool = False  # True if data/mimetype were loaded from the URL.
 
     extension_map = {
@@ -81,8 +81,8 @@ class Person:
     """
 
     name: str
-    email: str = None
-    url: str = None
+    email: Optional[str] = None
+    url: Optional[str] = None
 
 
 @dataclass
@@ -90,10 +90,10 @@ class Chapter:
     """Representation of a chapter of a webnovel."""
 
     url: str
-    title: str = None
-    chapter_no: str = None
-    slug: str = None
-    html_content: Tag = None
+    title: Optional[str] = None
+    chapter_no: Optional[str] = None
+    slug: Optional[str] = None
+    html_content: Optional[Tag] = None
 
 
 @dataclass
@@ -102,13 +102,13 @@ class Novel:
 
     url: str
     novel_id: str
-    site_id: str = None
-    title: str = None
-    status: NovelStatus = None
-    summary: str = None
-    genres: list[str] = None
-    tags: list[str] = None
+    site_id: Optional[str] = None
+    title: Optional[str] = None
+    status: Optional[NovelStatus] = None
+    summary: Optional[str] = None
+    genres: Optional[list[str]] = None
+    tags: Optional[list[str]] = None
     author: Optional[Person] = None
-    translator: Person = None
-    chapters: list[Chapter] = None
-    cover_image: Image = None
+    translator: Optional[Person] = None
+    chapters: Optional[list[Chapter]] = None
+    cover_image: Optional[Image] = None

@@ -243,7 +243,7 @@ class ReaperScansScraper(NovelScraper):
             title = chapter_item.select_one("p").text.strip()
             match = re.match(r"Chapter (\d+(?:\.\d+)?)", title)
             chapter_no = match.group(1)
-            chapter = Chapter(url=url, title=title, chapter_no=chapter_no, slug=chapter_slug)
+            chapter = Chapter(url=url, title=title, chapter_no=int(chapter_no), slug=chapter_slug)
             chapters.append(chapter)
 
             if len(chapter_list_items) < 1:
@@ -253,4 +253,4 @@ class ReaperScansScraper(NovelScraper):
                 chapter_list = self.get_soup(page_html)
                 chapter_list_items = chapter_list.select(r"LI[wire\:key]")
 
-        return chapters
+        return sorted(chapters, key=lambda ch: ch.chapter_no)
