@@ -30,8 +30,6 @@ class EpubFileInterface:
     include_in_spine: bool = False
     include_in_manifest: bool = True
     data: Optional[bytes] = None
-    include_in_spine: bool = False
-    include_in_manifest: bool = False
     pkg: Optional["EpubPackage"] = None
 
 
