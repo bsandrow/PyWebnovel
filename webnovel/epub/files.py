@@ -498,6 +498,7 @@ class NavXhtml(EpubFileInterface):
         template_kwargs = {
             "cover_page": self.pkg.files.cover_page,
             "toc": self.pkg.files.generate_toc_list(),
+            "langcode": "en",
         }
         template = JINJA.get_template("nav.xhtml")
         self.data = template.render(**template_kwargs).encode("utf-8")
