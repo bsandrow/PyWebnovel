@@ -5,7 +5,7 @@ from typing import IO, Optional, Union
 from zipfile import ZIP_STORED, ZipFile
 
 from webnovel.data import Chapter, Image
-from webnovel.epub.files import (  # TableOfContentsPage,
+from webnovel.epub.files import (
     ChapterFile,
     ContainerXML,
     CoverPage,
@@ -13,9 +13,11 @@ from webnovel.epub.files import (  # TableOfContentsPage,
     EpubImage,
     MimetypeFile,
     NavigationControlFile,
+    NavXhtml,
     PackageOPF,
     PyWebNovelJSON,
     Stylesheet,
+    TableOfContentsPage,
     TitlePage,
 )
 
@@ -111,7 +113,7 @@ class EpubFileList:
     @property
     def chapters(self):
         """Return a list of all of the chapter files."""
-        return sorted([item for item in self.files if isinstance(item, ChapterFile)], key=lambda i: i.file_id)
+        return sorted([item for item in self.files.values() if isinstance(item, ChapterFile)], key=lambda i: i.file_id)
 
     def __iter__(self):
         """Return an iterator over all files in the list."""
@@ -130,8 +132,8 @@ class EpubFileList:
     def generate_toc_list(self) -> list:
         """Generate the list of items to include in the TOC."""
         toc_files = []
-        if self.cover_page:
-            toc_files.append(self.cover_page)
+        # if self.cover_page:
+        #     toc_files.append(self.cover_page)
         if self.title_page:
             toc_files.append(self.title_page)
         toc_files += sorted(self.chapters, key=lambda ch: ch.file_id)
@@ -220,13 +222,14 @@ class EpubPackage:
         files.add(ContainerXML(self))
         files.add(PackageOPF(self))
         files.add(NavigationControlFile(self))
+        files.add(NavXhtml(self))
         files.add(Stylesheet(self))
 
         if self.include_title_page:
             files.add(TitlePage(self))
 
-        # if self.include_toc_page:
-        #     files.add(TableOfContentsPage(self))
+        if self.include_toc_page:
+            files.add(TableOfContentsPage(self))
 
         files.add(PyWebNovelJSON(self))
         return files

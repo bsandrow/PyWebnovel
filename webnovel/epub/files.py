@@ -443,16 +443,7 @@ class TableOfContentsPage(EpubFileInterface):
 
     def generate(self):
         """Generate TableOfContents Page."""
-        items = []
-
-        if self.pkg.files.cover_image:
-            items.append(self.pkg.files.cover_image)
-
-        if self.pkg.files.title_page:
-            items.append(self.pkg.files.title_page)
-
-        items += self.pkg.files.chapters
-        template_kwargs = {"items": items}
+        template_kwargs = {"items": self.pkg.files.generate_toc_list()}
         template = JINJA.get_template("toc_page.xhtml")
         self.data = template.render(**template_kwargs).encode("utf-8")
 
@@ -506,7 +497,7 @@ class NavXhtml(EpubFileInterface):
         """Generate nav.xhtml File."""
         template_kwargs = {
             "cover_page": self.pkg.files.cover_page,
-            "toc": None,  # TODO
+            "toc": self.pkg.files.generate_toc_list(),
         }
         template = JINJA.get_template("nav.xhtml")
         self.data = template.render(**template_kwargs).encode("utf-8")
