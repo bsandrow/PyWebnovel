@@ -137,10 +137,28 @@ class EpubFileList:
         toc_files += sorted(self.chapters, key=lambda ch: ch.file_id)
         return toc_files
 
+    def generate_spine_items(self) -> list:
+        """Generate the list of items to include in the <spine>."""
+        items = []
+        if self.cover_page:
+            items.append(self.cover_page)
+        if self.title_page:
+            items.append(self.title_page)
+        if self.toc_page:
+            items.append(self.toc_page)
+        items.extend(self.chapters)
+        return items
+
     @property
     def has_toc_page(self) -> bool:
         """Test if a table of contents page is in the list."""
         return "toc_page" in self
+
+    @property
+    def toc_page(self) -> Optional[TableOfContentsPage]:
+        """Return the table of contents page, if it exists."""
+        file_id = TableOfContentsPage.file_id
+        return self[file_id] if file_id in self else None
 
     @property
     def has_cover_page(self) -> bool:

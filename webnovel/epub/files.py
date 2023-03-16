@@ -290,9 +290,8 @@ class PackageOPF(EpubFileInterface):
     def generate_spine(dom: Document, pkg: "EpubPackage") -> Element:
         """Generate a <spine> for the OPF package."""
         spine = create_element(dom, "spine", attributes={"toc": "ncx"})
-        for epub_file in pkg.files:
-            if epub_file.include_in_spine and epub_file.file_id is not None:
-                create_element(dom, "itemref", attributes={"idref": epub_file.file_id, "linear": "yes"}, parent=spine)
+        for spine_item in pkg.files.generate_spine_items():
+            create_element(dom, "itemref", attributes={"idref": spine_item.file_id, "linear": "yes"}, parent=spine)
         return spine
 
     @staticmethod
