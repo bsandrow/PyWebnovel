@@ -4,6 +4,8 @@ from inspect import isclass
 from typing import IO, Optional, Union
 from zipfile import ZIP_STORED, ZipFile
 
+from apptk.http import HttpClient
+
 from webnovel.data import Chapter, Image
 from webnovel.epub.files import (
     ChapterFile,
@@ -67,10 +69,10 @@ class EpubFileList:
             self.image_id_counter += 1
         return image_id
 
-    def add_image(self, image: Union[EpubImage, Image], is_cover_image: bool = False) -> str:
+    def add_image(self, image: Union[EpubImage, Image], is_cover_image: bool = False, client: HttpClient = None) -> str:
         """Add an image to the file list."""
         if isinstance(image, Image):
-            image.load()
+            image.load(client=client)
             image = EpubImage.from_image(image=image, image_id=self.generate_image_id())
         assert isinstance(image, EpubImage), "add_image can only handle Image or EpubImage instances."
         self.files[image.file_id] = image
@@ -236,13 +238,15 @@ class EpubPackage:
         files.add(PyWebNovelJSON(self))
         return files
 
-    def add_image(self, image: Union[Image, EpubImage], is_cover_image: bool = False) -> None:
+    def add_image(
+        self, image: Union[Image, EpubImage], is_cover_image: bool = False, client: HttpClient = None
+    ) -> None:
         """
         Add an image to the package.
 
         If the image is a cover image, add the cover page to display it.
         """
-        self.files.add_image(image, is_cover_image=is_cover_image)
+        self.files.add_image(image, is_cover_image=is_cover_image, client=client)
         if is_cover_image and not self.files.has_cover_page:
             self.files.add(CoverPage(self))
 

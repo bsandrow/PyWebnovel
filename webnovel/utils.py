@@ -1,10 +1,16 @@
 """General Utilities - written in support of the rest of the code."""
 
 import io
+import re
 import string
-from typing import IO, Union
+from typing import IO, Sequence, Union
 
 BASE_DIGITS = string.digits + string.ascii_letters
+
+
+def clean_filename(filename: str, replace_chars: Sequence[str] = "/?:@#!$%^"):
+    """Replace characters that might screw up the filename."""
+    return re.sub(r"[" + replace_chars + "]+", "_", filename)
 
 
 def merge_dicts(*dicts, nested: bool = False, use_first: bool = False, factory: type[dict] = dict) -> dict:

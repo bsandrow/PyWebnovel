@@ -2,8 +2,11 @@
 
 from dataclasses import dataclass
 from enum import Enum
+import imghdr
+from io import BytesIO
 from typing import Optional
 
+from apptk.http import HttpClient
 from bs4 import Tag
 
 
@@ -39,7 +42,7 @@ class Image:
         """Return the filename extension to use for this image (based on the mime-type)."""
         return None if self.mimetype is None else self.extension_map[self.mimetype]
 
-    def load(self, force: bool = False) -> bool:
+    def load(self, force: bool = False, client: HttpClient = None) -> bool:
         """
         Download the image from the URL, populating data and mimetype fields.
 
@@ -49,13 +52,20 @@ class Image:
             Defaults to false.
         """
         if not self.did_load or force:
-            from webnovel.scraping import http_client
-
-            response = http_client.get(self.url)
+            if client is None:
+                from webnovel.scraping import http_client as client
+            response = client.get(self.url)
             response.raise_for_status()
             self.data = response.content
             content_type = response.headers["content-type"]
-            self.mimetype, _, _ = content_type.lower().partition(";")
+            if content_type not in self.extension_map:
+                image_type = imghdr.what(file=None, h=self.data)
+                if image_type:
+                    self.mimetype = "image/" + image_type
+                else:
+                    raise Exception("ERROR")
+            else:
+                self.mimetype, _, _ = content_type.lower().partition(";")
             self.did_load = True
             return True
         return False

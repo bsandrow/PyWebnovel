@@ -1,1 +1,8 @@
-BODY { line-height: 1.8; }
+BODY {
+	line-height: 1.8em;
+}
+
+P {
+	text-indent: 0 !important;
+	margin-bottom: 1.5em !important;
+}

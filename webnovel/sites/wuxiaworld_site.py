@@ -3,6 +3,7 @@
 import re
 
 from webnovel.data import Chapter, NovelStatus
+from webnovel.html import remove_element
 from webnovel.scraping import HTTPS_PREFIX, NovelScraper, Selector
 
 NOVEL_URL_PATTERN = HTTPS_PREFIX + r"wuxiaworld\.site/novel/([\w-]+)/"
@@ -20,7 +21,7 @@ class WuxiaWorldDotSiteScraper(NovelScraper):
     author_url_selector = Selector("div.author-content > a", attribute="href")
     genre_selector = Selector("div.genres-content > a")
     cover_image_url_selector = Selector("div.summary_image img", attribute="data-src")
-    chapter_content_selector = Selector("div.reading-content > div:nth-child(2)")
+    chapter_content_selector = Selector("div.reading-content > input#wp-manga-current-chap > div")
 
     @staticmethod
     def get_novel_id(url: str) -> str:
@@ -39,6 +40,29 @@ class WuxiaWorldDotSiteScraper(NovelScraper):
         match = re.match(NOVEL_URL_PATTERN, url)
         return match.group(1) if match is not None else None
 
+    def chapter_extra_processing(self, chapter: Chapter) -> None:
+        """
+        Deal with the weird/inconsitent way that chapter titles are added to chapter content.
+
+        Sometimes it's in a <h3> at the top. Other times it's just in a <p>. Even within the same
+        novel, the formatting differs from chapter to chapter. Even the chapter title content
+        formatting (e.g. "Chapter 1 - Name" vs "Chapter 1: Name" vs "1 Name" etc)
+
+        If the first element in the content matches somethings that looks like a chapter title,
+        extract it, clean it up, replace Chapter.title and remove if from the chapter content. This
+        prevents us from seeing the chapter title twice due to the way that we format the chapter
+        xhtml files.
+        """
+        results = chapter.html_content.find_all(limit=1)
+        if results:
+            text = results[0].text.strip()
+            if "\n" not in text and (match := re.match(r"(?:Chapter\s*)?(\d+)(?: -|:)? \w+.*", text)):
+                chapter.title = match.group(0)
+                chapter.title = re.sub(r"^(Chapter )?(\d+) (\w)", r"\1\2: \3", chapter.title)
+                if re.match("\d+", chapter.title):
+                    chapter.title = "Chapter " + chapter.title
+                remove_element(results[0])
+
     def get_chapters(self, page, url: str) -> list:
         """Return the list of Chapter instances for WuxiaWorld.site."""
         url = url if url.endswith("/") else f"{url}/"
@@ -53,7 +77,7 @@ class WuxiaWorldDotSiteScraper(NovelScraper):
             Chapter(
                 url=chapter_li.select_one("a").get("href"),
                 title=(title := chapter_li.select_one("a").text.strip()),
-                chapter_no=get_chapter_no(title),
+                chapter_no=int(get_chapter_no(title)),
             )
             for chapter_li in chapter_list_page.select("li.wp-manga-chapter")
         ]

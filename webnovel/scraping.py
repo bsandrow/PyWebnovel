@@ -118,6 +118,9 @@ class NovelScraper:
         :param url: The url of the novel's page.
         """
 
+    def chapter_extra_processing(self, chapter: Chapter) -> None:
+        """Extra per-chapter processing that can be defined per-scraper."""
+
     def process_chapters(self, chapters: list[Chapter]) -> None:
         """
         Populate html_content attribute of a list of Chapters.
@@ -128,6 +131,7 @@ class NovelScraper:
         for chapter in chapters:
             page = self.get_page(chapter.url)
             chapter.html_content = self.chapter_content_selector.parse_one(page, use_attribute=False)
+            self.chapter_extra_processing(chapter)
             html.run_filters(chapter.html_content, filters=self.chapter_content_filters)
 
     def scrape(self, url: str) -> Novel:
