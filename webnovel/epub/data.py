@@ -1,9 +1,13 @@
 """Representations of scraper data to be stored within the EPUB file."""
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 import urllib.parse
 
 from webnovel.data import Chapter, Image, Novel
+
+if TYPE_CHECKING:
+    from webnovel.epub.pkg import NovelInfo
 
 
 class EpubChapter(Chapter):
@@ -24,13 +28,18 @@ class EpubMetadata:
     chapters: list[EpubChapter] = None
 
 
-class EpubNovel(Novel):
-    @property
-    def novel_id(self):
-        result = urllib.parse.urlparse(self.url)
-        return ":".join(result.path)
+@dataclass
+class NovelData:
+    """Novel Data stored in ebook."""
 
-    @property
-    def site_id(self):
-        result = urllib.parse.urlparse(self.url)
-        return result.hostname
+    epub_uid: str
+    novel_info: "NovelInfo"
+    epub_version: str
+    pkg_opf_path: str
+    include_images: bool
+    default_language_code: str = "en"
+
+    # The version of NovelData used. Probably won't be needed, but if there
+    # needs to be upgrades between changes to old version this will help to keep
+    # track.
+    version: str = "1.0"

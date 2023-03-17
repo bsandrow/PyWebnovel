@@ -1,12 +1,13 @@
 """Class representing the EPUB file."""
 
+from dataclasses import asdict
 from inspect import isclass
 from typing import IO, Optional, Union
 from zipfile import ZIP_STORED, ZipFile
 
 from apptk.http import HttpClient
 
-from webnovel.data import Chapter, Image
+from webnovel.data import Chapter, Image, Novel
 from webnovel.epub.files import (
     ChapterFile,
     ContainerXML,
@@ -24,7 +25,6 @@ from webnovel.epub.files import (
 )
 
 from ..utils import normalize_io
-from .data import EpubNovel
 
 
 class EpubFileList:
@@ -184,11 +184,41 @@ class EpubFileList:
         return self[file_id] if file_id in self else None
 
 
+class NovelInfo:
+    """Summarized Novel Information."""
+
+    title: str
+    site_id: str
+    novel_id: str
+    novel_url: str
+    novel_metadata: dict
+    cover_image_url: Optional[str] = None
+
+    @classmethod
+    def from_novel(cls, novel: Novel) -> "NovelInfo":
+        """Create instance from a Novel instance."""
+        return cls(
+            title=novel.title,
+            site_id=novel.site_id,
+            novel_id=novel.novel_id,
+            novel_url=novel.url,
+            cover_image_url=novel.cover_image.url if novel.cover_image else None,
+            novel_metadata={
+                "author": novel.author.to_dict() if novel.author else None,
+                "translator": novel.translator.to_dict() if novel.translator else None,
+                "status": novel.status,
+                "genres": novel.genres,
+                "tags": novel.tags,
+            },
+        )
+
+
 class EpubPackage:
     """A representation of an epub ebook file."""
 
     filename: str
-    novel: EpubNovel
+    novel: Novel
+    novel_info: NovelInfo
     epub_version: str
     pkg_opf_path: str
     include_toc_page: bool
@@ -200,7 +230,7 @@ class EpubPackage:
     def __init__(
         self,
         filename: str,
-        novel: EpubNovel,
+        novel: Novel,
         default_language_code: str = "en",
         version: str = "3.0",
         pkg_opf_path: str = "package.opf",
@@ -210,6 +240,7 @@ class EpubPackage:
     ) -> None:
         self.filename = filename
         self.novel = novel
+        self.novel_info = NovelInfo.from_novel(novel)
         self.default_language_code = default_language_code
         self.epub_version = version
         self.pkg_opf_path = pkg_opf_path

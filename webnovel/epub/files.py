@@ -1,6 +1,6 @@
 """Classes to represent and generate the files that will be in the epub package."""
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass, is_dataclass
 import datetime
 import json
 from pathlib import Path
@@ -87,13 +87,30 @@ class PyWebNovelJSON(EpubFileInterface):
     data: bytes = None
     pkg: "EpubPackage" = None
 
+    class JSONEncoder(json.JSONEncoder):
+        """JSONEncoder to handle specific classes in PyWebnovel."""
+
+        def default(self, item):
+            """Handle dataclasses automatically."""
+            if is_dataclass(item):
+                return asdict(item)
+            return super().default(item)
+
     def __init__(self, pkg: "EpubPackage") -> None:
         self.pkg = pkg
 
     def generate(self) -> None:
         """Serialize the novel information into the data attribute as JSON."""
-        data = {}
-        self.data = json.dumps(data).encode("utf-8")
+        from webnovel.epub.data import NovelData
+
+        data = NovelData(
+            epub_uid=self.pkg.epub_uid,
+            novel_info=self.pkg.novel_info,
+            epub_version=self.pkg.epub_version,
+            pkg_opf_path=self.pkg.pkg_opf_path,
+            include_images=self.pkg.include_images,
+        )
+        self.data = json.dumps(data, cls=self.JSONEncoder).encode("utf-8")
 
 
 class MimetypeFile(EpubFileInterface):
