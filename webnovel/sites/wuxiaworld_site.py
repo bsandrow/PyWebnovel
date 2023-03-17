@@ -53,10 +53,12 @@ class WuxiaWorldDotSiteScraper(NovelScraper):
 
     def get_status(self, page):
         """Return the status of the novel."""
-        for item in page.find("div.post-status .summary-heading"):
-            if item.text.strip() == "Status":
-                content = item.parent.find("div.summary-content").strip()
-                return self.status_map[content.text]
+        for item in page.select("div.post-status .summary-heading"):
+            if item.text and item.text.strip().lower() == "status":
+                content = item.parent.select_one("div.summary-content")
+                if content:
+                    return self.status_map.get(content.text.strip(), NovelStatus.UNKNOWN)
+        return NovelStatus.UNKNOWN
 
     @staticmethod
     def get_novel_id(url: str) -> str:
