@@ -13,8 +13,8 @@ class SiteAdFilter(HtmlFilter):
     """
     Remove the 'Read Latest Chapters at {SITE}' banner inserted into the content.
 
-    This is a site that's scraping other sites anyways, so it's not like I'm removing
-    actual attribution.
+    Don't need this in the middle of chapters. The site that this was scraped from will
+    be in the title page of the ebook.
     """
 
     def filter(self, html_tree):
@@ -37,7 +37,18 @@ class WuxiaWorldDotSiteScraper(NovelScraper):
     genre_selector = Selector("div.genres-content > a")
     cover_image_url_selector = Selector("div.summary_image img", attribute="data-src")
 
-    chapter_content_selector = Selector("div.reading-content > input#wp-manga-current-chap > div")
+    # Notes:
+    #   - Need to filter out .chapter-warning because some chapters have this above the content which means we grab that
+    #     instead of the content. Doesn't show up all of the time. For example, saw it only on one chapter in a ~1200
+    #     chapter novel, but it caused that chapter's content to only be the banner content.
+    chapter_content_selector = Selector(
+        "div.reading-content > input#wp-manga-current-chap > div:not(.chapter-warning, #text-chapter-toolbar)"
+    )
+
+    # Notes:
+    #   - Didn't add <style> as a default blacklist filter, but there are <style> elements added in the middle of content
+    #     for this site, and they are unnecessary. The added <style> elements are associated with the content that the
+    #     SiteAdFilter is removing.
     chapter_content_filters = DEFAULT_FILTERS + [ElementBlacklistFilter("style"), SiteAdFilter()]
 
     @staticmethod
