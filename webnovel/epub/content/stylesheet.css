@@ -6,3 +6,31 @@ P {
 	text-indent: 0 !important;
 	margin-bottom: 1.5em !important;
 }
+
+.pywn_title-page-title {
+	text-align: center;
+}
+
+.pywn_credits-section > H4,
+.pywn_information-section > H4 {
+	font-size: 105%;
+	font-style: italic;
+}
+
+.pywn_information-section .pywn_information-block {
+	display: block;
+	margin-bottom: 0em;
+}
+
+.pywn_information-section .pywn_summary-content {
+	text-indent: 0;
+	margin-left: 1.5em;
+}
+
+.pywn_bottom-info {
+	margin-top: 3em;
+}
+
+.pywn_bottom-info > DIV {
+	margin-bottom: 0.8em;
+}

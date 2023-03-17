@@ -1,30 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    {% if novel.author is not none %}
-    <title>{{ novel.title }} by {{ novel.author.name }}</title>
-    {% else %}
-    <title>{{ novel.title }}</title>
-    {% endif %}
+    <title>{{ novel.title }}{% if author_name is not none %} by {{ author_name }}{% endif %}</title>
     <link href="{{ stylesheet }}" type="text/css" rel="stylesheet"/>
   </head>
   <body class="{{ title_page_css }}">
-    {% if novel.author is not none %}
-    <h3>{{novel.title}} by {{novel.author.name}}</h3>
-    {% else %}
-    <h3>{{novel.title}}</h3>
-    {% endif %}
-    <div>
-        {%- if items is defined and items|length > 0 -%}
-            {% for item in items %}
-                <b>{{ item.name }}:</b> {{ item.value }}<br />
-            {% endfor %}
-        {%- else -%}
-            <br />
-        {%- endif -%}
+    <h3 class="pywn_title-page-title"><a href="{{novel.url}}">{{novel.title}}</a></h3>
+    {% if credits|length > 0 -%}
+    <div class="pywn_credits-section">
+        <h4> --[ Credits ]-- </h4>
+        {% for title, person in credits.items() %}
+          <p>
+            <strong>{{title}}: </strong>
+            {% if person.url is not none %}
+              <a href="{{person.url}}">
+                {{person.name}}{% if person.email is not none %} &lt;{{person.email}}&gt;{% endif %}
+              </a>
+            {% else %}
+              {{person.name}}{% if person.email is not none %} &lt;{{person.email}}&gt;{% endif %}
+            {% endif %}
+          </p>
+        {% endfor %}
     </div>
-    <div>
-      Scraped from {{novel.site_id}}.
+    {% endif -%}
+    {% if item|length > 0 or summary is not none -%}
+    <div class="pywn_information-section">
+        <h4> --[ Information ]-- </h4>
+        {% for title, value in items.items() %}
+          <span class="pywn_information-block"><strong>{{title}}:</strong> {{value}}</span>
+        {% endfor %}
+        {% if summary is not none %}
+        <span class="pywn_information-block">
+          <strong>Summary:</strong><br/>
+          <p class="pywn_summary-content">{{summary}}</p>
+        </span>
+        {% endif %}
+    </div>
+    {% endif -%}
+    <div class="pywn_bottom-info">
+      <div>Scraped from {{novel.site_id}}.</div>
+      <div>Last Updated: {{ now.strftime("%Y-%m-%d %H:%M") }}</div>
     </div>
   </body>
 </html>

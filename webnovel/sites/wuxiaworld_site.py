@@ -51,6 +51,13 @@ class WuxiaWorldDotSiteScraper(NovelScraper):
         """Validate that a URL matches something that works for WuxiaWorld.site and the scraper should support."""
         return re.match(NOVEL_URL_PATTERN, url) is not None
 
+    def get_status(self, page):
+        """Return the status of the novel."""
+        for item in page.find("div.post-status .summary-heading"):
+            if item.text.strip() == "Status":
+                content = item.parent.find("div.summary-content").strip()
+                return self.status_map[content.text]
+
     @staticmethod
     def get_novel_id(url: str) -> str:
         """Return the Novel ID for the novel."""
@@ -79,6 +86,8 @@ class WuxiaWorldDotSiteScraper(NovelScraper):
                 if re.match("\d+", chapter.title):
                     chapter.title = "Chapter " + chapter.title
                 remove_element(results[0])
+
+        chapter.title = chapter.title.replace(" - : ", ": ")
 
     def get_chapters(self, page, url: str) -> list:
         """Return the list of Chapter instances for WuxiaWorld.site."""

@@ -1,7 +1,9 @@
 """Classes to represent and generate the files that will be in the epub package."""
 
 from dataclasses import dataclass
+import datetime
 import json
+from pathlib import Path
 import pkgutil
 from typing import TYPE_CHECKING, Optional
 from xml.dom.minidom import Document, Element, getDOMImplementation
@@ -31,6 +33,11 @@ class EpubFileInterface:
     include_in_manifest: bool = True
     data: Optional[bytes] = None
     pkg: Optional["EpubPackage"] = None
+
+    @property
+    def path(self):
+        """Return the filename as a Path instance."""
+        return Path(self.filename)
 
 
 @dataclass
@@ -147,6 +154,7 @@ class Stylesheet(EpubFileInterface):
     filename: str = "OEBPS/stylesheet.css"
     mimetype: str = "text/css"
     pkg: "EpubPackage"
+    path: Path = Path(filename)
 
     def __init__(self, pkg: "EpubPackage") -> None:
         self.pkg = pkg
@@ -241,10 +249,42 @@ class TitlePage(EpubFileInterface):
 
     def generate(self):
         """Generate title page XHMTL file."""
+        template_kwargs = {
+            "now": datetime.datetime.now(),
+            "strftime": datetime.datetime.strftime,
+            "novel": self.pkg.novel,
+            "stylesheet": str(Stylesheet.path.relative_to(self.path.parent)),
+            "title_page_css": self.title_page_css,
+            "author_name": None,
+            "author_url": None,
+            "items": {},
+            "credits": {},
+            "summary": self.pkg.novel.summary,
+        }
+
+        # Credits
+        if self.pkg.novel.author is not None:
+            template_kwargs["credits"]["Author"] = self.pkg.novel.author
+
+        if self.pkg.novel.translator is not None:
+            template_kwargs["credits"]["Translator"] = self.pkg.novel.translator
+
+        # General Information
+        items = template_kwargs["items"]
+        items["Publisher"] = self.pkg.novel.site_id
+        items["Chapter Count"] = len(self.pkg.novel.chapters)
+
+        if self.pkg.novel.genres:
+            items["Genres"] = ", ".join(self.pkg.novel.genres)
+
+        if self.pkg.novel.status:
+            items["Status"] = self.pkg.novel.status.value
+
+        if self.pkg.novel.tags:
+            items["Tags"] = ", ".join(self.pkg.novel.tags)
+
         template = JINJA.get_template("title_page.xhtml")
-        self.data = template.render(
-            novel=self.pkg.novel, stylesheet=Stylesheet.filename, title_page_css=self.title_page_css
-        ).encode("utf-8")
+        self.data = template.render(**template_kwargs).encode("utf-8")
 
 
 class CoverPage(EpubFileInterface):

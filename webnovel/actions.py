@@ -1,5 +1,6 @@
 """Functions to perform actions pulling multiple components together."""
 
+import random
 import time
 
 from webnovel import epub, sites, utils
@@ -28,8 +29,8 @@ def create_epub(novel_url: str, filename: str = None, chapter_limit: int = None)
     for index, chapter in enumerate(chapters, start=1):
         print(f"Processing chapter: {chapter.title}")
         scraper.process_chapters(chapters=[chapter])
-        if index % 5 == 0:
-            time.sleep(3)
+        if index % 2 == 0:
+            time.sleep(random.randint(3, 7))
         epub_pkg.add_chapter(chapter)
 
     epub_pkg.save(filename)
