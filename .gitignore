@@ -71,3 +71,5 @@ run.py
 # Ignore a virtualenv in the local directory
 .venv/
 venv/
+
+*.epub
