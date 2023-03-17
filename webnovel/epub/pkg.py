@@ -195,7 +195,6 @@ class EpubPackage:
     include_title_page: bool
     default_language_code: str
     include_images: bool
-    stylesheet_path: str = "stylesheet.css"  # TODO connect this with file
     files: EpubFileList
 
     def __init__(
