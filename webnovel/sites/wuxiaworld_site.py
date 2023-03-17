@@ -3,10 +3,25 @@
 import re
 
 from webnovel.data import Chapter, NovelStatus
-from webnovel.html import remove_element
+from webnovel.html import DEFAULT_FILTERS, ElementBlacklistFilter, HtmlFilter, remove_element
 from webnovel.scraping import HTTPS_PREFIX, NovelScraper, Selector
 
 NOVEL_URL_PATTERN = HTTPS_PREFIX + r"wuxiaworld\.site/novel/([\w-]+)/"
+
+
+class SiteAdFilter(HtmlFilter):
+    """
+    Remove the 'Read Latest Chapters at {SITE}' banner inserted into the content.
+
+    This is a site that's scraping other sites anyways, so it's not like I'm removing
+    actual attribution.
+    """
+
+    def filter(self, html_tree):
+        """Iterate over all direct descendants looking for the banner."""
+        for item in html_tree.find_all(recursive=False):
+            if re.match(r"read\s*latest\s*chapters\s*at\s*wuxia\s*world", item.text, re.IGNORECASE):
+                remove_element(item)
 
 
 class WuxiaWorldDotSiteScraper(NovelScraper):
@@ -21,7 +36,9 @@ class WuxiaWorldDotSiteScraper(NovelScraper):
     author_url_selector = Selector("div.author-content > a", attribute="href")
     genre_selector = Selector("div.genres-content > a")
     cover_image_url_selector = Selector("div.summary_image img", attribute="data-src")
+
     chapter_content_selector = Selector("div.reading-content > input#wp-manga-current-chap > div")
+    chapter_content_filters = DEFAULT_FILTERS + [ElementBlacklistFilter("style"), SiteAdFilter()]
 
     @staticmethod
     def get_novel_id(url: str) -> str:
