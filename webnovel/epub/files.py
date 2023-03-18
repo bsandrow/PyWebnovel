@@ -88,12 +88,14 @@ class PyWebNovelJSON(EpubFileInterface):
     pkg: "EpubPackage" = None
 
     class JSONEncoder(json.JSONEncoder):
-        """JSONEncoder to handle specific classes in PyWebnovel."""
-
         def default(self, item):
             """Handle dataclasses automatically."""
+            from enum import Enum
+
             if is_dataclass(item):
                 return asdict(item)
+            if isinstance(item, Enum):
+                return item.value
             return super().default(item)
 
     def __init__(self, pkg: "EpubPackage") -> None:

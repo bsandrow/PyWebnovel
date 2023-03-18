@@ -1,6 +1,6 @@
 """Class representing the EPUB file."""
 
-from dataclasses import asdict
+from dataclasses import dataclass
 from inspect import isclass
 from typing import IO, Optional, Union
 from zipfile import ZIP_STORED, ZipFile
@@ -184,6 +184,7 @@ class EpubFileList:
         return self[file_id] if file_id in self else None
 
 
+@dataclass
 class NovelInfo:
     """Summarized Novel Information."""
 
