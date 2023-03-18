@@ -94,6 +94,10 @@ class Person:
     email: Optional[str] = None
     url: Optional[str] = None
 
+    def to_dict(self) -> dict:
+        """Convert to a dictionary."""
+        return {"name": self.name, "email": self.email, "url": self.url}
+
 
 @dataclass
 class Chapter:
