@@ -4,15 +4,19 @@ import random
 import time
 
 from webnovel import epub, sites, utils
+from webnovel.data import Image
 
 
-def create_epub(novel_url: str, filename: str = None, chapter_limit: int = None) -> None:
+def create_epub(novel_url: str, filename: str = None, cover_image_url: str = None, chapter_limit: int = None) -> None:
     """Create an epub file for the URL pointing at a webnovel."""
     scraper_class = sites.find_scraper(novel_url)
     if scraper_class is None:
         raise RuntimeError(f"Found no scraper class for: {novel_url}")
     scraper = scraper_class()
     novel = scraper.scrape(novel_url)
+
+    if cover_image_url:
+        novel.cover_image = Image(url=cover_image_url)
 
     filename = utils.clean_filename(filename or f"{novel.title}.epub")
     print(f"Generating {filename}...")
