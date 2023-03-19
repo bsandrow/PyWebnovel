@@ -44,7 +44,14 @@ class NovelBinScraper(NovelScraper):
 
     def chapter_extra_processing(self, chapter: Chapter) -> None:
         """Do extra chapter title processing."""
-        title_header = chapter.html_content.find(["h4", "h3"])
+        target_html = chapter.html_content
+        direct_descendants = target_html.find_all(recursive=False)
+
+        while len(direct_descendants) == 1:
+            target_html = direct_descendants[0]
+            direct_descendants = target_html.find_all(recursive=False)
+
+        title_header = target_html.find(["h4", "h3", "p"])
         if title_header and (
             match := re.match(r"(?:Chapter\s*)?(\d+)(?:\s*[-:.])? \w+.*", title_header.text, re.IGNORECASE)
         ):

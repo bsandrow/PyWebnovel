@@ -131,8 +131,8 @@ class NovelScraper:
         for chapter in chapters:
             page = self.get_page(chapter.url)
             chapter.html_content = self.chapter_content_selector.parse_one(page, use_attribute=False)
-            self.chapter_extra_processing(chapter)
             html.run_filters(chapter.html_content, filters=self.chapter_content_filters)
+            self.chapter_extra_processing(chapter)
 
     def scrape(self, url: str) -> Novel:
         """Scrape URL to return a Novel instance populated from extracted information."""
