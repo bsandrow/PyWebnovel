@@ -239,12 +239,13 @@ class ReaperScansScraper(NovelScraper):
 
         while chapter_list_items:
             chapter_item = chapter_list_items.pop()
-            chapter_slug = chapter_item["wire:key"]
-            url = chapter_item.select_one("a")["href"]
-            title = Chapter.clean_title(chapter_item.select_one("p").text)
-            chapter_no = Chapter.extract_chapter_no(title)
-            chapter = Chapter(url=url, title=title, chapter_no=int(chapter_no), slug=chapter_slug)
-            chapters.append(chapter)
+            if not chapter_item.select_one("i.fa-coins"):
+                chapter_slug = chapter_item["wire:key"]
+                url = chapter_item.select_one("a")["href"]
+                title = Chapter.clean_title(chapter_item.select_one("p").text)
+                chapter_no = Chapter.extract_chapter_no(title)
+                chapter = Chapter(url=url, title=title, chapter_no=int(chapter_no), slug=chapter_slug)
+                chapters.append(chapter)
 
             if len(chapter_list_items) < 1:
                 # NOTE: next_page() will always return content, but after the last page extracting chapter_list_items
