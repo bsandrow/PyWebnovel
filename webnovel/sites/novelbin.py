@@ -1,10 +1,9 @@
 """NovelBin scrapers and utilities."""
 
-import json
 import re
 
 from webnovel.data import Chapter, NovelStatus
-from webnovel.html import DEFAULT_FILTERS
+from webnovel.html import DEFAULT_FILTERS, remove_element
 from webnovel.scraping import HTTPS_PREFIX, NovelScraper, Selector
 
 NOVEL_URL_PATTERN = HTTPS_PREFIX + r"novelbin\.net/n/([\w-]+)"
@@ -24,6 +23,7 @@ class NovelBinScraper(NovelScraper):
         ".col-novel-main > .col-info-desc > .desc > .info-meta > li:nth-child(2) > a", attribute="href"
     )
     summary_selector = Selector("div.tab-content div.desc-text")
+    cover_image_url_selector = Selector("#novel div.book > img", attribute="src")
 
     chapter_content_selector = Selector("#chr-content")
     chapter_content_filters = DEFAULT_FILTERS
@@ -42,6 +42,18 @@ class NovelBinScraper(NovelScraper):
         """Validate that a URL matches something that works for NovelBin.net and the scraper should support."""
         return re.match(NOVEL_URL_PATTERN, url) is not None
 
+    def chapter_extra_processing(self, chapter: Chapter) -> None:
+        """Do extra chapter title processing."""
+        title_header = chapter.html_content.find(["h4", "h3"])
+        if title_header and (
+            match := re.match(r"(?:Chapter\s*)?(\d+)(?:\s*[-:.])? \w+.*", title_header.text, re.IGNORECASE)
+        ):
+            chapter.title = match.group(0)
+            chapter.title = re.sub(r"^(Chapter )?(\d+) (\w)", r"\1\2: \3", chapter.title)
+            if re.match("\d+", chapter.title):
+                chapter.title = "Chapter " + chapter.title
+            remove_element(title_header)
+
     def get_chapters(self, page, url: str) -> list:
         """Return the list of Chapter instances for NovelBin.net."""
         novel_id = self.get_novel_id(url)
@@ -53,7 +65,7 @@ class NovelBinScraper(NovelScraper):
         page = self.get_page(f"https://novelbin.net/ajax/chapter-archive?novelId={novel_id}")
 
         def get_chapter_no(title: str):
-            match = re.match(r"^\s*Chapter\s*(\d+)[.: ]", title, re.IGNORECASE)
+            match = re.match(r"^\s*Chapter\s*(?:Ch\s*)?(\d+)([.: ]|$)", title, re.IGNORECASE)
             chapter_no = match.group(1) if match is not None else None
             try:
                 return int(chapter_no)
