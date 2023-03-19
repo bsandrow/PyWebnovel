@@ -4,7 +4,7 @@ from abc import ABCMeta, abstractmethod
 import re
 from typing import Union
 
-from bs4 import NavigableString, Tag
+from bs4 import Comment, NavigableString, Tag
 
 #
 # These are elements that we absolutely want to strip out of the story content.
@@ -218,6 +218,16 @@ class StripUselessAttributes(HtmlFilter):
                     del tag[attr_name]
 
 
+class StripComments(HtmlFilter):
+    """Strip all HTML comments from the tree."""
+
+    def filter(self, html_tree: Tag) -> None:
+        """Walk the tree removing Comment instances."""
+        for tag in html_tree.find_all():
+            if isinstance(tag, Comment):
+                remove_element(tag)
+
+
 #
 # The default list of filters. Most uses of filters will probably just add filters to this default list rather than
 # completely replace it.
@@ -227,6 +237,7 @@ DEFAULT_FILTERS = [
     EmptyContentFilter(["div", "h1", "h2", "h3", "h4", "h5", "h6", "p"]),
     ContentWarningFilter(CONTENT_WARNING_PATTERNS),
     DisplayNoneFilter(),
+    StripComments(),
 ]
 
 
