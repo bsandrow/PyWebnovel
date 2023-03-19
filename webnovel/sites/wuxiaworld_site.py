@@ -94,10 +94,7 @@ class WuxiaWorldDotSiteScraper(NovelScraper):
         if results:
             text = results[0].text.strip()
             if "\n" not in text and (match := re.match(r"(?:Chapter\s*)?(\d+)(?: -|:)? \w+.*", text)):
-                chapter.title = match.group(0)
-                chapter.title = re.sub(r"^(Chapter )?(\d+) (\w)", r"\1\2: \3", chapter.title)
-                if re.match("\d+", chapter.title):
-                    chapter.title = "Chapter " + chapter.title
+                chapter.title = Chapter.clean_title(match.group(0))
                 remove_element(results[0])
 
         chapter.title = chapter.title.replace(" - : ", ": ")
@@ -107,16 +104,11 @@ class WuxiaWorldDotSiteScraper(NovelScraper):
         url = url if url.endswith("/") else f"{url}/"
         chapter_list_url = f"{url}ajax/chapters/"
         chapter_list_page = self.get_page(chapter_list_url, method="post")
-
-        def get_chapter_no(title: str):
-            match = re.match(r"^\s*Chapter\s*(\d+)\s*", title, re.IGNORECASE)
-            return match.group(1) if match is not None else None
-
         return [
             Chapter(
                 url=chapter_li.select_one("a").get("href"),
-                title=(title := chapter_li.select_one("a").text.strip()),
-                chapter_no=int(get_chapter_no(title)),
+                title=(title := Chapter.clean_title(chapter_li.select_one("a").text)),
+                chapter_no=Chapter.extract_chapter_no(title),
             )
             for chapter_li in chapter_list_page.select("li.wp-manga-chapter")
         ]

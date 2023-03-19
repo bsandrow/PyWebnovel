@@ -240,9 +240,8 @@ class ReaperScansScraper(NovelScraper):
             chapter_item = chapter_list_items.pop()
             chapter_slug = chapter_item["wire:key"]
             url = chapter_item.select_one("a")["href"]
-            title = chapter_item.select_one("p").text.strip()
-            match = re.match(r"Chapter (\d+(?:\.\d+)?)", title)
-            chapter_no = match.group(1)
+            title = Chapter.clean_title(chapter_item.select_one("p").text)
+            chapter_no = Chapter.extract_chapter_no(title)
             chapter = Chapter(url=url, title=title, chapter_no=int(chapter_no), slug=chapter_slug)
             chapters.append(chapter)
 

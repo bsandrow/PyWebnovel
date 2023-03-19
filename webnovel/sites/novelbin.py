@@ -54,10 +54,7 @@ class NovelBinScraper(NovelScraper):
         if title_header and (
             match := re.match(r"(?:Chapter\s*)?(\d+)(?:\s*[-:.])? \w+.*", title_header.text, re.IGNORECASE)
         ):
-            chapter.title = match.group(0)
-            chapter.title = re.sub(r"^(Chapter )?(\d+) (\w)", r"\1\2: \3", chapter.title)
-            if re.match("\d+", chapter.title):
-                chapter.title = "Chapter " + chapter.title
+            chapter.title = Chapter.clean_title(match.group(0))
             remove_element(title_header)
 
     def get_status(self, page):
@@ -76,6 +73,7 @@ class NovelBinScraper(NovelScraper):
     def get_chapters(self, page, url: str) -> list:
         """Return the list of Chapter instances for NovelBin.net."""
         novel_id = self.get_novel_id(url)
+        chapters = []
 
         # This ajax requests also returns the list, but as a <select> with
         # <option>s so parsing will be different.
@@ -83,20 +81,11 @@ class NovelBinScraper(NovelScraper):
 
         page = self.get_page(f"https://novelbin.net/ajax/chapter-archive?novelId={novel_id}")
 
-        def get_chapter_no(title: str):
-            match = re.match(r"^\s*Chapter\s*(?:Ch\s*)?(\d+)([.: ]|$)", title, re.IGNORECASE)
-            chapter_no = match.group(1) if match is not None else None
-            try:
-                return int(chapter_no)
-            except (ValueError, TypeError):
-                print(f"Warning: Got bad chapter_no for title: {title}")
-                return 0
-
         return [
             Chapter(
                 url=chapter_li.select_one("A").get("href"),
-                title=chapter_li.select_one("A").get("title"),
-                chapter_no=get_chapter_no(chapter_li.select_one("A").get("title")),
+                title=(title := Chapter.clean_title(chapter_li.select_one("A").get("title"))),
+                chapter_no=Chapter.extract_chapter_no(title),
             )
             for chapter_li in page.select("UL.list-chapter > LI")
         ]

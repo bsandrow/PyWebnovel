@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from enum import Enum
 import imghdr
 from io import BytesIO
+import re
 from typing import Optional
 
 from apptk.http import HttpClient
@@ -110,6 +111,44 @@ class Chapter:
     chapter_no: Optional[str] = None
     slug: Optional[str] = None
     html_content: Optional[Tag] = None
+
+    @staticmethod
+    def clean_title(title: str) -> str:
+        """Cleanup a Chapter title to normalize it a bit, detect common typos, etc."""
+        title = title.strip()
+
+        # Change "100 The Black Dragon" => "Chapter 100 The Black Dragon"
+        if re.match(r"\d+", title):
+            title = f"Chapter {title}"
+
+        # Change "Chapter 100 - The Black Dragon" => "Chapter 100: The Black Dragon"
+        title = re.sub(r"(Chapter\s*\d+) - ", r"\1: ", title)
+
+        # Deal with "Chapter Ch 102"
+        title = re.sub(r"(Chapter)\s*Ch\s*(\d+)", "\1 \2", title, re.IGNORECASE)
+
+        # Deal with "Chapter 100The Black Dragon" => "Chapter 100: The Black Dragon"
+        # TODO replace a-zA-Z with unicode character class using \p{L} (requires separate regex library)
+        title = re.sub(r"(Chapter \d+)([a-zA-Z]{3,})", r"\1: \2", title, re.IGNORECASE)
+
+        # Change "Chapter 100 The Black Dragon" => "Chapter 100: The Black Dragon"
+        title = re.sub(r"^(Chapter )?(\d+) ([“”\w])", r"\1\2: \3", title, re.IGNORECASE)
+
+        # Fix "Chapter 761: - No Openings" => "Chapter 761: No Openings"
+        title = title.replace(": - ", ": ")
+
+        return title
+
+    @staticmethod
+    def extract_chapter_no(title: str) -> str:
+        """Extract a chapter number from the chapter title."""
+        match = re.match(r"^\s*Chapter\s*(\d+(?:\.\d+)?)([.: ]|$)", title, re.IGNORECASE)
+        chapter_no = match.group(1) if match is not None else None
+        try:
+            return int(chapter_no)
+        except (ValueError, TypeError):
+            print(f"Warning: Got bad chapter_no for title: {title}")
+            return 0
 
 
 @dataclass
