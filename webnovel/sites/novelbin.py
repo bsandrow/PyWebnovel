@@ -15,8 +15,7 @@ class NovelBinScraper(NovelScraper):
     site_name = "NovelBin.com"
 
     title_selector = Selector(".col-novel-main > .col-info-desc > .desc > .title")
-    status_selector = Selector(".col-novel-main > .col-info-desc > .desc > .info-meta > li:nth-child(5) > a")
-    status_map = {"Ongoing": NovelStatus.ONGOING, "Completed": NovelStatus.COMPLETED}
+    status_map = {"ongoing": NovelStatus.ONGOING, "completed": NovelStatus.COMPLETED}
     genre_selector = Selector(".col-novel-main > .col-info-desc > .desc > .info-meta > li:nth-child(3) > a")
     author_name_selector = Selector(".col-novel-main > .col-info-desc > .desc > .info-meta > li:nth-child(2) > a")
     author_url_selector = Selector(
@@ -60,6 +59,19 @@ class NovelBinScraper(NovelScraper):
             if re.match("\d+", chapter.title):
                 chapter.title = "Chapter " + chapter.title
             remove_element(title_header)
+
+    def get_status(self, page):
+        """
+        Get novel status.
+
+        Can't get status with selectors alone, so need to override.
+        """
+        items = page.select(".col-novel-main > .col-info-desc > .desc > .info-meta > li")
+        for item in items:
+            section = item.find("h3").text.strip()
+            if section.lower() in ("status", "status:"):
+                return self.status_map.get(item.find("a").text.strip().lower(), NovelStatus.UNKNOWN)
+        return NovelStatus.UNKNOWN
 
     def get_chapters(self, page, url: str) -> list:
         """Return the list of Chapter instances for NovelBin.net."""
