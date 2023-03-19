@@ -284,8 +284,6 @@ class EpubPackage:
     def add_chapter(self, chapter) -> None:
         """Add a Chapter to the epub file."""
         self.files.add_chapter(chapter, self)
-        # if self.include_title_page:
-        #     self.files.add(TableOfContentsPage(self))
 
     @property
     def is_epub3(self) -> bool:
