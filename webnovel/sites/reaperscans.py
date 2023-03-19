@@ -1,6 +1,7 @@
 """ReaperScans scrapers and utilities."""
 
 import re
+import time
 
 from bs4 import Tag
 from requests import Response
@@ -251,5 +252,6 @@ class ReaperScansScraper(NovelScraper):
                 page_html = api.next_page()
                 chapter_list = self.get_soup(page_html)
                 chapter_list_items = chapter_list.select(r"LI[wire\:key]")
+                time.sleep(2)
 
         return sorted(chapters, key=lambda ch: ch.chapter_no)
