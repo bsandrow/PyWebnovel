@@ -152,7 +152,10 @@ class EmptyContentFilter(HtmlFilter):
     def filter(self, html_tree: Tag) -> None:
         """Filter matching elements from the HTML tree if they have no content / child elements."""
         for element in html_tree(self.tag_names):
-            if not element.contents:
+            # If contents are just a string of whitespace then you'll end up with something like: [' ']
+            # need to filter this down to [] so it hits the if-statment.
+            contents = [item for item in element.contents if not isinstance(item, str) or item.strip()]
+            if not contents:
                 element.decompose()
 
 
@@ -221,7 +224,7 @@ class StripUselessAttributes(HtmlFilter):
 #
 DEFAULT_FILTERS = [
     ElementBlacklistFilter(ELEMENT_BLACKLIST),
-    EmptyContentFilter(["div", "h1", "h2", "h3", "h4", "h5", "h6"]),
+    EmptyContentFilter(["div", "h1", "h2", "h3", "h4", "h5", "h6", "p"]),
     ContentWarningFilter(CONTENT_WARNING_PATTERNS),
     DisplayNoneFilter(),
 ]
