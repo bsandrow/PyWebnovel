@@ -96,7 +96,7 @@ class NovelScraper:
     def get_cover_image(self, page: BeautifulSoup) -> Optional[Image]:
         """Extract an Image() for the cover image of the novel from the novel's page."""
         if self.cover_image_url_selector is not None:
-            a = self.cover_image_url_selector.parse_one(html=page)
+            # a = self.cover_image_url_selector.parse_one(html=page)
             return Image(url=self.cover_image_url_selector.parse_one(html=page, use_attribute=True))
         return None
 
