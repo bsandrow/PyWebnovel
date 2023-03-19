@@ -137,6 +137,13 @@ class Chapter:
         # Fix "Chapter 761: - No Openings" => "Chapter 761: No Openings"
         title = title.replace(": - ", ": ")
 
+        # Change "Chapter 100: 100 The Black Dragon" => "Chapter 100: The Black Dragon"
+        # -- it's possible for false matches here, but I'm deeming the likelihood low since
+        #    it would have to be an exact match for the chapter number. E.g.:
+        #       "Chapter 99: 99 Bottles of Beer on the Wall" =>
+        #       "Chapter 99: Bottle of Beer on the Wall"
+        title = re.sub(r"Chapter (\d+): \1 *", r"Chapter \1: ", title, re.IGNORECASE)
+
         return title
 
     @staticmethod
