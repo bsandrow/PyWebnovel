@@ -156,13 +156,9 @@ class RemoveStartingBannerFilter(html.HtmlFilter):
 
     def filter(self, element: Tag) -> None:
         """Remove 'blank' elements and the REAPERSCANS banner. Bail the first time we find something else."""
-        for child in element.children:
-            if child.text.strip() == "":
+        for child in element.find_all(recursive=False):
+            if child.text.strip().lower() in ("reaperscans", "reaper scans"):
                 html.remove_element(child)
-                continue
-            elif child.text.strip().lower() in ("reaperscans", "reaper scans"):
-                html.remove_element(child)
-            else:
                 break
 
 
