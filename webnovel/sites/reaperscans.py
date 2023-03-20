@@ -1,5 +1,6 @@
 """ReaperScans scrapers and utilities."""
 
+import logging
 import re
 import time
 
@@ -9,9 +10,12 @@ from requests import Response
 from webnovel import html
 from webnovel.data import Chapter, NovelStatus
 from webnovel.livewire import LiveWireAPI
+from webnovel.logs import LogTimer
 from webnovel.scraping import NovelScraper, Selector
 
 URL_PATTERN = r"https?://(?:www\.)?reaperscans\.com/novels/(\d+-[\w-]+)"
+logger = logging.getLogger(__name__)
+timer = LogTimer(logger)
 
 
 def get_csrf_token(element: Tag) -> str:
@@ -214,6 +218,7 @@ class ReaperScansScraper(NovelScraper):
         #       obviously isn't scrape-able.
         return None
 
+    @timer("Fetch list of chapters")
     def get_chapters(self, page, url) -> list[Chapter]:
         """
         Return the list of Chapter instances for ReaperScans.com.
@@ -221,6 +226,10 @@ class ReaperScansScraper(NovelScraper):
         :param page: The BeautifulSoup instance for the novel page.
         :param url: Not used here, but part of the api so we need to accept it.
         """
+
+        def log_page(chapter_count, current_page):
+            logger.debug("Fetched %02d chapter(s) from Chapter List API [page=%d]", chapter_count, current_page)
+
         chapters = []
         chapter_list = self.chapter_selector.parse_one(page, use_attribute=False)
         csrf_token = get_csrf_token(page)
@@ -232,6 +241,7 @@ class ReaperScansScraper(NovelScraper):
             csrf_token=csrf_token,
         )
         chapter_list_items = chapter_list.select(r"LI[wire\:key]")
+        log_page(len(chapter_list_items), api.current_page)
 
         while chapter_list_items:
             chapter_item = chapter_list_items.pop()
@@ -249,6 +259,7 @@ class ReaperScansScraper(NovelScraper):
                 page_html = api.next_page()
                 chapter_list = self.get_soup(page_html)
                 chapter_list_items = chapter_list.select(r"LI[wire\:key]")
+                log_page(len(chapter_list_items), api.current_page)
                 time.sleep(2)
 
         return sorted(chapters, key=lambda ch: ch.chapter_no)

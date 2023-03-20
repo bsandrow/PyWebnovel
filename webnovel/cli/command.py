@@ -1,8 +1,21 @@
 """Command to create an epub file from a link to a webnovel."""
 
 import argparse
+import logging
 
-from webnovel import actions
+from webnovel import actions, turn_on_logging
+
+
+def setup_logging():
+    """Initialize logging settings."""
+    logger = logging.getLogger("webnovel")
+    loghandler = logging.StreamHandler()
+    loghandler.setFormatter(
+        logging.Formatter("PYWN: %(levelname)s: %(asctime)s: %(filename)s(%(lineno)d): %(message)s")
+    )
+    logger.addHandler(loghandler)
+    loghandler.setLevel(logging.DEBUG)
+    logger.setLevel(logging.DEBUG)
 
 
 def get_cli_options():
@@ -17,6 +30,7 @@ def get_cli_options():
 
 def run():
     """Run the command."""
+    turn_on_logging()
     options = get_cli_options()
     actions.create_epub(
         options.novel_url,

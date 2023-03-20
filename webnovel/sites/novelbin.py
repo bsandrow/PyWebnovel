@@ -1,12 +1,16 @@
 """NovelBin scrapers and utilities."""
 
+import logging
 import re
 
 from webnovel.data import Chapter, NovelStatus
 from webnovel.html import DEFAULT_FILTERS, remove_element
+from webnovel.logs import LogTimer
 from webnovel.scraping import HTTPS_PREFIX, NovelScraper, Selector
 
 NOVEL_URL_PATTERN = HTTPS_PREFIX + r"novelbin\.net/n/([\w-]+)"
+logger = logging.getLogger(__name__)
+timer = LogTimer(logger)
 
 
 class NovelBinScraper(NovelScraper):
@@ -70,6 +74,7 @@ class NovelBinScraper(NovelScraper):
                 return self.status_map.get(item.find("a").text.strip().lower(), NovelStatus.UNKNOWN)
         return NovelStatus.UNKNOWN
 
+    @timer("fetching chapters list")
     def get_chapters(self, page, url: str) -> list:
         """Return the list of Chapter instances for NovelBin.net."""
         novel_id = self.get_novel_id(url)
