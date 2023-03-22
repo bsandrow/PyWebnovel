@@ -48,10 +48,10 @@ class NovelScraper:
         parser = parser or self.parser
         return BeautifulSoup(content, parser)
 
-    def get_page(self, url, method="get") -> BeautifulSoup:
+    def get_page(self, url, method: str = "get", data: dict = None) -> BeautifulSoup:
         """Fetch the page at the url and return it as a BeautifulSoup instance."""
         client_method = getattr(self.http_client, method)
-        response = client_method(url)
+        response = client_method(url, data=data)
         response.raise_for_status()
         return self.get_soup(response.text)
 
