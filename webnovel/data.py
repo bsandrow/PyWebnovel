@@ -1,11 +1,11 @@
 """Define all of the basic datastructures we'll use to pass novels around."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+import datetime
 from enum import Enum
 import imghdr
-from io import BytesIO
 import re
-from typing import Optional
+from typing import Any, Optional
 
 from apptk.http import HttpClient
 from bs4 import Tag
@@ -156,6 +156,42 @@ class Chapter:
         except (ValueError, TypeError):
             print(f"Warning: Got bad chapter_no for title: {title}")
             return 0
+
+
+@dataclass
+class NovelMetadata:
+    """Metadata for hte Novel Pulled Together."""
+
+    novel_id: str
+    site_id: Optional[str] = None
+    title: Optional[str] = None
+    status: Optional[NovelStatus] = None
+    summary: Optional[str] = None
+    genres: Optional[list[str]] = None
+    tags: Optional[list[str]] = None
+    author: Optional[Person] = None
+    translator: Optional[Person] = None
+    extras: Optional[dict] = None
+
+
+@dataclass
+class ScrapedNovelInfo:
+    """Novel info that's been scraped."""
+
+    url: str
+    novel_id: str
+    site_id: str
+    metadata: NovelMetadata
+    chapter_urls: list[str]
+    cover_image_url: str
+
+
+# @dataclass
+# class LogEntry:
+#     type: str
+#     message: str
+#     filename: Optional[str]
+#     timestamp: field(datetime.datetime, default_factory=datetime.datetime.utcnow)
 
 
 @dataclass

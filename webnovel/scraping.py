@@ -3,21 +3,22 @@
 from typing import Optional
 
 from apptk.html import Selector
-from apptk.http import HttpClient
 from bs4 import BeautifulSoup
+from pyrate_limiter import Duration, Limiter, RequestRate
 
-from webnovel import html
+from webnovel import html, http
 from webnovel.data import Chapter, Image, Novel, NovelStatus, Person
 
 HTTPS_PREFIX = r"https?://(?:www\.)?"
-http_client = HttpClient()
+DEFAULT_LIMITER = Limiter(RequestRate(5, Duration.SECOND))
 
 
 class NovelScraper:
     """Base Class for Webnovel Scrapers."""
 
     site_name: str
-    http_client: HttpClient
+    http_client: http.HttpClient
+    limiter: Limiter
     parser: str = "html.parser"
     status_map: dict[str, NovelStatus] = None
     title_selector: Selector = None
@@ -34,7 +35,8 @@ class NovelScraper:
 
     def __init__(self):
         """Initialize the HttpClient."""
-        self.http_client = HttpClient(use_cloudscraper=True)
+        self.http_client = http.get_client()
+        self.limiter = self.get_limiter()
         assert self.site_name is not None
 
     def get_soup(self, content, parser: str = None):
@@ -48,10 +50,15 @@ class NovelScraper:
         parser = parser or self.parser
         return BeautifulSoup(content, parser)
 
+    def get_limiter(self):
+        """Return a Limiter instance to use for get_page."""
+        return DEFAULT_LIMITER
+
     def get_page(self, url, method: str = "get", data: dict = None) -> BeautifulSoup:
         """Fetch the page at the url and return it as a BeautifulSoup instance."""
         client_method = getattr(self.http_client, method)
-        response = client_method(url, data=data)
+        with self.limiter.ratelimit("get_page", delay=True):
+            response = client_method(url, data=data)
         response.raise_for_status()
         return self.get_soup(response.text)
 

@@ -2,12 +2,12 @@
 
 import logging
 import re
-import time
 
 from bs4 import Tag
+from pyrate_limiter import Duration, Limiter, RequestRate
 from requests import Response
 
-from webnovel import html
+from webnovel import html, http
 from webnovel.data import Chapter, NovelStatus
 from webnovel.livewire import LiveWireAPI
 from webnovel.logs import LogTimer
@@ -16,6 +16,9 @@ from webnovel.scraping import NovelScraper, Selector
 URL_PATTERN = r"https?://(?:www\.)?reaperscans\.com/novels/(\d+-[\w-]+)"
 logger = logging.getLogger(__name__)
 timer = LogTimer(logger)
+
+lwapi_rate = RequestRate(2, Duration.SECOND)
+limiter = Limiter(lwapi_rate)
 
 
 def get_csrf_token(element: Tag) -> str:
@@ -105,21 +108,25 @@ class ChapterListAPI(LiveWireAPI):
         memo = self.most_recent_server_memo()
         return memo.get("data", {}).get("page")
 
+    @limiter.ratelimit("lwapi", delay=True)
     def get_page(self, page_no: int) -> str:
         """Move the chapter list to a specific page (in the list) and return the HTML."""
         response = self.make_call("gotoPage", page_no, "page")
         return self.update_page_history(response)
 
+    @limiter.ratelimit("lwapi", delay=True)
     def next_page(self) -> str:
         """Move the chapter list to the next page (in the list) and return the HTML."""
         response = self.make_call("nextPage", "page")
         return self.update_page_history(response)
 
+    @limiter.ratelimit("lwapi", delay=True)
     def previous_page(self) -> str:
         """Move the chapter list to the previous page (in the list) and return the HTML."""
         response = self.make_call("prevPage", "page")
         return self.update_page_history(response)
 
+    @limiter.ratelimit("lwapi", delay=True)
     def update_page_history(self, response: Response):
         """Update the page_history to store the HTML content of the returned page."""
         response_json = response.json()
@@ -197,6 +204,10 @@ class ReaperScansScraper(NovelScraper):
         "On hold": NovelStatus.HIATUS,
     }
 
+    def get_limiter(self):
+        """Return rate limiter for ReaperScans."""
+        return Limiter(RequestRate(3, 7))  # 3 requests per 7 seconds
+
     @staticmethod
     def get_novel_id(url: str) -> str:
         """Return the id of the novel that ReaperScans uses."""
@@ -260,6 +271,6 @@ class ReaperScansScraper(NovelScraper):
                 chapter_list = self.get_soup(page_html)
                 chapter_list_items = chapter_list.select(r"LI[wire\:key]")
                 log_page(len(chapter_list_items), api.current_page)
-                time.sleep(2)
+                # time.sleep(2)
 
         return sorted(chapters, key=lambda ch: ch.chapter_no)

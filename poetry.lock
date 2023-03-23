@@ -537,6 +537,18 @@ python-versions = ">=3.6.8"
 diagrams = ["jinja2", "railroad-diagrams"]
 
 [[package]]
+name = "pyrate-limiter"
+version = "2.10.0"
+description = "Python Rate-Limiter using Leaky-Bucket Algorithm"
+category = "main"
+optional = false
+python-versions = ">=3.7,<4.0"
+
+[package.extras]
+all = ["filelock (>=3.0)", "redis (>=3.3,<4.0)", "redis-py-cluster (>=2.1.3,<3.0.0)"]
+docs = ["furo (>=2022.3.4,<2023.0.0)", "myst-parser (>=0.17)", "sphinx (>=4.3.0,<5.0.0)", "sphinx-autodoc-typehints (>=1.17,<2.0)", "sphinx-copybutton (>=0.5)", "sphinxcontrib-apidoc (>=0.3,<0.4)"]
+
+[[package]]
 name = "pytest"
 version = "7.2.0"
 description = "pytest: simple powerful testing with Python"
@@ -600,6 +612,21 @@ six = "*"
 [package.extras]
 fixture = ["fixtures"]
 test = ["fixtures", "mock", "purl", "pytest", "requests-futures", "sphinx", "testrepository (>=0.0.18)", "testtools"]
+
+[[package]]
+name = "requests-ratelimiter"
+version = "0.4.0"
+description = "Rate-limiting for the requests library"
+category = "main"
+optional = false
+python-versions = ">=3.7,<4.0"
+
+[package.dependencies]
+pyrate-limiter = ">=2.8"
+requests = ">=2.20"
+
+[package.extras]
+docs = ["furo (==2022.9.15)", "myst-parser (>=0.17)", "sphinx (>=4.3.0,<5.0.0)", "sphinx-autodoc-typehints (>=1.17,<2.0)", "sphinx-copybutton (>=0.5)"]
 
 [[package]]
 name = "requests-toolbelt"
@@ -720,7 +747,7 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9.10"
-content-hash = "2809ce576482cc09a7bdd331bc292f49ecea75d78fc8373c20aa3211bf6d4085"
+content-hash = "7e602c4ba7635a374407a89c968f1ec7e1f79bb3dae1643386db03ef02b4c60e"
 
 [metadata.files]
 appnope = [
@@ -975,6 +1002,10 @@ pyparsing = [
     {file = "pyparsing-3.0.9-py3-none-any.whl", hash = "sha256:5026bae9a10eeaefb61dab2f09052b9f4307d44aee4eda64b309723d8d206bbc"},
     {file = "pyparsing-3.0.9.tar.gz", hash = "sha256:2b020ecf7d21b687f219b71ecad3631f644a47f01403fa1d1036b0c6416d70fb"},
 ]
+pyrate-limiter = [
+    {file = "pyrate_limiter-2.10.0-py3-none-any.whl", hash = "sha256:a99e52159f5ed5eb58118bed8c645e30818e7c0e0d127a0585c8277c776b0f7f"},
+    {file = "pyrate_limiter-2.10.0.tar.gz", hash = "sha256:98cc52cdbe058458e945ae87d4fd5a73186497ffa545ee6e98372f8599a5bd34"},
+]
 pytest = [
     {file = "pytest-7.2.0-py3-none-any.whl", hash = "sha256:892f933d339f068883b6fd5a459f03d85bfcb355e4981e146d2c7616c21fef71"},
     {file = "pytest-7.2.0.tar.gz", hash = "sha256:c4014eb40e10f11f355ad4e3c2fb2c6c6d1919c73f3b5a433de4708202cade59"},
@@ -990,6 +1021,10 @@ requests = [
 requests-mock = [
     {file = "requests-mock-1.10.0.tar.gz", hash = "sha256:59c9c32419a9fb1ae83ec242d98e889c45bd7d7a65d48375cc243ec08441658b"},
     {file = "requests_mock-1.10.0-py2.py3-none-any.whl", hash = "sha256:2fdbb637ad17ee15c06f33d31169e71bf9fe2bdb7bc9da26185be0dd8d842699"},
+]
+requests-ratelimiter = [
+    {file = "requests-ratelimiter-0.4.0.tar.gz", hash = "sha256:4fcd71bd75488409329bb4e7baad8df98efec2c3a5d34ad4388d84cd35eeda8d"},
+    {file = "requests_ratelimiter-0.4.0-py3-none-any.whl", hash = "sha256:4c41dc0bb5a58ef668283a0512d55d075bc4b82487d1765382512bdbec37c6a5"},
 ]
 requests-toolbelt = [
     {file = "requests-toolbelt-0.10.1.tar.gz", hash = "sha256:62e09f7ff5ccbda92772a29f394a49c3ad6cb181d568b1337626b2abb628a63d"},
