@@ -61,17 +61,11 @@ class ScribbleHubScraper(NovelScraper):
     def get_chapters(self, page, url: str) -> list:
         """Return the list of Chapter instances for NovelBin.net."""
         novel_id = self.get_novel_id(url)
-
-        # This ajax requests also returns the list, but as a <select> with
-        # <option>s so parsing will be different.
-        # page = self.get_page(f"https://novelbin.net/ajax/chapter-option?novelId={novel_id}")
-
         page = self.get_page(
             "https://www.scribblehub.com/wp-admin/admin-ajax.php",
             method="post",
             data={"action": "wi_getreleases_pagination", "pagenum": "-1", "mypostid": str(novel_id)},
         )
-
         return [
             Chapter(
                 url=chapter_li.select_one("A").get("href"),
