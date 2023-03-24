@@ -4,13 +4,31 @@ import logging
 import re
 
 from webnovel.data import Chapter, NovelStatus
-from webnovel.html import DEFAULT_FILTERS, remove_element
+from webnovel.html import DEFAULT_FILTERS, HtmlFilter, remove_element
 from webnovel.logs import LogTimer
 from webnovel.scraping import HTTPS_PREFIX, NovelScraper, Selector
 
 NOVEL_URL_PATTERN = HTTPS_PREFIX + r"novelbin\.net/n/([\w-]+)"
 logger = logging.getLogger(__name__)
 timer = LogTimer(logger)
+
+
+class RemoveStayTunedMessage(HtmlFilter):
+    """
+    Remove the 'Check back soon for more chapters' message.
+
+    When you reach the most recent chapter, NovelBin adds a message:
+
+        The Novel will be updated first on this website. Come back and continue
+        reading tomorrow, everyone!
+
+    Remove this, as it's not part of the chapter's content.
+    """
+
+    def filter(self, html_tree):
+        """Filter out block containing the message."""
+        for element in html_tree.select(".scehdule-text"):
+            remove_element(element)
 
 
 class NovelBinScraper(NovelScraper):
@@ -29,7 +47,7 @@ class NovelBinScraper(NovelScraper):
     cover_image_url_selector = Selector("#novel div.book > img", attribute="src")
 
     chapter_content_selector = Selector("#chr-content")
-    chapter_content_filters = DEFAULT_FILTERS
+    chapter_content_filters = DEFAULT_FILTERS + [RemoveStayTunedMessage()]
 
     @staticmethod
     def get_novel_id(url: str) -> str:
