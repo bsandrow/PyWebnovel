@@ -108,7 +108,7 @@ class NovelBinScraper(NovelScraper):
             Chapter(
                 url=chapter_li.select_one("A").get("href"),
                 title=(title := Chapter.clean_title(chapter_li.select_one("A").get("title"))),
-                chapter_no=Chapter.extract_chapter_no(title),
+                chapter_no=idx,
             )
-            for chapter_li in page.select("UL.list-chapter > LI")
+            for idx, chapter_li in enumerate(page.select("UL.list-chapter > LI"))
         ]
