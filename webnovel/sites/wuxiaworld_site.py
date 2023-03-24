@@ -91,12 +91,9 @@ class WuxiaWorldDotSiteScraper(NovelScraper):
         xhtml files.
         """
         results = chapter.html_content.find_all(limit=1)
-        if results:
-            text = results[0].text.strip()
-            if "\n" not in text and (match := re.match(r"(?:Chapter\s*)?(\d+)(?: -|:)? \w+.*", text)):
-                chapter.title = Chapter.clean_title(match.group(0))
-                remove_element(results[0])
-
+        if results and (match := Chapter.is_title_ish(results[0])):
+            chapter.title = Chapter.clean_title(match.group(0))
+            remove_element(results[0])
         chapter.title = chapter.title.replace(" - : ", ": ")
 
     def get_chapters(self, page, url: str) -> list:

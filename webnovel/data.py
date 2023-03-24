@@ -122,17 +122,27 @@ class Chapter:
             title = f"Chapter {title}"
 
         # Change "Chapter 100 - The Black Dragon" => "Chapter 100: The Black Dragon"
-        title = re.sub(r"(Chapter\s*\d+) - ", r"\1: ", title)
+        # Change "Chapter 100. The Black Dragon" => "Chapter 100: The Black Dragon"
+        # Change "Side Story 100 - The Black Dragon" => "Side Story 100: The Black Dragon"
+        title = re.sub(
+            r"(Chapter\s*\d+(?:\.\d+)?|(?:Chapter\s*)?Side\s*Story\s*\d+(?:\.\d+)?)( - |\. )", r"\1: ", title
+        )
 
         # Deal with "Chapter Ch 102"
-        title = re.sub(r"(Chapter)\s*Ch\s*(\d+)", "\1 \2", title, re.IGNORECASE)
+        title = re.sub(r"(Chapter)\s*Ch\s*(\d+(?:\.\d+)?)", "\1 \2", title, re.IGNORECASE)
 
         # Deal with "Chapter 100The Black Dragon" => "Chapter 100: The Black Dragon"
         # TODO replace a-zA-Z with unicode character class using \p{L} (requires separate regex library)
-        title = re.sub(r"(Chapter \d+)([a-zA-Z]{3,})", r"\1: \2", title, re.IGNORECASE)
+        title = re.sub(r"(Chapter \d+(?:\.\d+)?)([a-zA-Z]{3,})", r"\1: \2", title, re.IGNORECASE)
+
+        # Deal with "Side Story 100The Black Dragon" => "Side Story 100: The Black Dragon"
+        # TODO replace a-zA-Z with unicode character class using \p{L} (requires separate regex library)
+        title = re.sub(r"((?:Chapter )?Side Story \d+(?:\.\d+)?)([a-zA-Z]{3,})", r"\1: \2", title, re.IGNORECASE)
 
         # Change "Chapter 100 The Black Dragon" => "Chapter 100: The Black Dragon"
-        title = re.sub(r"^(Chapter )?(\d+) ([“”\w])", r"\1\2: \3", title, re.IGNORECASE)
+        title = re.sub(
+            r"^(Chapter |(?:Chapter )?Side Story )?(\d+(?:\.\d+)?) ([“”\w])", r"\1\2: \3", title, re.IGNORECASE
+        )
 
         # Fix "Chapter 761: - No Openings" => "Chapter 761: No Openings"
         title = title.replace(": - ", ": ")
@@ -147,9 +157,34 @@ class Chapter:
         return title
 
     @staticmethod
+    def is_title_ish(text: str) -> re.Match:
+        """Check if a line of text matches something that looks like a title."""
+        return (
+            # Matches:
+            #   100. The Black Dragon
+            #   100 - The Black Dragon
+            #   100: The Black Dragon
+            #   Chapter 100 : The Black Dragon
+            #   Chapter 100.1: The Black Dragon
+            re.match(r"(?:Chapter\s*)?(\d+(?:\.\d+)?)(?:\s*[-:.])? \w+.*", text, re.IGNORECASE)
+            or
+            # Matches:
+            #   Chapter 100
+            #   Chapter 100.1
+            #   Chapter 100.
+            #   Chapter 100:
+            #   Chapter 100 -
+            re.match(r"Chapter\s* \d+(?:\.\d+)?(?:\s*[-:.])", text, re.IGNORECASE)
+        )
+
+    @staticmethod
     def extract_chapter_no(title: str) -> str:
         """Extract a chapter number from the chapter title."""
-        match = re.match(r"^\s*Chapter\s*(\d+(?:\.\d+)?)([.: ]|$)", title, re.IGNORECASE)
+        match = re.match(
+            r"^\s*(?:Chapter|Chapter\s*Side\*Story|Side\s*Story|Bonus\s*Side\s*Story)\s*(\d+(?:\.\d+)?)([.: ]|$)",
+            title,
+            re.IGNORECASE,
+        )
         chapter_no = match.group(1) if match is not None else None
         try:
             return int(chapter_no)

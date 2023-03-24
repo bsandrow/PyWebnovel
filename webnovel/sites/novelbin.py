@@ -73,9 +73,7 @@ class NovelBinScraper(NovelScraper):
             direct_descendants = target_html.find_all(recursive=False)
 
         title_header = target_html.find(["h4", "h3", "p"])
-        if title_header and (
-            match := re.match(r"(?:Chapter\s*)?(\d+(?:\.\d+)?)(?:\s*[-:.])? \w+.*", title_header.text, re.IGNORECASE)
-        ):
+        if title_header and (match := Chapter.is_title_ish(title_header.text)):
             chapter.title = Chapter.clean_title(match.group(0))
             remove_element(title_header)
 
