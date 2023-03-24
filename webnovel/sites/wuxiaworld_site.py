@@ -6,7 +6,7 @@ from webnovel.data import Chapter, NovelStatus
 from webnovel.html import DEFAULT_FILTERS, ElementBlacklistFilter, HtmlFilter, remove_element
 from webnovel.scraping import HTTPS_PREFIX, NovelScraper, Selector
 
-NOVEL_URL_PATTERN = HTTPS_PREFIX + r"wuxiaworld\.site/novel/([\w-]+)/"
+NOVEL_URL_PATTERN = HTTPS_PREFIX + r"wuxiaworld\.site/novel/(?P<NovelID>[\w-]+)/"
 
 
 class SiteAdFilter(HtmlFilter):
@@ -75,7 +75,7 @@ class WuxiaWorldDotSiteScraper(NovelScraper):
     def get_novel_id(url: str) -> str:
         """Return the Novel ID for the novel."""
         match = re.match(NOVEL_URL_PATTERN, url)
-        return match.group(1) if match is not None else None
+        return match.group("NovelID") if match is not None else None
 
     def chapter_extra_processing(self, chapter: Chapter) -> None:
         """
