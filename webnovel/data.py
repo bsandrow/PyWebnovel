@@ -245,3 +245,4 @@ class Novel:
     translator: Optional[Person] = None
     chapters: Optional[list[Chapter]] = None
     cover_image: Optional[Image] = None
+    extra_css: Optional[str] = None

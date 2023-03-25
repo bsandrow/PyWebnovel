@@ -33,6 +33,10 @@ class NovelScraper:
     chapter_content_selector: Selector = None
     chapter_content_filters: list[html.HtmlFilter] = None
 
+    # Additional CSS to add to the novel based on the site that this was scraped
+    # from.
+    extra_css: Optional[str] = None
+
     def __init__(self):
         """Initialize the HttpClient."""
         self.http_client = http.get_client()
@@ -157,4 +161,5 @@ class NovelScraper:
             summary=self.get_summary(page),
             chapters=self.get_chapters(page, url=url),
             cover_image=self.get_cover_image(page),
+            extra_css=self.extra_css,
         )

@@ -30,6 +30,21 @@ class ScribbleHubScraper(NovelScraper):
     chapter_content_selector = Selector("#chp_raw")
     chapter_content_filters = DEFAULT_FILTERS
 
+    extra_css: str = """\
+        .wi_authornotes {
+            border: 2px solid black;
+            padding: 10px;
+        }
+
+        .wi_authornotes .p-avatar-wrap {
+            float: left;
+        }
+
+        .wi_authornotes .wi_authornotes_body {
+            padding-top: 10px;
+        }
+    """
+
     @staticmethod
     def get_novel_id(url: str) -> str:
         """Return the novel id from the URL."""
