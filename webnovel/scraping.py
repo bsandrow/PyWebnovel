@@ -13,13 +13,44 @@ HTTPS_PREFIX = r"https?://(?:www\.)?"
 DEFAULT_LIMITER = Limiter(RequestRate(5, Duration.SECOND))
 
 
-class NovelScraper:
-    """Base Class for Webnovel Scrapers."""
+class ScraperBase:
+    """Base class for Novel/Chapter scrapers."""
 
     site_name: str
     http_client: http.HttpClient
     limiter: Limiter
-    parser: str = "html.parser"
+    parser: str
+
+    def __init__(self, parser: str = "html.parser") -> None:
+        self.http_client = http.get_client()
+        self.limiter = self.get_limiter()
+        self.parser = parser
+        assert self.site_name is not None
+
+    def get_limiter(self):
+        """Return the Limiter instance for this scraper."""
+        return DEFAULT_LIMITER
+
+    def get_soup(self, content):
+        """
+        Return a BeautifulSoup instance for HTML content passed in.
+
+        :param content: The HTML content to pass to the parser.
+        """
+        return BeautifulSoup(content, self.parser)
+
+    def get_page(self, url, method: str = "get", data: dict = None) -> BeautifulSoup:
+        """Fetch the page at the url and return it as a BeautifulSoup instance."""
+        client_method = getattr(self.http_client, method)
+        with self.limiter.ratelimit("get_page", delay=True):
+            response = client_method(url, data=data)
+        response.raise_for_status()
+        return self.get_soup(response.text)
+
+
+class NovelScraper(ScraperBase):
+    """Base Class for Webnovel Scrapers."""
+
     status_map: dict[str, NovelStatus] = None
     title_selector: Selector = None
     status_selector: Selector = None
@@ -36,35 +67,6 @@ class NovelScraper:
     # Additional CSS to add to the novel based on the site that this was scraped
     # from.
     extra_css: Optional[str] = None
-
-    def __init__(self):
-        """Initialize the HttpClient."""
-        self.http_client = http.get_client()
-        self.limiter = self.get_limiter()
-        assert self.site_name is not None
-
-    def get_soup(self, content, parser: str = None):
-        """
-        Return a BeautifulSoup instance for HTML content passed in.
-
-        :param content: The HTML content to pass to the parser.
-        :param parser: (optional) The specific parser for BeautifulSoup to use.
-                       Defaults to the class-level parser value.
-        """
-        parser = parser or self.parser
-        return BeautifulSoup(content, parser)
-
-    def get_limiter(self):
-        """Return a Limiter instance to use for get_page."""
-        return DEFAULT_LIMITER
-
-    def get_page(self, url, method: str = "get", data: dict = None) -> BeautifulSoup:
-        """Fetch the page at the url and return it as a BeautifulSoup instance."""
-        client_method = getattr(self.http_client, method)
-        with self.limiter.ratelimit("get_page", delay=True):
-            response = client_method(url, data=data)
-        response.raise_for_status()
-        return self.get_soup(response.text)
 
     def get_title(self, page: BeautifulSoup) -> str:
         """Extract the title of the Novel from the page."""
