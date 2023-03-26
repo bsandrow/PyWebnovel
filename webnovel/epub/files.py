@@ -8,6 +8,7 @@ import pkgutil
 from typing import TYPE_CHECKING, Optional
 from xml.dom.minidom import Document, Element, getDOMImplementation
 
+from bs4 import Tag
 from jinja2 import Environment, PackageLoader, select_autoescape
 
 from webnovel.data import Chapter, Image
@@ -280,8 +281,16 @@ class TitlePage(EpubFileInterface):
             "author_url": None,
             "items": {},
             "credits": {},
-            "summary": self.pkg.novel.summary,
+            "summary_html": None,
+            "summary_text": None,
         }
+
+        # Summary
+        summary = self.pkg.novel.summary
+        if isinstance(summary, Tag):
+            template_kwargs["summary_html"] = str(summary)
+        elif summary is not None:
+            template_kwargs["summary_text"] = str(summary)
 
         # Credits
         if self.pkg.novel.author is not None:
@@ -417,7 +426,8 @@ class PackageOPF(EpubFileInterface):
         # TODO published / created / updated / calibre (add to Novel)
 
         if pkg.novel.summary:
-            create_element(dom, "dc:description", text=pkg.novel.summary, parent=metadata)
+            summary = pkg.novel.summary.text if isinstance(pkg.novel.summary, Tag) else pkg.novel.summary
+            create_element(dom, "dc:description", text=summary, parent=metadata)
 
         if pkg.novel.genres:
             for genre in pkg.novel.genres:

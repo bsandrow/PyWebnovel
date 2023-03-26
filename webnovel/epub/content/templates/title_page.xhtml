@@ -29,12 +29,18 @@
         {% for title, value in items.items() %}
           <span class="pywn_information-block"><strong>{{title}}:</strong> {{value}}</span>
         {% endfor %}
-        {% if summary is not none %}
+        {%- if summary_text is not none %}
         <span class="pywn_information-block">
           <strong>Summary:</strong><br/>
-          <p class="pywn_summary-content">{{summary}}</p>
+          <p class="pywn_summary-content" style="white-space: pre-line;">{{summary_text}}</p>
         </span>
-        {% endif %}
+        {% endif -%}
+        {%- if summary_html is not none %}
+        <span class="pywn_information-block">
+          <strong>Summary:</strong><br/>
+          <p class="pywn_summary-content">{{summary_html|safe}}</p>
+        </span>
+        {% endif -%}
     </div>
     {% endif -%}
     <div class="pywn_bottom-info">

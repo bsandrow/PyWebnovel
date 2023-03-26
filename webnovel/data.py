@@ -1,11 +1,10 @@
 """Define all of the basic datastructures we'll use to pass novels around."""
 
-from dataclasses import dataclass, field
-import datetime
+from dataclasses import dataclass
 from enum import Enum
 import imghdr
 import re
-from typing import Any, Optional
+from typing import Optional, Union
 
 from apptk.http import HttpClient
 from bs4 import Tag
@@ -238,7 +237,7 @@ class Novel:
     site_id: Optional[str] = None
     title: Optional[str] = None
     status: Optional[NovelStatus] = None
-    summary: Optional[str] = None
+    summary: Optional[Union[str, Tag]] = None
     genres: Optional[list[str]] = None
     tags: Optional[list[str]] = None
     author: Optional[Person] = None

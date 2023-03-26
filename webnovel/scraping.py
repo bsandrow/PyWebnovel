@@ -108,10 +108,10 @@ class NovelScraper(ScraperBase):
             else None,
         )
 
-    def get_summary(self, page: BeautifulSoup) -> str:
+    def get_summary(self, page: BeautifulSoup) -> Union[str, Tag]:
         """Extract the novel's summary/description from the novel page."""
         assert self.summary_selector is not None, "summary_selector is not defined. Define it or override get_summary."
-        return "\n".join(self.summary_selector.parse(page))
+        return self.summary_selector.parse_one(page, use_attribute=False)
 
     def get_cover_image(self, page: BeautifulSoup) -> Optional[Image]:
         """Extract an Image() for the cover image of the novel from the novel's page."""
