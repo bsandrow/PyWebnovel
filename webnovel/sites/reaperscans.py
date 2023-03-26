@@ -11,14 +11,14 @@ from webnovel import html, http
 from webnovel.data import Chapter, NovelStatus
 from webnovel.livewire import LiveWireAPI
 from webnovel.logs import LogTimer
-from webnovel.scraping import NovelScraper, Selector
+from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraper, Selector
 
+SITE_NAME = "ReaperScans.com"
 URL_PATTERN = r"https?://(?:www\.)?reaperscans\.com/novels/(\d+-[\w-]+)"
 logger = logging.getLogger(__name__)
 timer = LogTimer(logger)
 
-lwapi_rate = RequestRate(2, Duration.SECOND)
-limiter = Limiter(lwapi_rate)
+LIMITER = Limiter(RequestRate(3, 7))  # 3 requests per 7 seconds
 
 
 def get_csrf_token(element: Tag) -> str:
@@ -108,25 +108,25 @@ class ChapterListAPI(LiveWireAPI):
         memo = self.most_recent_server_memo()
         return memo.get("data", {}).get("page")
 
-    @limiter.ratelimit("lwapi", delay=True)
+    @LIMITER.ratelimit("lwapi", delay=True)
     def get_page(self, page_no: int) -> str:
         """Move the chapter list to a specific page (in the list) and return the HTML."""
         response = self.make_call("gotoPage", page_no, "page")
         return self.update_page_history(response)
 
-    @limiter.ratelimit("lwapi", delay=True)
+    @LIMITER.ratelimit("lwapi", delay=True)
     def next_page(self) -> str:
         """Move the chapter list to the next page (in the list) and return the HTML."""
         response = self.make_call("nextPage", "page")
         return self.update_page_history(response)
 
-    @limiter.ratelimit("lwapi", delay=True)
+    @LIMITER.ratelimit("lwapi", delay=True)
     def previous_page(self) -> str:
         """Move the chapter list to the previous page (in the list) and return the HTML."""
         response = self.make_call("prevPage", "page")
         return self.update_page_history(response)
 
-    @limiter.ratelimit("lwapi", delay=True)
+    @LIMITER.ratelimit("lwapi", delay=True)
     def update_page_history(self, response: Response):
         """Update the page_history to store the HTML content of the returned page."""
         response_json = response.json()
@@ -176,8 +176,7 @@ class RemoveStartingBannerFilter(html.HtmlFilter):
 class ReaperScansScraper(NovelScraper):
     """Scraper for ReaperScans.com."""
 
-    site_name = "ReaperScans.com"
-
+    site_name = SITE_NAME
     title_selector = Selector("MAIN > DIV:nth-child(2) > DIV > DIV:first-child H1")
     status_selector = Selector("MAIN > DIV:nth-child(2) > SECTION > DIV:first-child DL > DIV:nth-child(4) DD")
     summary_selector = Selector("MAIN > DIV:nth-child(2) > SECTION > DIV:first-child > DIV > P")
@@ -190,11 +189,6 @@ class ReaperScansScraper(NovelScraper):
     # first_chapter_link = Selector(
     #     "MAIN > DIV:nth-child(2) > DIV > DIV:first-child > DIV A:first-child", attribute="href"
     # )
-    chapter_content_selector = Selector("ARTICLE.prose")
-    chapter_content_filters = html.DEFAULT_FILTERS + [
-        # RemoveStartingBannerFilter(),
-        RemoveTrailingHorizontalBarsFilter()
-    ]
     status_map = {
         "Ongoing": NovelStatus.ONGOING,
         # I haven't seen any with this on the site, so I'm only guessing that the status would be "Complete" when they
@@ -206,7 +200,7 @@ class ReaperScansScraper(NovelScraper):
 
     def get_limiter(self):
         """Return rate limiter for ReaperScans."""
-        return Limiter(RequestRate(3, 7))  # 3 requests per 7 seconds
+        return LIMITER
 
     @staticmethod
     def get_novel_id(url: str) -> str:
@@ -274,3 +268,19 @@ class ReaperScansScraper(NovelScraper):
                 # time.sleep(2)
 
         return sorted(chapters, key=lambda ch: ch.chapter_no)
+
+
+class ReaperScansChapterScraper(ChapterScraper):
+    """Scraper for ReaperScans.com chapter content."""
+
+    site_name = SITE_NAME
+    url_pattern = HTTPS_PREFIX + r"reaperscans.com/novels/(?P<NovelID>[\w\d-]+)/chapters/(?P<ChapterID>[\d\w-]+)"
+    content_selector = Selector("ARTICLE.prose")
+    content_filters = html.DEFAULT_FILTERS + (
+        # RemoveStartingBannerFilter(),
+        RemoveTrailingHorizontalBarsFilter(),
+    )
+
+    def get_limiter(self):
+        """Return rate limiter for ReaperScans."""
+        return LIMITER

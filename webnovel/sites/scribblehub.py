@@ -6,8 +6,9 @@ import re
 from webnovel.data import Chapter, NovelStatus
 from webnovel.html import DEFAULT_FILTERS, remove_element
 from webnovel.logs import LogTimer
-from webnovel.scraping import HTTPS_PREFIX, NovelScraper, Selector
+from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraper, Selector
 
+SITE_NAME = "ScribbleHub.com"
 NOVEL_URL_PATTERN = HTTPS_PREFIX + r"scribblehub\.com/series/(?P<novel_id>\d+)/(?P<novel_title_slug>[\w\d-]+)/"
 logger = logging.getLogger(__name__)
 timer = LogTimer(logger)
@@ -16,8 +17,7 @@ timer = LogTimer(logger)
 class ScribbleHubScraper(NovelScraper):
     """Scraper for ScribbleHub.com."""
 
-    site_name = "ScribbleHub.com"
-
+    site_name = SITE_NAME
     title_selector = Selector("div.fic_title")
     status_map = {"ongoing": NovelStatus.ONGOING, "completed": NovelStatus.COMPLETED, "hiatus": NovelStatus.HIATUS}
     genre_selector = Selector("a.fic_genre")
@@ -26,24 +26,6 @@ class ScribbleHubScraper(NovelScraper):
     author_url_selector = Selector("div[property='author'] [property='name'] a", attribute="href")
     summary_selector = Selector(".wi_fic_desc")
     cover_image_url_selector = Selector(".novel-cover .fic_image img", attribute="src")
-
-    chapter_content_selector = Selector("#chp_raw")
-    chapter_content_filters = DEFAULT_FILTERS
-
-    extra_css: str = """\
-        .wi_authornotes {
-            border: 2px solid black;
-            padding: 10px;
-        }
-
-        .wi_authornotes .p-avatar-wrap {
-            float: left;
-        }
-
-        .wi_authornotes .wi_authornotes_body {
-            padding-top: 10px;
-        }
-    """
 
     @staticmethod
     def get_novel_id(url: str) -> str:
@@ -90,3 +72,16 @@ class ScribbleHubScraper(NovelScraper):
             )
             for idx, chapter_li in enumerate(reversed(page.select("LI")))
         ]
+
+
+class ScribbleHubChapterScraper(ChapterScraper):
+    """Scraper for ScribbleHub.com Chapters."""
+
+    site_name = SITE_NAME
+    url_pattern = HTTPS_PREFIX + r"scribblehub\.com/read/(?P<NovelId>\d+)-[\d\w-]+/chapter/(?P<ChapterId>\d+)/"
+    extra_css: str = """\
+        .wi_authornotes {border: 2px solid black; padding: 10px;}
+        .wi_authornotes .p-avatar-wrap {float: left;}
+        .wi_authornotes .wi_authornotes_body {padding-top: 10px;}
+    """
+    content_selector = Selector("#chp_raw")

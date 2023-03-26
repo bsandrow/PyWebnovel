@@ -555,6 +555,7 @@ class ChapterFile(EpubFileInterface):
             "title": self.chapter.title,
             "url": self.chapter.url,
             "content": str(self.chapter.html_content),
+            "css": None,
         }
         template = JINJA.get_template("chapter.xhtml")
         self.data = template.render(**template_kwargs).encode("utf-8")

@@ -6,9 +6,10 @@ import re
 from webnovel.data import Chapter, NovelStatus
 from webnovel.html import DEFAULT_FILTERS, HtmlFilter, remove_element
 from webnovel.logs import LogTimer
-from webnovel.scraping import HTTPS_PREFIX, NovelScraper, Selector
+from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraper, Selector
 
-NOVEL_URL_PATTERN = HTTPS_PREFIX + r"novelbin\.net/n/([\w-]+)"
+NOVEL_URL_PATTERN = HTTPS_PREFIX + r"novelbin\.net/n/(?P<NovelID>[\w-]+)"
+SITE_NAME = "NovelBin.net"
 logger = logging.getLogger(__name__)
 timer = LogTimer(logger)
 
@@ -31,11 +32,35 @@ class RemoveStayTunedMessage(HtmlFilter):
             remove_element(element)
 
 
+class NovelBinChapterScraper(ChapterScraper):
+    """Scraper for NovelBin.net chapter content."""
+
+    site_name = SITE_NAME
+    url_pattern = HTTPS_PREFIX + r"novelbin\.net/n/(?P<NovelID>[\w\d-]+)/(?P<ChapterId>[\w\d-]+)"
+    content_selector = Selector("#chr-content")
+    content_filters = DEFAULT_FILTERS + (RemoveStayTunedMessage(),)
+
+    def post_processing(self, chapter: Chapter) -> None:
+        """Do extra chapter title processing."""
+        super().post_processing(chapter)
+
+        target_html = chapter.html_content
+        direct_descendants = target_html.find_all(recursive=False)
+
+        while len(direct_descendants) == 1:
+            target_html = direct_descendants[0]
+            direct_descendants = target_html.find_all(recursive=False)
+
+        title_header = target_html.find(["h4", "h3", "p"])
+        if title_header and (match := Chapter.is_title_ish(title_header.text)):
+            chapter.title = Chapter.clean_title(match.group(0))
+            remove_element(title_header)
+
+
 class NovelBinScraper(NovelScraper):
     """Scraper for NovelBin.net."""
 
-    site_name = "NovelBin.com"
-
+    site_name = SITE_NAME
     title_selector = Selector(".col-novel-main > .col-info-desc > .desc > .title")
     status_map = {"ongoing": NovelStatus.ONGOING, "completed": NovelStatus.COMPLETED}
     genre_selector = Selector(".col-novel-main > .col-info-desc > .desc > .info-meta > li:nth-child(3) > a")
@@ -45,9 +70,6 @@ class NovelBinScraper(NovelScraper):
     )
     summary_selector = Selector("div.tab-content div.desc-text")
     cover_image_url_selector = Selector("#novel div.book > img", attribute="src")
-
-    chapter_content_selector = Selector("#chr-content")
-    chapter_content_filters = DEFAULT_FILTERS + [RemoveStayTunedMessage()]
 
     @staticmethod
     def get_novel_id(url: str) -> str:
@@ -62,20 +84,6 @@ class NovelBinScraper(NovelScraper):
     def validate_url(url: str) -> bool:
         """Validate that a URL matches something that works for NovelBin.net and the scraper should support."""
         return re.match(NOVEL_URL_PATTERN, url) is not None
-
-    def chapter_extra_processing(self, chapter: Chapter) -> None:
-        """Do extra chapter title processing."""
-        target_html = chapter.html_content
-        direct_descendants = target_html.find_all(recursive=False)
-
-        while len(direct_descendants) == 1:
-            target_html = direct_descendants[0]
-            direct_descendants = target_html.find_all(recursive=False)
-
-        title_header = target_html.find(["h4", "h3", "p"])
-        if title_header and (match := Chapter.is_title_ish(title_header.text)):
-            chapter.title = Chapter.clean_title(match.group(0))
-            remove_element(title_header)
 
     def get_status(self, page):
         """
@@ -94,7 +102,6 @@ class NovelBinScraper(NovelScraper):
     def get_chapters(self, page, url: str) -> list:
         """Return the list of Chapter instances for NovelBin.net."""
         novel_id = self.get_novel_id(url)
-        chapters = []
 
         # This ajax requests also returns the list, but as a <select> with
         # <option>s so parsing will be different.

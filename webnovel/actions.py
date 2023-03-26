@@ -24,6 +24,7 @@ def create_epub(novel_url: str, filename: str = None, cover_image_url: str = Non
         novel.cover_image = Image(url=cover_image_url)
 
     filename = utils.clean_filename(filename or f"{novel.title}.epub")
+    ch_scrapers = {}
 
     with timer("Generating %s", filename):
         epub_pkg = epub.EpubPackage(filename=filename, novel=novel)
@@ -39,7 +40,12 @@ def create_epub(novel_url: str, filename: str = None, cover_image_url: str = Non
             chapters = chapters[:chapter_limit]
         for chapter in chapters:
             logger.info(f"Processing chapter: {chapter.title}")
-            scraper.process_chapters(chapters=[chapter])
+            ch_scraper_class = sites.find_chapter_scraper(chapter.url)
+            if ch_scraper_class in ch_scrapers:
+                ch_scraper = ch_scrapers[ch_scraper_class]
+            else:
+                ch_scraper = ch_scrapers[ch_scraper_class] = ch_scraper_class()
+            ch_scraper.process_chapter(chapter)
             epub_pkg.add_chapter(chapter)
 
         epub_pkg.save(filename)

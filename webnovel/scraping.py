@@ -1,9 +1,10 @@
 """Base Functionality for Scraping Webnovel Content."""
 
-from typing import Optional
+import re
+from typing import Optional, Union
 
 from apptk.html import Selector
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 from pyrate_limiter import Duration, Limiter, RequestRate
 
 from webnovel import html, http
@@ -16,6 +17,7 @@ DEFAULT_LIMITER = Limiter(RequestRate(5, Duration.SECOND))
 class ScraperBase:
     """Base class for Novel/Chapter scrapers."""
 
+    url_pattern: Union[re.Pattern, str]
     site_name: str
     http_client: http.HttpClient
     limiter: Limiter
@@ -47,6 +49,13 @@ class ScraperBase:
         response.raise_for_status()
         return self.get_soup(response.text)
 
+    @classmethod
+    def supports_url(cls, url: str) -> bool:
+        """Return True if scraper should support scraping the provided URL."""
+        if isinstance(cls.url_pattern, re.Pattern):
+            return cls.url_pattern.match(url) is not None
+        return re.match(cls.url_pattern, url) is not None
+
 
 class NovelScraper(ScraperBase):
     """Base Class for Webnovel Scrapers."""
@@ -61,8 +70,6 @@ class NovelScraper(ScraperBase):
     author_url_selector: Selector = None
     summary_selector: Selector = None
     cover_image_url_selector: Selector = None
-    chapter_content_selector: Selector = None
-    chapter_content_filters: list[html.HtmlFilter] = None
 
     # Additional CSS to add to the novel based on the site that this was scraped
     # from.
@@ -131,22 +138,6 @@ class NovelScraper(ScraperBase):
         :param url: The url of the novel's page.
         """
 
-    def chapter_extra_processing(self, chapter: Chapter) -> None:
-        """Extra per-chapter processing that can be defined per-scraper."""
-
-    def process_chapters(self, chapters: list[Chapter]) -> None:
-        """
-        Populate html_content attribute of a list of Chapters.
-
-        Use chapter_content_selector / chapter_content_filters to process the content of
-        a Chapter fetched via Chapter.url.
-        """
-        for chapter in chapters:
-            page = self.get_page(chapter.url)
-            chapter.html_content = self.chapter_content_selector.parse_one(page, use_attribute=False)
-            html.run_filters(chapter.html_content, filters=self.chapter_content_filters)
-            self.chapter_extra_processing(chapter)
-
     def scrape(self, url: str) -> Novel:
         """Scrape URL to return a Novel instance populated from extracted information."""
         page = self.get_page(url)
@@ -165,3 +156,34 @@ class NovelScraper(ScraperBase):
             cover_image=self.get_cover_image(page),
             extra_css=self.extra_css,
         )
+
+
+class ChapterScraper(ScraperBase):
+    """Base scraper for chapter information."""
+
+    content_selector: Selector = None
+    content_filters: tuple[html.HtmlFilter] = html.DEFAULT_FILTERS
+    extra_css: Optional[str] = None
+
+    def post_processing(self, chapter: Chapter) -> None:
+        """
+        Post-processing of the chapter after html_content has been filled in.
+
+        By default, this will run the
+        """
+        html.run_filters(chapter.html_content, filters=self.content_filters)
+
+    def get_content(self, page: BeautifulSoup) -> Tag:
+        """Extract the section of the HTML from page that contains the chapter's content."""
+        return self.content_selector.parse_one(page, use_attribute=False)
+
+    def process_chapter(self, chapter: Chapter) -> None:
+        """
+        Populate the html_content of a Chapter.
+
+        Use content_selector to extract chapter content, then pass to post_processing
+        a Chapter fetched via Chapter.url.
+        """
+        page = self.get_page(chapter.url)
+        chapter.html_content = self.get_content(page)
+        self.post_processing(chapter)

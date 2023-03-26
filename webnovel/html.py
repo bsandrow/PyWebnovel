@@ -232,13 +232,13 @@ class StripComments(HtmlFilter):
 # The default list of filters. Most uses of filters will probably just add filters to this default list rather than
 # completely replace it.
 #
-DEFAULT_FILTERS = [
+DEFAULT_FILTERS: tuple[HtmlFilter] = (
     ElementBlacklistFilter(ELEMENT_BLACKLIST),
     EmptyContentFilter(["div", "h1", "h2", "h3", "h4", "h5", "h6", "p"]),
     ContentWarningFilter(CONTENT_WARNING_PATTERNS),
     DisplayNoneFilter(),
     StripComments(),
-]
+)
 
 
 def run_filters(html_tree: Tag, filters: list[HtmlFilter] = None):
