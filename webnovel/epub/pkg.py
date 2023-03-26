@@ -290,6 +290,8 @@ class EpubPackage:
 
         If the image is a cover image, add the cover page to display it.
         """
+        if not self.include_images:
+            return
         self.files.add_image(image, is_cover_image=is_cover_image, client=client)
         if is_cover_image and not self.files.has_cover_page:
             self.files.add(CoverPage(self))
