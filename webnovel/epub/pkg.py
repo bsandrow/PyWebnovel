@@ -7,7 +7,7 @@ from zipfile import ZIP_STORED, ZipFile
 
 from apptk.http import HttpClient
 
-from webnovel.data import Chapter, Image, Novel
+from webnovel.data import Chapter, Image, Novel, NovelOptions
 from webnovel.epub.files import (
     ChapterFile,
     ContainerXML,
@@ -222,33 +222,41 @@ class EpubPackage:
     novel_info: NovelInfo
     epub_version: str
     pkg_opf_path: str
-    include_toc_page: bool
-    include_title_page: bool
     default_language_code: str
-    include_images: bool
     files: EpubFileList
 
     def __init__(
         self,
         filename: str,
         novel: Novel,
+        options: NovelOptions,
         default_language_code: str = "en",
         version: str = "3.0",
         pkg_opf_path: str = "package.opf",
-        include_toc_page: bool = True,
-        include_title_page: bool = True,
-        include_images: bool = True,
     ) -> None:
         self.filename = filename
         self.novel = novel
+        self.options = options
         self.novel_info = NovelInfo.from_novel(novel)
         self.default_language_code = default_language_code
         self.epub_version = version
         self.pkg_opf_path = pkg_opf_path
-        self.include_toc_page = include_toc_page
-        self.include_title_page = include_title_page
-        self.include_images = include_images
         self.files = self.build_file_list()
+
+    @property
+    def include_toc_page(self) -> bool:
+        """Return the include_toc_page option."""
+        return self.options.include_toc_page
+
+    @property
+    def include_title_page(self) -> bool:
+        """Return the include_title_page option."""
+        return self.options.include_title_page
+
+    @property
+    def include_images(self) -> bool:
+        """Return the include_images option."""
+        return self.options.include_images
 
     def build_file_list(self) -> EpubFileList:
         """Generate the initial file list for the epub package."""

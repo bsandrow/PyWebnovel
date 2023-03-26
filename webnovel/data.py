@@ -246,3 +246,14 @@ class Novel:
     chapters: Optional[list[Chapter]] = None
     cover_image: Optional[Image] = None
     extra_css: Optional[str] = None
+
+
+@dataclass
+class NovelOptions:
+    """Collection of settings for the novel."""
+
+    include_toc_page: bool = True
+    include_title_page: bool = True
+    include_images: bool = True
+    # epub_version: str
+    # default_language_code: str = "en"
