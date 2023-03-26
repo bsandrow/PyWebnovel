@@ -221,7 +221,7 @@ class EpubPackage:
     novel: Novel
     novel_info: NovelInfo
     epub_version: str
-    pkg_opf_path: str
+    pkg_opf_path: str = "OEBPS/content.opf"
     default_language_code: str
     files: EpubFileList
 
@@ -232,7 +232,6 @@ class EpubPackage:
         options: NovelOptions,
         default_language_code: str = "en",
         version: str = "3.0",
-        pkg_opf_path: str = "package.opf",
     ) -> None:
         self.filename = filename
         self.novel = novel
@@ -240,7 +239,6 @@ class EpubPackage:
         self.novel_info = NovelInfo.from_novel(novel)
         self.default_language_code = default_language_code
         self.epub_version = version
-        self.pkg_opf_path = pkg_opf_path
         self.files = self.build_file_list()
 
     @property
