@@ -40,6 +40,12 @@ class EpubFileInterface:
         """Return the filename as a Path instance."""
         return Path(self.filename)
 
+    def relative_to(self, path: Path) -> Path:
+        """Return a path to this file that's relative to the provided path."""
+        import posixpath
+
+        return Path(posixpath.relpath(str(self.path), str(path)))
+
 
 @dataclass
 class EpubFile(EpubFileInterface):
@@ -62,7 +68,7 @@ class EpubImage(EpubFile):
         """Create an EpubImage from an Image."""
         return EpubImage(
             file_id=image_id,
-            filename=f"OEBPS/{image_id}{image.extension}",
+            filename=f"OEBPS/Images/{image_id}{image.extension}",
             mimetype=image.mimetype,
             data=image.data,
         )
@@ -201,7 +207,7 @@ class NavigationControlFile(EpubFileInterface):
     """
 
     file_id: str = "ncx"
-    filename: str = "toc.ncx"
+    filename: str = "OEBPS/toc.ncx"
     mimetype: str = "application/x-dtbncx+xml"
     title: str = None
     include_in_spine: bool = False
@@ -258,7 +264,7 @@ class TitlePage(EpubFileInterface):
     """The title page of the epub."""
 
     file_id: str = "title_page"
-    filename: str = "OEBPS/title_page.xhtml"
+    filename: str = "OEBPS/Text/title_page.xhtml"
     mimetype: str = "application/xhtml+xml"
     title: str = "Title Page"
     include_in_spine: bool = True
@@ -275,7 +281,7 @@ class TitlePage(EpubFileInterface):
             "now": datetime.datetime.now(),
             "strftime": datetime.datetime.strftime,
             "novel": self.pkg.novel,
-            "stylesheet": str(Stylesheet.path.relative_to(self.path.parent)),
+            "stylesheet": self.pkg.get_stylesheet_path(self.path.parent),
             "title_page_css": self.title_page_css,
             "author_name": None,
             "author_url": None,
@@ -321,7 +327,7 @@ class CoverPage(EpubFileInterface):
     """The cover page (containing the cover image) of the epub."""
 
     file_id: str = "cover"
-    filename: str = "OEBPS/cover.xhtml"
+    filename: str = "OEBPS/Text/cover.xhtml"
     mimetype: str = "application/xhtml+xml"
     title: str = "Cover"
     include_in_spine: bool = True
@@ -333,7 +339,7 @@ class CoverPage(EpubFileInterface):
 
     def generate(self, **template_kwargs):
         """Generate cover page XHTML."""
-        template_kwargs.setdefault("cover_image", self.pkg.cover_image)
+        template_kwargs.setdefault("cover_image", self.pkg.cover_image.relative_to(self.path.parent))
         template = JINJA.get_template("cover.xhtml")
         self.data = template.render(**template_kwargs).encode("utf-8")
 
@@ -342,7 +348,7 @@ class PackageOPF(EpubFileInterface):
     """The Main XML file that acts as a manifest for the epub package."""
 
     file_id: str = "opf"
-    filename: str = "package.opf"
+    filename: str = "OEBPS/content.opf"
     data: bytes = None
     include_in_manifest: bool = False
 
@@ -350,19 +356,31 @@ class PackageOPF(EpubFileInterface):
         self.filename = filename or self.filename
         self.pkg = pkg
 
-    @staticmethod
-    def generate_guide(dom: Document, pkg: "EpubPackage") -> Optional[Element]:
+    def generate_guide(self, dom: Document, pkg: "EpubPackage") -> Optional[Element]:
         """
         Generate <guide> element for PackageOPF file.
 
         Only generated if there is a cover image and include_images=True for the parent package.
         """
-        if pkg.include_images and pkg.files.has_cover_page:
-            guide = create_element(dom, "guide")
-            attrs = {"type": "cover", "title": "Cover", "href": CoverPage.filename}
+        guide = create_element(dom, "guide")
+        start_page = pkg.files.chapters[0]
+
+        if pkg.include_toc_page and (toc_page := pkg.files.toc_page):
+            start_page = toc_page
+            attrs = {"type": "toc", "title": "Table of Contents", "href": str(toc_page.relative_to(self.path.parent))}
             create_element(dom, "reference", parent=guide, attributes=attrs)
-            return guide
-        return None
+
+        if pkg.include_title_page and (title_page := pkg.files.title_page):
+            start_page = title_page
+
+        if pkg.include_images and (cover_page := pkg.files.cover_page):
+            start_page = cover_page
+            attrs = {"type": "cover", "title": "Cover", "href": str(cover_page.relative_to(self.path.parent))}
+            create_element(dom, "reference", parent=guide, attributes=attrs)
+
+        attrs = {"type": "start", "title": "Begin Reading", "href": str(start_page.relative_to(self.path.parent))}
+        create_element(dom, "reference", parent=guide, attributes=attrs)
+        return guide
 
     @staticmethod
     def generate_spine(dom: Document, pkg: "EpubPackage") -> Element:
@@ -372,18 +390,21 @@ class PackageOPF(EpubFileInterface):
             create_element(dom, "itemref", attributes={"idref": spine_item.file_id, "linear": "yes"}, parent=spine)
         return spine
 
-    @staticmethod
-    def generate_manifest(dom: Document, pkg: "EpubPackage") -> Element:
+    def generate_manifest(self, dom: Document, pkg: "EpubPackage") -> Element:
         """Generate a <manifest> for the OPF package."""
         manifest = create_element(dom, "manifest")
 
         for epub_file in pkg.files:
             if epub_file.include_in_manifest:
-                attrs = {"id": epub_file.file_id, "href": epub_file.filename, "media-type": epub_file.mimetype}
+                attrs = {
+                    "id": epub_file.file_id,
+                    "href": str(epub_file.relative_to(self.path.parent)),
+                    "media-type": epub_file.mimetype,
+                }
                 create_element(dom, "item", attributes=attrs, parent=manifest)
 
         if pkg.is_epub3:
-            attrs = {"href": "nav.xhtml", "id": "nav", "media-type": "application/xhtml+xml", "properties": "nav"}
+            attrs = {"href": "Text/nav.xhtml", "id": "nav", "media-type": "application/xhtml+xml", "properties": "nav"}
             create_element(dom, "item", attributes=attrs, parent=manifest)
 
         return manifest
@@ -509,7 +530,7 @@ class TableOfContentsPage(EpubFileInterface):
     """The page containing the Table of Contents for the epub."""
 
     file_id: str = "toc_page"
-    filename: str = "OEBPS/toc_page.xhtml"
+    filename: str = "OEBPS/Text/toc_page.xhtml"
     mimetype: str = "application/xhtml+xml"
     title: str = "Contents"
     include_in_spine: bool = True
@@ -523,17 +544,14 @@ class TableOfContentsPage(EpubFileInterface):
     def generate(self):
         """Generate TableOfContents Page."""
         template_kwargs = {
+            "stylesheet": self.pkg.get_stylesheet_path(self.path.parent),
             "items": [
                 {
                     "title": item.title,
-                    "filename": (
-                        item.filename.replace("OEBPS/", "")
-                        if item.filename.startswith("OEBPS/")
-                        else f"../{item.filename}"
-                    ),
+                    "filename": item.relative_to(self.path.parent),
                 }
                 for item in self.pkg.files.generate_toc_list()
-            ]
+            ],
         }
         template = JINJA.get_template("toc_page.xhtml")
         self.data = template.render(**template_kwargs).encode("utf-8")
@@ -556,7 +574,7 @@ class ChapterFile(EpubFileInterface):
         self.pkg = pkg
         self.chapter = chapter
         self.file_id = file_id
-        self.filename = f"OEBPS/{self.file_id}.xhtml"
+        self.filename = f"OEBPS/Text/{self.file_id}.xhtml"
         self.title = chapter.title
 
     def generate(self):
@@ -564,6 +582,7 @@ class ChapterFile(EpubFileInterface):
         template_kwargs = {
             "title": self.chapter.title,
             "url": self.chapter.url,
+            "stylesheet": self.pkg.get_stylesheet_path(self.path.parent),
             "content": str(self.chapter.html_content),
             "css": None,
         }
@@ -575,7 +594,7 @@ class NavXhtml(EpubFileInterface):
     """Class for the nav.xhtml file."""
 
     file_id: str = "nav"
-    filename: str = "nav.xhtml"
+    filename: str = "OEBPS/Text/nav.xhtml"
     mimetype: str = "application/xhtml+xml"
     title: str = None
     include_in_spine: bool = False
@@ -588,8 +607,8 @@ class NavXhtml(EpubFileInterface):
     def generate(self):
         """Generate nav.xhtml File."""
         template_kwargs = {
-            "cover_page": self.pkg.files.cover_page,
-            "toc": self.pkg.files.generate_toc_list(),
+            "cover_page": self.pkg.files.cover_page.relative_to(self.path.parent),
+            "toc": [(item.title, item.relative_to(self.path.parent)) for item in self.pkg.files.generate_toc_list()],
             "langcode": "en",
         }
         template = JINJA.get_template("nav.xhtml")

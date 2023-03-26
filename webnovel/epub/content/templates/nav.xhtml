@@ -7,9 +7,9 @@
 <body>
 	<nav epub:type="toc">
 		<ol>
-			{% for item in toc %}
+			{% for title, file_path in toc %}
 			<li>
-				<a href="{{item.filename}}">{{item.title}}</a>
+				<a href="{{file_path}}">{{title}}</a>
 			</li>
 			{% endfor %}
 		</ol>
@@ -18,7 +18,7 @@
 		<ol>
 		{% if cover_page %}
 			<li>
-				<a href="{{cover_page.filename}}" epub:type="cover">Cover</a>
+				<a href="{{cover_page}}" epub:type="cover">Cover</a>
 			</li>
 		{% endif %}
 		</ol>

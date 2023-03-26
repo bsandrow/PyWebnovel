@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from inspect import isclass
+from pathlib import Path
 from typing import IO, Optional, Union
 from zipfile import ZIP_STORED, ZipFile
 
@@ -183,6 +184,12 @@ class EpubFileList:
         file_id = TitlePage.file_id
         return self[file_id] if file_id in self else None
 
+    @property
+    def stylesheet(self) -> Optional[Stylesheet]:
+        """Return the title page, if one exists."""
+        file_id = Stylesheet.file_id
+        return self[file_id] if file_id in self else None
+
 
 @dataclass
 class NovelInfo:
@@ -306,6 +313,15 @@ class EpubPackage:
     def cover_image(self) -> Optional[EpubImage]:
         """Return the cover image file."""
         return self.files.cover_image
+
+    @property
+    def stylesheet(self) -> Optional[Stylesheet]:
+        """Return the Stylesheet from the file list."""
+        return self.files.stylesheet
+
+    def get_stylesheet_path(self, relative_to: Path) -> Optional[Path]:
+        """Return a relative path to the stylesheet."""
+        return self.stylesheet.relative_to(relative_to) if self.stylesheet else None
 
     def save(self, file_or_io: Union[str, IO]) -> IO:
         """
