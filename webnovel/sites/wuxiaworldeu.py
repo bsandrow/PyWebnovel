@@ -37,7 +37,7 @@ class WuxiaWorldEuChapterScraper(ChapterScraper):
         if len(queries) < 1:
             raise ValueError("No data for chapter.")
         chapter_text = queries[0]["state"]["data"]["text"]
-        paragraphs = chapter_text.split(" \n ")
+        paragraphs = chapter_text.split("\n")
         return BeautifulSoup("<div>" + "".join(f"<p>{para}</p>" for para in paragraphs) + "</div>", "html.parser")
 
 
