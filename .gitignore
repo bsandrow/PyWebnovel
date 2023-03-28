@@ -74,3 +74,4 @@ venv/
 
 *.epub
 novels.txt
+tmp/

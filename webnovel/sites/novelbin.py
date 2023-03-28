@@ -77,7 +77,8 @@ class NovelBinScraper(NovelScraper):
         match = re.match(NOVEL_URL_PATTERN, url)
         if match is None:
             return None
-        novel_id, _, _ = match.group(1).rpartition("-")
+        novel_id = match.group("NovelID")
+        novel_id = re.sub(r"-nov-?\d+$", "", novel_id)
         return novel_id
 
     @staticmethod
