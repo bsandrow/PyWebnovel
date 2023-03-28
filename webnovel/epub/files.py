@@ -607,7 +607,9 @@ class NavXhtml(EpubFileInterface):
     def generate(self):
         """Generate nav.xhtml File."""
         template_kwargs = {
-            "cover_page": self.pkg.files.cover_page.relative_to(self.path.parent),
+            "cover_page": self.pkg.files.cover_page.relative_to(self.path.parent)
+            if self.pkg.files.cover_page
+            else None,
             "toc": [(item.title, item.relative_to(self.path.parent)) for item in self.pkg.files.generate_toc_list()],
             "langcode": "en",
         }
