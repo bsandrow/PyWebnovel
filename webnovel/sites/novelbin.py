@@ -28,7 +28,7 @@ class RemoveStayTunedMessage(HtmlFilter):
 
     def filter(self, html_tree):
         """Filter out block containing the message."""
-        for element in html_tree.select(".scehdule-text"):
+        for element in html_tree.select(".schedule-text"):
             remove_element(element)
 
 
