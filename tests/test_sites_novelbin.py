@@ -20,7 +20,7 @@ class RemoveStayTunedMessageTestCase(TestCase):
     )
 
     def test_removes_message(self):
-        html = BeautifulSoup(self.html)
+        html = BeautifulSoup(self.html, "html.parser")
         novelbin.RemoveStayTunedMessage().filter(html)
         self.assertEqual(str(html), ("<div>\n" "<p>dkfjgnslekdgbdsflgkjdfskg</p>\n\n" "</div>"))
 
