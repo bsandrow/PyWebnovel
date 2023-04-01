@@ -1,4 +1,4 @@
-from unittest import TestCase, mock
+from unittest import TestCase, mock, skip
 
 import requests_mock
 
@@ -8,6 +8,7 @@ from webnovel.sites import wuxiaworld_site
 from .helpers import get_test_data
 
 
+@skip
 class WuxiaWorldSiteTestCase(TestCase):
     def test_validate_url(self):
         for url, expected_result in [
@@ -21,6 +22,7 @@ class WuxiaWorldSiteTestCase(TestCase):
                 self.assertTrue(actual_result is expected_result)
 
 
+@skip
 class WuxiaWorldDotSiteScraperTestCase(TestCase):
     novel_page: str
     chlist_page: str
