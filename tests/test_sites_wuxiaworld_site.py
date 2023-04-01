@@ -1,9 +1,10 @@
-from unittest import mock, TestCase
+from unittest import TestCase, mock
 
 import requests_mock
 
-from webnovel.data import Image, Novel, NovelStatus, Person, Chapter
+from webnovel.data import Chapter, Image, Novel, NovelStatus, Person
 from webnovel.sites import wuxiaworld_site
+
 from ..helpers import get_test_data
 
 
@@ -32,8 +33,12 @@ class WuxiaWorldDotSiteScraperTestCase(TestCase):
     def setUp(self):
         self.requests_mock = requests_mock.Mocker()
         self.requests_mock.start()
-        self.requests_mock.get("/novel/global-game-afk-in-the-zombie-apocalypse-game-wuxia-dao-novel/", text=self.novel_page)
-        self.requests_mock.post("/novel/global-game-afk-in-the-zombie-apocalypse-game-wuxia-dao-novel/ajax/chapters/", text=self.chlist_page)
+        self.requests_mock.get(
+            "/novel/global-game-afk-in-the-zombie-apocalypse-game-wuxia-dao-novel/", text=self.novel_page
+        )
+        self.requests_mock.post(
+            "/novel/global-game-afk-in-the-zombie-apocalypse-game-wuxia-dao-novel/ajax/chapters/", text=self.chlist_page
+        )
 
     def tearDown(self):
         self.requests_mock.stop()
@@ -58,7 +63,7 @@ class WuxiaWorldDotSiteScraperTestCase(TestCase):
         soup = scraper.get_soup(self.novel_page)
         self.assertEqual(
             scraper.get_author(soup),
-            Person(name="Empire Black Knight", url="https://wuxiaworld.site/manga-author/empire-black-knight/")
+            Person(name="Empire Black Knight", url="https://wuxiaworld.site/manga-author/empire-black-knight/"),
         )
 
     def test_get_cover_image(self):
@@ -66,7 +71,9 @@ class WuxiaWorldDotSiteScraperTestCase(TestCase):
         soup = scraper.get_soup(self.novel_page)
         self.assertEqual(
             scraper.get_cover_image(soup),
-            Image(url="https://wuxiaworld.site/wp-content/uploads/2022/01/thumb_61e1160221cc0-193x278.jpgrender_jsfalse"),
+            Image(
+                url="https://wuxiaworld.site/wp-content/uploads/2022/01/thumb_61e1160221cc0-193x278.jpgrender_jsfalse"
+            ),
         )
 
     def test_get_summary(self):
@@ -90,7 +97,7 @@ class WuxiaWorldDotSiteScraperTestCase(TestCase):
                 "Just as the rest of the players were struggling to survive in the zombie apocalyptic game, Fang Heng’s"
                 " zombie clones were starting to clear every resource out of the forest.\n"
                 "Hm… What an interesting game!"
-            )
+            ),
         )
 
     def test_scrape(self):
@@ -104,7 +111,9 @@ class WuxiaWorldDotSiteScraperTestCase(TestCase):
             status=NovelStatus.ONGOING,
             genres=["Video Games"],
             author=Person(name="Empire Black Knight", url="https://wuxiaworld.site/manga-author/empire-black-knight/"),
-            cover_image=Image(url="https://wuxiaworld.site/wp-content/uploads/2022/01/thumb_61e1160221cc0-193x278.jpgrender_jsfalse"),
+            cover_image=Image(
+                url="https://wuxiaworld.site/wp-content/uploads/2022/01/thumb_61e1160221cc0-193x278.jpgrender_jsfalse"
+            ),
             summary=(
                 "You’re Reading “Global Game: AFK In The Zombie Apocalypse Game” on WuxiaWorld.Site\n"
                 "Fang Heng was transmigrated to a parallel world and his soul was forced into the body of a man who had"
@@ -123,7 +132,7 @@ class WuxiaWorldDotSiteScraperTestCase(TestCase):
             ),
             # Note: There are over a hundred chapters here, so I don't want to have to define all of them. I'll just
             #       assert that they are all chapter instances below.
-            chapters=mock.ANY
+            chapters=mock.ANY,
         )
         self.assertEqual(novel, expected_novel)
 
@@ -131,5 +140,5 @@ class WuxiaWorldDotSiteScraperTestCase(TestCase):
         self.assertEqual(len(novel.chapters), 983)
         self.assertTrue(
             all(isinstance(ch, Chapter) for ch in novel.chapters),
-            "Novel.chapters needs to be a list of Chapter instances."
+            "Novel.chapters needs to be a list of Chapter instances.",
         )
