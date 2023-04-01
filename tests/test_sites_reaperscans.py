@@ -6,7 +6,7 @@ import requests_mock
 from webnovel.data import Chapter, Novel, NovelStatus
 from webnovel.sites import reaperscans
 
-from ..helpers import get_test_data
+from .helpers import get_test_data
 
 
 class GetCsrfTokenTestCase(TestCase):
