@@ -1,16 +1,22 @@
 """General Utilities - written in support of the rest of the code."""
 
 import io
+import itertools
 import re
 import string
-from typing import IO, Sequence, Union
+from typing import IO, Container, Sequence, Union
 
 BASE_DIGITS = string.digits + string.ascii_letters
 
 
-def clean_filename(filename: str, replace_chars: Sequence[str] = "/?:@#!$%^"):
+def clean_filename(filename: str, replace_chars: Sequence[str] = "/?:@#!$%^", sub_char: str = "_"):
     """Replace characters that might screw up the filename."""
-    return re.sub(r"[" + replace_chars + "]+", "_", filename)
+    return re.sub(r"[" + replace_chars + "]+", sub_char, filename)
+
+
+def filter_dict(_dict: dict, keys: Container) -> dict:
+    """Filter a dictionary down to only the provided keys."""
+    return {key: value for key, value in _dict.items() if key in keys}
 
 
 def merge_dicts(*dicts, nested: bool = False, use_first: bool = False, factory: type[dict] = dict) -> dict:
@@ -74,8 +80,8 @@ def merge_dicts(*dicts, nested: bool = False, use_first: bool = False, factory: 
     def _merge_nested_dicts(dest: dict, *dicts_to_merge):
         if not isinstance(dest, dict):
             raise ValueError(f"Destination needs to be a dict, not {type(dest)}")
-        for key, value in [d.items() for d in dicts_to_merge]:
-            should_merge = key in dict and isinstance(dest[key], dict) and isinstance(value, dict)
+        for key, value in itertools.chain.from_iterable(d.items() for d in dicts_to_merge):
+            should_merge = key in dest and isinstance(dest[key], dict) and isinstance(value, dict)
             dest[key] = (
                 _merge_nested_dicts(factory(dest[key]), value)
                 if should_merge
