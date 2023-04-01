@@ -213,7 +213,7 @@ class StripUselessAttributes(HtmlFilter):
         for tag in html_tree.find_all():
             tag_name = tag.name.lower()
             whitelist = self.TAG_SPECIFIC_WHITELIST.get(tag_name, self.DEFAULT_WHITELIST)
-            for attr_name in tag.attrs:
+            for attr_name in tuple(tag.attrs):
                 if attr_name.lower() not in whitelist:
                     del tag[attr_name]
 
@@ -223,9 +223,8 @@ class StripComments(HtmlFilter):
 
     def filter(self, html_tree: Tag) -> None:
         """Walk the tree removing Comment instances."""
-        for tag in html_tree.find_all():
-            if isinstance(tag, Comment):
-                remove_element(tag)
+        for tag in html_tree.find_all(string=lambda text: isinstance(text, Comment)):
+            remove_element(tag)
 
 
 #
