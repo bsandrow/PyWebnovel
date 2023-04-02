@@ -29,6 +29,12 @@ deepdiff = "^5.0.2"
 pylint = "^2.12.2"
 ipython = "^8.7.0"
 
+
+[tool.poetry.group.test.dependencies]
+deepdiff = "^5.0.2"
+pytest = "^7.2.0"
+freezegun = "^1.2.2"
+
 [tool.black]
 line-length = 120
 target-version = ['py39']
