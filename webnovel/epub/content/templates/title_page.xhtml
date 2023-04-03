@@ -12,13 +12,13 @@
         {% for title, person in credits.items() %}
           <p>
             <strong>{{title}}: </strong>
-            {% if person.url is not none %}
+            {%- if person.url is not none %}
               <a href="{{person.url}}">
                 {{person.name}}{% if person.email is not none %} &lt;{{person.email}}&gt;{% endif %}
               </a>
-            {% else %}
+            {%- else -%}
               {{person.name}}{% if person.email is not none %} &lt;{{person.email}}&gt;{% endif %}
-            {% endif %}
+            {% endif -%}
           </p>
         {% endfor %}
     </div>
