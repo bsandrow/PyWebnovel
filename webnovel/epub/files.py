@@ -179,11 +179,11 @@ class ImageFile(EpubInternalFile):
     @classmethod
     def from_dict(cls, data: dict) -> "ImageFile":
         """Turn a dict into an ImageFile."""
-        return cls(**filter_dict(data, {"file_id", "filename", "mimetype", "is_cover_image"}))
+        return cls(**filter_dict(data, ["file_id", "filename", "mimetype", "is_cover_image"]))
 
     def to_dict(self) -> dict:
         """Turn an ImageFile into a dict."""
-        return {name: getattr(self, name) for name in {"file_id", "filename", "mimetype", "is_cover_image"}}
+        return {name: getattr(self, name) for name in ["file_id", "filename", "mimetype", "is_cover_image"]}
 
     def generate(self, pkg):
         """Return the image contents from EpubPackage.image_map."""

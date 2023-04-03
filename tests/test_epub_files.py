@@ -1,5 +1,7 @@
+from dataclasses import asdict, dataclass
 import datetime
-from pathlib import Path
+from enum import Enum
+import json
 import pkgutil
 from unittest import TestCase, mock
 
@@ -51,6 +53,13 @@ class StylesheetTestCase(TestCase):
         pkg.extra_css = None
         actual = files.Stylesheet().generate(pkg)
         expected = pkgutil.get_data("webnovel.epub", "content/stylesheet.css")
+        self.assertEqual(actual, expected)
+
+    def test_generate_with_extra_css(self):
+        pkg = mock.Mock()
+        pkg.extra_css = ":EXTRACSS:"
+        actual = files.Stylesheet().generate(pkg)
+        expected = pkgutil.get_data("webnovel.epub", "content/stylesheet.css") + b"\n\n:EXTRACSS:"
         self.assertEqual(actual, expected)
 
     def test_from_dict(self):
@@ -383,7 +392,6 @@ class TitlePageTestCase(TestCase):
             f'  <body class="pywebnovel-titlepage">\n'
             f'    <h3 class="pywn_title-page-title"><a href="">{pkg.metadata.title}</a></h3>\n'
             f'    <div class="pywn_information-section">\n'
-            f"        <h4> --[ Information ]-- </h4>\n"
             f"        \n"
             f'          <span class="pywn_information-block"><strong>Publisher:</strong> {pkg.metadata.site_id}</span>\n'
             f"        \n"
@@ -423,7 +431,6 @@ class TitlePageTestCase(TestCase):
             f'  <body class="pywebnovel-titlepage">\n'
             f'    <h3 class="pywn_title-page-title"><a href="">{pkg.metadata.title}</a></h3>\n'
             f'    <div class="pywn_credits-section">\n'
-            f"        <h4> --[ Credits ]-- </h4>\n"
             f"        \n"
             f"          <p>\n"
             f"            <strong>Author: </strong>{pkg.metadata.author.name}\n"
@@ -431,7 +438,6 @@ class TitlePageTestCase(TestCase):
             f"        \n"
             f"    </div>\n"
             f'    <div class="pywn_information-section">\n'
-            f"        <h4> --[ Information ]-- </h4>\n"
             f"        \n"
             f'          <span class="pywn_information-block"><strong>Publisher:</strong> {pkg.metadata.site_id}</span>\n'
             f"        \n"
@@ -471,7 +477,6 @@ class TitlePageTestCase(TestCase):
             f'  <body class="pywebnovel-titlepage">\n'
             f'    <h3 class="pywn_title-page-title"><a href="">{pkg.metadata.title}</a></h3>\n'
             f'    <div class="pywn_credits-section">\n'
-            f"        <h4> --[ Credits ]-- </h4>\n"
             f"        \n"
             f"          <p>\n"
             f"            <strong>Author: </strong>{pkg.metadata.author.name} &lt;author@example.com&gt;\n"
@@ -479,7 +484,6 @@ class TitlePageTestCase(TestCase):
             f"        \n"
             f"    </div>\n"
             f'    <div class="pywn_information-section">\n'
-            f"        <h4> --[ Information ]-- </h4>\n"
             f"        \n"
             f'          <span class="pywn_information-block"><strong>Publisher:</strong> {pkg.metadata.site_id}</span>\n'
             f"        \n"
@@ -519,7 +523,6 @@ class TitlePageTestCase(TestCase):
             f'  <body class="pywebnovel-titlepage">\n'
             f'    <h3 class="pywn_title-page-title"><a href="">{pkg.metadata.title}</a></h3>\n'
             f'    <div class="pywn_credits-section">\n'
-            f"        <h4> --[ Credits ]-- </h4>\n"
             f"        \n"
             f"          <p>\n"
             f"            <strong>Author: </strong>\n"
@@ -529,7 +532,6 @@ class TitlePageTestCase(TestCase):
             f"        \n"
             f"    </div>\n"
             f'    <div class="pywn_information-section">\n'
-            f"        <h4> --[ Information ]-- </h4>\n"
             f"        \n"
             f'          <span class="pywn_information-block"><strong>Publisher:</strong> {pkg.metadata.site_id}</span>\n'
             f"        \n"
@@ -559,6 +561,7 @@ class TitlePageTestCase(TestCase):
             },
         )
         actual = files.TitlePage().generate(pkg)
+        taglist = ", ".join(pkg.metadata.tags)
         expected = (
             f'<?xml version="1.0" encoding="UTF-8"?>\n'
             f'<html xmlns="http://www.w3.org/1999/xhtml">\n'
@@ -569,7 +572,195 @@ class TitlePageTestCase(TestCase):
             f'  <body class="pywebnovel-titlepage">\n'
             f'    <h3 class="pywn_title-page-title"><a href="">{pkg.metadata.title}</a></h3>\n'
             f'    <div class="pywn_information-section">\n'
-            f"        <h4> --[ Information ]-- </h4>\n"
+            f"        \n"
+            f'          <span class="pywn_information-block"><strong>Publisher:</strong> {pkg.metadata.site_id}</span>\n'
+            f"        \n"
+            f'          <span class="pywn_information-block"><strong>Chapter Count:</strong> {len(pkg.chapters)}</span>\n'
+            f"        \n"
+            f'          <span class="pywn_information-block"><strong>Status:</strong> {pkg.metadata.status.value}</span>\n'
+            f"        \n"
+            f'          <span class="pywn_information-block"><strong>Tags:</strong> {taglist}</span>\n'
+            f"        </div>\n"
+            f'    <div class="pywn_bottom-info">\n'
+            f"      <div>Scraped from {pkg.metadata.site_id}.</div>\n"
+            f"      <div>Last Updated: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}</div>\n"
+            f"    </div>\n"
+            f"  </body>\n"
+            f"</html>"
+        ).encode("utf-8")
+        print(actual.decode())
+        print(expected.decode())
+        self.assertEqual(actual, expected)
+
+    @freezegun.freeze_time("2001-01-01 12:15")
+    def test_generate_with_genres(self):
+        pkg = EpubPackage(
+            options={},
+            metadata={
+                "novel_url": ":URL:",
+                "site_id": ":SITE_ID:",
+                "novel_id": ":NOVEL_ID:",
+                "title": ":TITLE:",
+                "genres": ["Genre00", "Genre01", "Genre02"],
+            },
+        )
+        actual = files.TitlePage().generate(pkg)
+        genres = ", ".join(pkg.metadata.genres)
+        expected = (
+            f'<?xml version="1.0" encoding="UTF-8"?>\n'
+            f'<html xmlns="http://www.w3.org/1999/xhtml">\n'
+            f"  <head>\n"
+            f"    <title>{pkg.metadata.title}</title>\n"
+            f'    <link href="{pkg.stylesheet.relative_to(pkg.title_page.parent)}" type="text/css" rel="stylesheet"/>\n'
+            f"  </head>\n"
+            f'  <body class="pywebnovel-titlepage">\n'
+            f'    <h3 class="pywn_title-page-title"><a href="">{pkg.metadata.title}</a></h3>\n'
+            f'    <div class="pywn_information-section">\n'
+            f"        \n"
+            f'          <span class="pywn_information-block"><strong>Publisher:</strong> {pkg.metadata.site_id}</span>\n'
+            f"        \n"
+            f'          <span class="pywn_information-block"><strong>Chapter Count:</strong> {len(pkg.chapters)}</span>\n'
+            f"        \n"
+            f'          <span class="pywn_information-block"><strong>Genres:</strong> {genres}</span>\n'
+            f"        \n"
+            f'          <span class="pywn_information-block"><strong>Status:</strong> {pkg.metadata.status.value}</span>\n'
+            f"        </div>\n"
+            f'    <div class="pywn_bottom-info">\n'
+            f"      <div>Scraped from {pkg.metadata.site_id}.</div>\n"
+            f"      <div>Last Updated: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}</div>\n"
+            f"    </div>\n"
+            f"  </body>\n"
+            f"</html>"
+        ).encode("utf-8")
+        print(actual.decode())
+        print(expected.decode())
+        self.assertEqual(actual, expected)
+
+    @freezegun.freeze_time("2001-01-01 12:15")
+    def test_generate_with_summary_text(self):
+        pkg = EpubPackage(
+            options={},
+            metadata={
+                "novel_url": ":URL:",
+                "site_id": ":SITE_ID:",
+                "novel_id": ":NOVEL_ID:",
+                "title": ":TITLE:",
+                "summary_type": "text",
+                "summary": "This\nIs\nSummary\n<Text>",
+            },
+        )
+        actual = files.TitlePage().generate(pkg)
+        expected = (
+            f'<?xml version="1.0" encoding="UTF-8"?>\n'
+            f'<html xmlns="http://www.w3.org/1999/xhtml">\n'
+            f"  <head>\n"
+            f"    <title>{pkg.metadata.title}</title>\n"
+            f'    <link href="{pkg.stylesheet.relative_to(pkg.title_page.parent)}" type="text/css" rel="stylesheet"/>\n'
+            f"  </head>\n"
+            f'  <body class="pywebnovel-titlepage">\n'
+            f'    <h3 class="pywn_title-page-title"><a href="">{pkg.metadata.title}</a></h3>\n'
+            f'    <div class="pywn_information-section">\n'
+            f"        \n"
+            f'          <span class="pywn_information-block"><strong>Publisher:</strong> {pkg.metadata.site_id}</span>\n'
+            f"        \n"
+            f'          <span class="pywn_information-block"><strong>Chapter Count:</strong> {len(pkg.chapters)}</span>\n'
+            f"        \n"
+            f'          <span class="pywn_information-block"><strong>Status:</strong> {pkg.metadata.status.value}</span>\n'
+            f"        \n"
+            f'        <span class="pywn_information-block">\n'
+            f"          <strong>Summary:</strong><br/>\n"
+            f'          <p class="pywn_summary-content" style="white-space: pre-line;">{pkg.metadata.summary}</p>\n'
+            f"        </span>\n"
+            f"        </div>\n"
+            f'    <div class="pywn_bottom-info">\n'
+            f"      <div>Scraped from {pkg.metadata.site_id}.</div>\n"
+            f"      <div>Last Updated: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}</div>\n"
+            f"    </div>\n"
+            f"  </body>\n"
+            f"</html>"
+        ).encode("utf-8")
+        print(actual.decode())
+        print(expected.decode())
+        self.assertEqual(actual, expected)
+
+    @freezegun.freeze_time("2001-01-01 12:15")
+    def test_generate_with_summary_html(self):
+        pkg = EpubPackage(
+            options={},
+            metadata={
+                "novel_url": ":URL:",
+                "site_id": ":SITE_ID:",
+                "novel_id": ":NOVEL_ID:",
+                "title": ":TITLE:",
+                "summary_type": "html",
+                "summary": "<p>This</p><p>Is\nSummary</p><p>&lt;Text&gt;</p>",
+            },
+        )
+        actual = files.TitlePage().generate(pkg)
+        expected = (
+            f'<?xml version="1.0" encoding="UTF-8"?>\n'
+            f'<html xmlns="http://www.w3.org/1999/xhtml">\n'
+            f"  <head>\n"
+            f"    <title>{pkg.metadata.title}</title>\n"
+            f'    <link href="{pkg.stylesheet.relative_to(pkg.title_page.parent)}" type="text/css" rel="stylesheet"/>\n'
+            f"  </head>\n"
+            f'  <body class="pywebnovel-titlepage">\n'
+            f'    <h3 class="pywn_title-page-title"><a href="">{pkg.metadata.title}</a></h3>\n'
+            f'    <div class="pywn_information-section">\n'
+            f"        \n"
+            f'          <span class="pywn_information-block"><strong>Publisher:</strong> {pkg.metadata.site_id}</span>\n'
+            f"        \n"
+            f'          <span class="pywn_information-block"><strong>Chapter Count:</strong> {len(pkg.chapters)}</span>\n'
+            f"        \n"
+            f'          <span class="pywn_information-block"><strong>Status:</strong> {pkg.metadata.status.value}</span>\n'
+            f"        \n"
+            f'        <span class="pywn_information-block">\n'
+            f"          <strong>Summary:</strong><br/>\n"
+            f'          <p class="pywn_summary-content">{pkg.metadata.summary}</p>\n'
+            f"        </span>\n"
+            f"        </div>\n"
+            f'    <div class="pywn_bottom-info">\n'
+            f"      <div>Scraped from {pkg.metadata.site_id}.</div>\n"
+            f"      <div>Last Updated: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}</div>\n"
+            f"    </div>\n"
+            f"  </body>\n"
+            f"</html>"
+        ).encode("utf-8")
+        print(actual.decode())
+        print(expected.decode())
+        self.assertEqual(actual, expected)
+
+    @freezegun.freeze_time("2001-01-01 12:15")
+    def test_generate_with_translator(self):
+        pkg = EpubPackage(
+            options={},
+            metadata={
+                "novel_url": ":URL:",
+                "site_id": ":SITE_ID:",
+                "novel_id": ":NOVEL_ID:",
+                "title": ":TITLE:",
+                "summary_type": "html",
+                "translator": {"name": ":TRANSLATORNAME:"},
+            },
+        )
+        actual = files.TitlePage().generate(pkg)
+        expected = (
+            f'<?xml version="1.0" encoding="UTF-8"?>\n'
+            f'<html xmlns="http://www.w3.org/1999/xhtml">\n'
+            f"  <head>\n"
+            f"    <title>{pkg.metadata.title}</title>\n"
+            f'    <link href="{pkg.stylesheet.relative_to(pkg.title_page.parent)}" type="text/css" rel="stylesheet"/>\n'
+            f"  </head>\n"
+            f'  <body class="pywebnovel-titlepage">\n'
+            f'    <h3 class="pywn_title-page-title"><a href="">{pkg.metadata.title}</a></h3>\n'
+            f'    <div class="pywn_credits-section">\n'
+            f"        \n"
+            f"          <p>\n"
+            f"            <strong>Translator: </strong>{pkg.metadata.translator.name}\n"
+            f"            </p>\n"
+            f"        \n"
+            f"    </div>\n"
+            f'    <div class="pywn_information-section">\n'
             f"        \n"
             f'          <span class="pywn_information-block"><strong>Publisher:</strong> {pkg.metadata.site_id}</span>\n'
             f"        \n"
@@ -584,6 +775,8 @@ class TitlePageTestCase(TestCase):
             f"  </body>\n"
             f"</html>"
         ).encode("utf-8")
+        print(actual.decode())
+        print(expected.decode())
         self.assertEqual(actual, expected)
 
 
@@ -1251,5 +1444,110 @@ class PackageOPFTestCase(TestCase):
             f"</guide>"
             f"</package>"
         ).encode("utf-8")
+
+        self.assertEqual(actual, expected)
+
+
+class PyWebNovelJSONTestCase(TestCase):
+    def test_json_encode_handles_dataclasses(self):
+        @dataclass
+        class A:
+            b: int
+            c: str
+            d: dict
+
+        actual = json.dumps({"tmp": A(b=2, c=":STR", d={"f": 4})}, cls=files.PyWebNovelJSON.JSONEncoder)
+        expected = '{"tmp": {"b": 2, "c": ":STR", "d": {"f": 4}}}'
+        self.assertEqual(actual, expected)
+
+    def test_json_encode_handles_enum(self):
+        class A(Enum):
+            b = 1
+            c = 2
+            d = "3"
+
+        actual = json.dumps({"tmp": [A.b, A.c, A.d]}, cls=files.PyWebNovelJSON.JSONEncoder)
+        expected = '{"tmp": [1, 2, "3"]}'
+        self.assertEqual(actual, expected)
+
+    def test_json_encode_handles_unknown_data(self):
+        class A:
+            b = 1
+            c = 2
+            d = "3"
+
+        with self.assertRaises(TypeError):
+            json.dumps({"tmp": A()}, cls=files.PyWebNovelJSON.JSONEncoder)
+
+    def test_generate(self):
+        pkg = EpubPackage(
+            options={},
+            metadata={
+                "novel_url": ":URL:",
+                "site_id": ":SITE_ID:",
+                "novel_id": ":NOVEL_ID:",
+                "title": ":TITLE:",
+                "summary": "<div><p>This\nIs\nText</p></div>",
+                "summary_type": "html",
+            },
+        )
+        img = Image(
+            url="https://example.com/imgs/novel-cover.jpg", mimetype="image/jpg", did_load=True, data=b":IMGDATA:"
+        )
+        pkg.add_image(img, content=img.data, is_cover_image=True)
+        pkg.add_chapter(Chapter(url="http://example.come/chapter-2", chapter_no=2, title="Chapter 2. Example 2"))
+        pkg.add_chapter(Chapter(url="http://example.come/chapter-1", chapter_no=1, title="Chapter 1. Example 1"))
+
+        actual = pkg.app_json.generate(pkg)
+        expected = (
+            "{"
+            '"epub_uid": "urn:pywebnovel:uid::SITE_ID:::NOVEL_ID:", '
+            # -- metadata
+            '"metadata": {'
+            '"novel_url": ":URL:", '
+            '"novel_id": ":NOVEL_ID:", '
+            '"site_id": ":SITE_ID:", '
+            '"title": ":TITLE:", '
+            '"status": "Unknown", '
+            '"summary": "<div><p>This\\nIs\\nText</p></div>", '
+            '"summary_type": "html", '
+            '"genres": null, '
+            '"tags": null, '
+            '"author": null, '
+            '"translator": null, '
+            '"cover_image_url": "https://example.com/imgs/novel-cover.jpg", '
+            '"cover_image_id": "a9f3e367e50428226eacadb181826c6e2357a14c025f3b4e0fcfa096fa9062e4", '
+            '"extras": null'
+            "}, "
+            # -- options
+            '"options": {"include_toc_page": true, "include_title_page": true, "include_images": true, "epub_version": "3.0"}, '
+            # -- files
+            '"files": {'
+            '"mimetype": {"file_id": "mimetype", "filename": "mimetype", "mimetype": "", "title": null}, '
+            '"pywebnovel-meta": {"file_id": "pywebnovel-meta", "filename": "pywebnovel.json", "mimetype": "application/json", "title": null}, '
+            '"container-xml": {"file_id": "container-xml", "filename": "META-INF/container.xml", "mimetype": "", "title": null}, '
+            '"style": {"file_id": "style", "filename": "OEBPS/stylesheet.css", "mimetype": "text/css", "title": null}, '
+            '"ncx": {"file_id": "ncx", "filename": "OEBPS/toc.ncx", "mimetype": "application/x-dtbncx+xml", "title": null}, '
+            '"opf": {"file_id": "opf", "filename": "OEBPS/content.opf", "mimetype": "", "title": null}, '
+            '"nav": {"file_id": "nav", "filename": "OEBPS/Text/nav.xhtml", "mimetype": "application/xhtml+xml", "title": null}, '
+            '"title_page": {"file_id": "title_page", "filename": "OEBPS/Text/title_page.xhtml", "mimetype": "application/xhtml+xml", "title": "Title Page"}, '
+            '"toc_page": {"file_id": "toc_page", "filename": "OEBPS/Text/toc_page.xhtml", "mimetype": "application/xhtml+xml", "title": "Contents"}, '
+            '"cover": {"file_id": "cover", "filename": "OEBPS/Text/cover.xhtml", "mimetype": "application/xhtml+xml", "title": "Cover"}, '
+            '"a9f3e367e50428226eacadb181826c6e2357a14c025f3b4e0fcfa096fa9062e4": {"file_id": "a9f3e367e50428226eacadb181826c6e2357a14c025f3b4e0fcfa096fa9062e4", "filename": "OEBPS/Images/a9f3e367e50428226eacadb181826c6e2357a14c025f3b4e0fcfa096fa9062e4.jpg", "mimetype": "image/jpg", "is_cover_image": true}, '
+            '"ch00001": {"chapter_id": "http://example.come/chapter-2", "file_id": "ch00001", "mimetype": "application/xhtml+xml", "filename": "OEBPS/Text/ch00001.xhtml", "title": "Chapter 2. Example 2"}, '
+            '"ch00002": {"chapter_id": "http://example.come/chapter-1", "file_id": "ch00002", "mimetype": "application/xhtml+xml", "filename": "OEBPS/Text/ch00002.xhtml", "title": "Chapter 1. Example 1"}'
+            "}, "
+            # -- chapters
+            '"chapters": {'
+            '"http://example.come/chapter-2": {"url": "http://example.come/chapter-2", "title": "Chapter 2. Example 2", "chapter_no": 2, "slug": null, "html_content": null}, '
+            '"http://example.come/chapter-1": {"url": "http://example.come/chapter-1", "title": "Chapter 1. Example 1", "chapter_no": 1, "slug": null, "html_content": null}'
+            "}, "
+            # -- extra css
+            '"extra_css": null}'
+        ).encode("utf-8")
+
+        print(f"{actual!r}")
+        print("---")
+        print(f"{expected!r}")
 
         self.assertEqual(actual, expected)
