@@ -7,7 +7,9 @@ import re
 from typing import Optional, Union
 
 from apptk.http import HttpClient
-from bs4 import Tag
+from bs4 import BeautifulSoup, Tag
+
+from .utils import filter_dict
 
 
 class NovelStatus(Enum):
@@ -96,6 +98,11 @@ class Person:
     email: Optional[str] = None
     url: Optional[str] = None
 
+    @classmethod
+    def from_dict(cls, data: dict) -> "Person":
+        """Load a Person instance from a dict."""
+        return cls(**filter_dict(data, ("name", "email", "url")))
+
     def to_dict(self) -> dict:
         """Convert to a dictionary."""
         return {"name": self.name, "email": self.email, "url": self.url}
@@ -110,6 +117,44 @@ class Chapter:
     chapter_no: Optional[str] = None
     slug: Optional[str] = None
     html_content: Optional[Tag] = None
+
+    def to_dict(self) -> dict:
+        """Return a dict representation of this chapter."""
+        return {
+            "url": self.url,
+            "title": self.title,
+            "chapter_no": self.chapter_no,
+            "slug": self.slug,
+            "html_content": str(self.html_content) if self.html_content else None,
+        }
+
+    @classmethod
+    def from_dict(self, data: dict) -> "Chapter":
+        """Load a Chapter instance from a dict representation."""
+        required_keys = {"url", "title", "chapter_no"}
+        valid_keys = {"url", "title", "chapter_no", "slug", "html_content"}
+        actual_keys = set(data.keys())
+
+        missing_required_keys = required_keys - actual_keys
+        if missing_required_keys:
+            raise ValueError(f"Missing required keys: {missing_required_keys}")
+
+        invalid_keys = actual_keys - valid_keys
+        if invalid_keys:
+            raise ValueError(f"Invalid keys: {invalid_keys}")
+
+        return Chapter(
+            url=data["url"],
+            title=data["title"],
+            chapter_no=data["chapter_no"],
+            slug=data.get("slug"),
+            html_content=BeautifulSoup(data["html_content"], "html.parser") if data.get("html_content") else None,
+        )
+
+    @property
+    def chapter_id(self):
+        """Return the chapter URL as the chapter ID."""
+        return self.url
 
     @staticmethod
     def clean_title(title: str) -> str:
@@ -245,14 +290,3 @@ class Novel:
     chapters: Optional[list[Chapter]] = None
     cover_image: Optional[Image] = None
     extra_css: Optional[str] = None
-
-
-@dataclass
-class NovelOptions:
-    """Collection of settings for the novel."""
-
-    include_toc_page: bool = True
-    include_title_page: bool = True
-    include_images: bool = True
-    # epub_version: str
-    # default_language_code: str = "en"
