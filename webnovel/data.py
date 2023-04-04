@@ -238,42 +238,6 @@ class Chapter:
 
 
 @dataclass
-class NovelMetadata:
-    """Metadata for hte Novel Pulled Together."""
-
-    novel_id: str
-    site_id: Optional[str] = None
-    title: Optional[str] = None
-    status: Optional[NovelStatus] = None
-    summary: Optional[str] = None
-    genres: Optional[list[str]] = None
-    tags: Optional[list[str]] = None
-    author: Optional[Person] = None
-    translator: Optional[Person] = None
-    extras: Optional[dict] = None
-
-
-@dataclass
-class ScrapedNovelInfo:
-    """Novel info that's been scraped."""
-
-    url: str
-    novel_id: str
-    site_id: str
-    metadata: NovelMetadata
-    chapter_urls: list[str]
-    cover_image_url: str
-
-
-# @dataclass
-# class LogEntry:
-#     type: str
-#     message: str
-#     filename: Optional[str]
-#     timestamp: field(datetime.datetime, default_factory=datetime.datetime.utcnow)
-
-
-@dataclass
 class Novel:
     """Representation of the webnovel itself."""
 
