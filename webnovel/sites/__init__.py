@@ -3,10 +3,11 @@
 import inspect
 
 from webnovel.scraping import ChapterScraper, NovelScraper
-from webnovel.sites import novelbin, reaperscans, scribblehub, wuxiaworld_site, wuxiaworldeu
+from webnovel.sites import novelbin, novelcool, reaperscans, scribblehub, wuxiaworld_site, wuxiaworldeu
 
 __all__ = [
     "novelbin",
+    "novelcool",
     "reaperscans",
     "scribblehub",
     "wuxiaworld_site",
@@ -15,6 +16,7 @@ __all__ = [
 
 SITES = [
     novelbin,
+    novelcool,
     reaperscans,
     scribblehub,
     wuxiaworld_site,
