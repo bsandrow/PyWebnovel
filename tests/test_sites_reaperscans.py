@@ -1,3 +1,4 @@
+import json
 from unittest import TestCase, mock, skip
 
 from bs4 import BeautifulSoup
@@ -25,7 +26,7 @@ class GetCsrfTokenTestCase(TestCase):
 
 class GetWireIdTestCase(TestCase):
     def test_extracts_wire_id_from_top_level_element(self):
-        soup = BeautifulSoup('<div wire:id="abc">ABC</div>', "html.parser")
+        soup = BeautifulSoup('<div wire:id="abc">ABC</div>', "html.parser").find("div")
         actual = reaperscans.get_wire_id(soup)
         expected = "abc"
         self.assertEqual(actual, expected)
@@ -40,6 +41,87 @@ class GetWireIdTestCase(TestCase):
         soup = BeautifulSoup('<div><p wire:id="def">ABC</p><p wire:id="ghi">DEF</p></div>', "html.parser")
         with self.assertRaises(ValueError):
             reaperscans.get_wire_id(soup)
+
+
+class ChapterListAPITestCase(TestCase):
+    def test_current_page(self):
+        json_data = json.dumps(
+            reaperscans.build_chapter_list_request(page=1, path="/story/creepy-pasta-club", wire_id="DEF")
+        )
+        soup = BeautifulSoup(f"<div wire:id=\"DEF\" wire:initial-data='{json_data}'></div>", "html.parser").find("div")
+        api = reaperscans.ChapterListAPI(
+            app_url="https://reaperscans.com/", wire_id="DEF", element=soup, csrf_token="ABC"
+        )
+        self.assertEqual(api.current_page, 1)
+
+    def test_next_page(self):
+        json_data = json.dumps(
+            reaperscans.build_chapter_list_request(page=1, path="/story/creepy-pasta-club", wire_id="DEF")
+        )
+        soup = BeautifulSoup(f"<div wire:id=\"DEF\" wire:initial-data='{json_data}'></div>", "html.parser").find("div")
+        api = reaperscans.ChapterListAPI(
+            app_url="https://reaperscans.com/", wire_id="DEF", element=soup, csrf_token="ABC"
+        )
+        with mock.patch.object(api, "make_call") as make_call, mock.patch.object(
+            api, "update_page_history"
+        ) as update_page_history:
+            response = make_call.return_value = object()
+            page_hist_response = update_page_history.return_value = object()
+            return_val = api.next_page()
+            self.assertEqual(return_val, page_hist_response)
+            make_call.assert_called_once_with("nextPage", "page")
+            update_page_history.assert_called_once_with(response)
+
+    def test_previous_page(self):
+        json_data = json.dumps(
+            reaperscans.build_chapter_list_request(page=1, path="/story/creepy-pasta-club", wire_id="DEF")
+        )
+        soup = BeautifulSoup(f"<div wire:id=\"DEF\" wire:initial-data='{json_data}'></div>", "html.parser").find("div")
+        api = reaperscans.ChapterListAPI(
+            app_url="https://reaperscans.com/", wire_id="DEF", element=soup, csrf_token="ABC"
+        )
+        with mock.patch.object(api, "make_call") as make_call, mock.patch.object(
+            api, "update_page_history"
+        ) as update_page_history:
+            response = make_call.return_value = object()
+            page_hist_response = update_page_history.return_value = object()
+            return_val = api.previous_page()
+            self.assertEqual(return_val, page_hist_response)
+            make_call.assert_called_once_with("prevPage", "page")
+            update_page_history.assert_called_once_with(response)
+
+    def test_get_page(self):
+        json_data = json.dumps(
+            reaperscans.build_chapter_list_request(page=1, path="/story/creepy-pasta-club", wire_id="DEF")
+        )
+        soup = BeautifulSoup(f"<div wire:id=\"DEF\" wire:initial-data='{json_data}'></div>", "html.parser").find("div")
+        api = reaperscans.ChapterListAPI(
+            app_url="https://reaperscans.com/", wire_id="DEF", element=soup, csrf_token="ABC"
+        )
+        with mock.patch.object(api, "make_call") as make_call, mock.patch.object(
+            api, "update_page_history"
+        ) as update_page_history:
+            response = make_call.return_value = object()
+            page_hist_response = update_page_history.return_value = object()
+            return_val = api.get_page(5)
+            self.assertEqual(return_val, page_hist_response)
+            make_call.assert_called_once_with("gotoPage", 5, "page")
+            update_page_history.assert_called_once_with(response)
+
+    def test_update_page_history(self):
+        json_data = json.dumps(
+            reaperscans.build_chapter_list_request(page=1, path="/story/creepy-pasta-club", wire_id="DEF")
+        )
+        soup = BeautifulSoup(f"<div wire:id=\"DEF\" wire:initial-data='{json_data}'></div>", "html.parser").find("div")
+        api = reaperscans.ChapterListAPI(
+            app_url="https://reaperscans.com/", wire_id="DEF", element=soup, csrf_token="ABC"
+        )
+        html_obj = object()
+        response = mock.Mock()
+        response.json.return_value = {"serverMemo": {"data": {"page": 10}}, "effects": {"html": html_obj}}
+        result = api.update_page_history(response=response)
+        self.assertEqual(result, html_obj)
+        self.assertEqual(api.page_history[10], html_obj)
 
 
 class BuildChapterListRequestTestCase(TestCase):
@@ -86,6 +168,71 @@ class BuildChapterListRequestTestCase(TestCase):
         self.assertEqual(actual, expected)
 
 
+class ReaperScansChapterScraperTestCase(TestCase):
+    def test_get_limiter(self):
+        self.assertEqual(reaperscans.ReaperScansChapterScraper().get_limiter(), reaperscans.LIMITER)
+
+
+class RemoveTrailingHorizontalBarsFilterTestCase(TestCase):
+    def test_filter(self):
+        soup = BeautifulSoup(
+            """
+            <p>-------------</p>
+            <div>  \t  </div>
+            <p>  -----</p>
+            <p>- abcd</p>
+            <p>  -----</p>
+            <div>  \t  </div>
+            <p>-------------</p>
+            """,
+            "html.parser",
+        )
+        reaperscans.RemoveTrailingHorizontalBarsFilter().filter(soup)
+        self.assertEqual(str(soup), "\n<p>-------------</p>\n<div> </div>\n<p>  -----</p>\n<p>- abcd</p>")
+
+
+class RemoveStartingBannerFilterTestCase(TestCase):
+    def test_filter(self):
+        soup = BeautifulSoup(
+            """
+            <article>
+            <p style="line-height: 2;"><strong>REAPER SCANS</strong></p>
+            <p style="line-height: 2;">&nbsp;</p>
+            <p style="line-height: 2;"><strong>Scary Story Club</strong></p>
+            </article>
+            """,
+            "html.parser",
+        ).find("article")
+        reaperscans.RemoveStartingBannerFilter().filter(soup)
+        self.assertEqual(
+            str(soup),
+            '<article>\n\n<p style="line-height: 2;">\u00A0</p>\n<p style="line-height: 2;"><strong>Scary Story Club</strong></p>\n</article>',
+        )
+
+    def test_filter_with_no_banner(self):
+        soup = BeautifulSoup(
+            """
+            <article>
+            <p style="line-height: 2;"><strong>CREEPER SCANS</strong></p>
+            <p style="line-height: 2;">&nbsp;</p>
+            <p style="line-height: 2;"><strong>Scary Story Club</strong></p>
+            </article>
+            """,
+            "html.parser",
+        ).find("article")
+        reaperscans.RemoveStartingBannerFilter().filter(soup)
+        self.assertEqual(
+            str(soup),
+            (
+                "<article>\n"
+                '<p style="line-height: 2;"><strong>CREEPER SCANS</strong></p>\n'
+                '<p style="line-height: 2;">\u00A0</p>\n'
+                '<p style="line-height: 2;"><strong>Scary Story Club</strong></p>\n'
+                "</article>"
+            ),
+        )
+
+
 class ReaperScansScraperTestCase(TestCase):
     maxDiff = None
     novel_url = "https://reaperscans.com/novels/7666-player-who-returned-10000-years-later"
@@ -95,22 +242,18 @@ class ReaperScansScraperTestCase(TestCase):
     chlist_page_3: str
     chlist_page_4: str
 
+    def test_get_novel_id(self):
+        actual = reaperscans.ReaperScansScraper.get_novel_id("https://reaperscans.com/novels/8578-ghost-story-club")
+        expected = "8578-ghost-story-club"
+        self.assertEqual(actual, expected)
+
     def test_validate_url(self):
-        self.assertTrue(
-            reaperscans.ReaperScansScraper.validate_url("https://reaperscans.com/novels/7145-max-talent-player")
-        )
-        self.assertTrue(
-            reaperscans.ReaperScansScraper.validate_url("https://www.reaperscans.com/novels/7145-max-talent-player")
-        )
-        self.assertTrue(
-            reaperscans.ReaperScansScraper.validate_url("http://www.reaperscans.com/novels/7145-max-talent-player")
-        )
-        self.assertTrue(
-            reaperscans.ReaperScansScraper.validate_url("http://www.reaperscans.com/novels/7145-max-talent-player/")
-        )
-        self.assertFalse(
-            reaperscans.ReaperScansScraper.validate_url("https://reaperscans.com/novels/max-talent-player/")
-        )
+        validate_url = reaperscans.ReaperScansScraper.validate_url
+        self.assertTrue(validate_url("https://reaperscans.com/novels/7145-max-talent-player"))
+        self.assertTrue(validate_url("https://www.reaperscans.com/novels/7145-max-talent-player"))
+        self.assertTrue(validate_url("http://www.reaperscans.com/novels/7145-max-talent-player"))
+        self.assertTrue(validate_url("http://www.reaperscans.com/novels/7145-max-talent-player/"))
+        self.assertFalse(validate_url("https://reaperscans.com/novels/max-talent-player/"))
 
     @classmethod
     def setUpClass(cls):
@@ -172,9 +315,18 @@ class ReaperScansScraperTestCase(TestCase):
             ),
         )
 
-    @skip
     def test_get_chapters(self):
         scraper = reaperscans.ReaperScansScraper()
+        self.requests_mock.post(
+            "/livewire/message/frontend.novel-chapters-list",
+            additional_matcher=lambda r: r.json()["serverMemo"]["data"]["page"] == 1,
+            text=get_test_data("reaperscans_chlist_p1.json"),
+        )
+        self.requests_mock.post(
+            "/livewire/message/frontend.novel-chapters-list",
+            additional_matcher=lambda r: r.json()["serverMemo"]["data"]["page"] > 1,
+            text="{}",
+        )
         soup = scraper.get_soup(self.novel_page)
         chapters = scraper.get_chapters(soup, self.novel_url)
         chapter = chapters[0]

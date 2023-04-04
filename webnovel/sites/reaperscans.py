@@ -151,7 +151,8 @@ class RemoveTrailingHorizontalBarsFilter(html.HtmlFilter):
         "manual" horizontal bars.
         """
         for child in reversed(tuple(element.children)):
-            if child.text.strip() == "" or re.match(r"^[-—–_—⸺﹘⸻]+$", child.text.strip()) is not None:
+            child_text = child.text.strip()
+            if child_text == "" or re.match(r"^[-—–_—⸺﹘⸻]+$", child_text) is not None:
                 html.remove_element(child)
                 continue
             else:
@@ -168,7 +169,8 @@ class RemoveStartingBannerFilter(html.HtmlFilter):
     def filter(self, element: Tag) -> None:
         """Remove 'blank' elements and the REAPERSCANS banner. Bail the first time we find something else."""
         for child in element.find_all(recursive=False):
-            if child.text.strip().lower() in ("reaperscans", "reaper scans"):
+            child_text = child.text.strip().lower()
+            if re.match(r"reaper\s*scans", child_text, re.IGNORECASE):
                 html.remove_element(child)
                 break
 
@@ -239,6 +241,7 @@ class ReaperScansScraper(NovelScraper):
         chapter_list = self.chapter_selector.parse_one(page, use_attribute=False)
         csrf_token = get_csrf_token(page)
         wire_id = get_wire_id(chapter_list)
+        print(f"wire_id={wire_id!r} . csrf_token={csrf_token!r}")
         api = ChapterListAPI(
             app_url="https://reaperscans.com/",
             wire_id=wire_id,
