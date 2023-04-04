@@ -588,8 +588,6 @@ class TitlePageTestCase(TestCase):
             f"  </body>\n"
             f"</html>"
         ).encode("utf-8")
-        print(actual.decode())
-        print(expected.decode())
         self.assertEqual(actual, expected)
 
     @freezegun.freeze_time("2001-01-01 12:15")
@@ -632,8 +630,6 @@ class TitlePageTestCase(TestCase):
             f"  </body>\n"
             f"</html>"
         ).encode("utf-8")
-        print(actual.decode())
-        print(expected.decode())
         self.assertEqual(actual, expected)
 
     @freezegun.freeze_time("2001-01-01 12:15")
@@ -679,8 +675,6 @@ class TitlePageTestCase(TestCase):
             f"  </body>\n"
             f"</html>"
         ).encode("utf-8")
-        print(actual.decode())
-        print(expected.decode())
         self.assertEqual(actual, expected)
 
     @freezegun.freeze_time("2001-01-01 12:15")
@@ -726,8 +720,6 @@ class TitlePageTestCase(TestCase):
             f"  </body>\n"
             f"</html>"
         ).encode("utf-8")
-        print(actual.decode())
-        print(expected.decode())
         self.assertEqual(actual, expected)
 
     @freezegun.freeze_time("2001-01-01 12:15")
@@ -775,8 +767,6 @@ class TitlePageTestCase(TestCase):
             f"  </body>\n"
             f"</html>"
         ).encode("utf-8")
-        print(actual.decode())
-        print(expected.decode())
         self.assertEqual(actual, expected)
 
 
@@ -958,10 +948,6 @@ class NavXhtmlTestCase(TestCase):
             f"</html>"
         ).encode("utf-8")
 
-        print(f"{actual!r}")
-        print("----")
-        print(f"{expected!r}")
-
         self.assertEqual(actual, expected)
 
 
@@ -1005,8 +991,6 @@ class TableOfContentsTestCase(TestCase):
             f"</html>"
         ).encode("utf-8")
 
-        print(f"{actual!r}")
-
         self.assertEqual(actual, expected)
 
     def test_generate_with_author(self):
@@ -1048,8 +1032,6 @@ class TableOfContentsTestCase(TestCase):
             f"  </body>\n"
             f"</html>"
         ).encode("utf-8")
-
-        print(f"{actual!r}")
 
         self.assertEqual(actual, expected)
 
@@ -1545,9 +1527,4 @@ class PyWebNovelJSONTestCase(TestCase):
             # -- extra css
             '"extra_css": null}'
         ).encode("utf-8")
-
-        print(f"{actual!r}")
-        print("---")
-        print(f"{expected!r}")
-
         self.assertEqual(actual, expected)
