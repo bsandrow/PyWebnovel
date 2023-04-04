@@ -4,7 +4,8 @@ import logging
 import time
 
 from webnovel import epub, sites, utils
-from webnovel.data import Image, NovelOptions
+from webnovel.data import Image
+from webnovel.epub.data import EpubOptions
 from webnovel.logs import LogTimer
 
 logger = logging.getLogger(__name__)
@@ -27,9 +28,10 @@ def create_epub(novel_url: str, filename: str = None, cover_image_url: str = Non
     ch_scrapers = {}
 
     with timer("Generating %s", filename):
-        epub_pkg = epub.EpubPackage(filename=filename, novel=novel, options=NovelOptions())
+        epub_pkg = epub.EpubPackage(file_or_io=filename, metadata=novel, options={})
         if novel.cover_image:
-            epub_pkg.add_image(novel.cover_image, is_cover_image=True, client=scraper.http_client)
+            novel.cover_image.load(client=scraper.http_client)
+            epub_pkg.add_image(image=novel.cover_image, content=novel.cover_image.data, is_cover_image=True)
 
         assert novel.chapters
 
@@ -48,4 +50,4 @@ def create_epub(novel_url: str, filename: str = None, cover_image_url: str = Non
             ch_scraper.process_chapter(chapter)
             epub_pkg.add_chapter(chapter)
 
-        epub_pkg.save(filename)
+        epub_pkg.save()
