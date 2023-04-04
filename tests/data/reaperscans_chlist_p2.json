@@ -1,0 +1,20 @@
+{
+    "effects": {
+        "html": "<div></div>",
+        "path": "https://reaperscans.com/novels/8578-ghost-story-club?page=3",
+        "dirty": [
+            "page",
+            "paginators.page"
+        ]
+    },
+    "serverMemo": {
+        "htmlHash": "99e2bc44",
+        "data": {
+            "page": 3,
+            "paginators": {
+                "page": 3
+            }
+        },
+        "checksum": "b806cd65d371abfdeb3067d0c69ebe87d0a0ee7d85fe2a645ef3fb16546956b6"
+    }
+}

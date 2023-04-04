@@ -4,7 +4,7 @@ from unittest import TestCase, mock, skip
 from bs4 import BeautifulSoup
 import requests_mock
 
-from webnovel.data import Chapter, Novel, NovelStatus
+from webnovel.data import Chapter, Image, Novel, NovelStatus
 from webnovel.sites import reaperscans
 
 from .helpers import get_test_data
@@ -235,42 +235,44 @@ class RemoveStartingBannerFilterTestCase(TestCase):
 
 class ReaperScansScraperTestCase(TestCase):
     maxDiff = None
-    novel_url = "https://reaperscans.com/novels/7666-player-who-returned-10000-years-later"
+    novel_url = "https://reaperscans.com/novels/1234-creepy-story-club"
     novel_page: str
-    chlist_page_1: str
-    chlist_page_2: str
-    chlist_page_3: str
-    chlist_page_4: str
+    json_p1: str
+    json_p2: str
 
     def test_get_novel_id(self):
-        actual = reaperscans.ReaperScansScraper.get_novel_id("https://reaperscans.com/novels/8578-ghost-story-club")
-        expected = "8578-ghost-story-club"
+        actual = reaperscans.ReaperScansScraper.get_novel_id("https://reaperscans.com/novels/1234-creepy-story-club")
+        expected = "1234-creepy-story-club"
         self.assertEqual(actual, expected)
 
     def test_validate_url(self):
         validate_url = reaperscans.ReaperScansScraper.validate_url
-        self.assertTrue(validate_url("https://reaperscans.com/novels/7145-max-talent-player"))
-        self.assertTrue(validate_url("https://www.reaperscans.com/novels/7145-max-talent-player"))
-        self.assertTrue(validate_url("http://www.reaperscans.com/novels/7145-max-talent-player"))
-        self.assertTrue(validate_url("http://www.reaperscans.com/novels/7145-max-talent-player/"))
-        self.assertFalse(validate_url("https://reaperscans.com/novels/max-talent-player/"))
+        self.assertTrue(validate_url("https://reaperscans.com/novels/7145-creepy-story-club"))
+        self.assertTrue(validate_url("https://www.reaperscans.com/novels/7145-creepy-story-club"))
+        self.assertTrue(validate_url("http://www.reaperscans.com/novels/7145-creepy-story-club"))
+        self.assertTrue(validate_url("http://www.reaperscans.com/novels/7145-creepy-story-club/"))
+        self.assertFalse(validate_url("https://reaperscans.com/novels/creepy-story-club/"))
 
     @classmethod
     def setUpClass(cls):
         cls.novel_page = get_test_data("reaperscans_novel.html")
-        cls.chlist_page_1 = get_test_data("reaperscans_chlist_p1.html")  # 22 free chapters + 10 paid chapters
-        cls.chlist_page_2 = get_test_data("reaperscans_chlist_p2.html")  # 32 free chapters
-        cls.chlist_page_3 = get_test_data("reaperscans_chlist_p3.html")  # 2 free chapters
-        cls.chlist_page_4 = get_test_data("reaperscans_chlist_p4.html")  # 0 chapters
+        cls.json_p1 = get_test_data("reaperscans_chlist_p1.json")
+        cls.json_p2 = get_test_data("reaperscans_chlist_p2.json")
 
     def setUp(self):
         self.requests_mock = requests_mock.Mocker()
         self.requests_mock.start()
-        self.requests_mock.get("/novels/7666-player-who-returned-10000-years-later", text=self.novel_page)
-        self.requests_mock.get("/novels/7666-player-who-returned-10000-years-later?page=1", text=self.chlist_page_1)
-        self.requests_mock.get("/novels/7666-player-who-returned-10000-years-later?page=2", text=self.chlist_page_2)
-        self.requests_mock.get("/novels/7666-player-who-returned-10000-years-later?page=3", text=self.chlist_page_3)
-        self.requests_mock.get("/novels/7666-player-who-returned-10000-years-later?page=4", text=self.chlist_page_4)
+        self.requests_mock.get("/novels/1234-creepy-story-club", text=self.novel_page)
+        self.requests_mock.post(
+            "/livewire/message/frontend.novel-chapters-list",
+            additional_matcher=lambda r: r.json()["serverMemo"]["data"]["page"] == 1,
+            text=self.json_p1,
+        )
+        self.requests_mock.post(
+            "/livewire/message/frontend.novel-chapters-list",
+            additional_matcher=lambda r: r.json()["serverMemo"]["data"]["page"] > 1,
+            text=self.json_p2,
+        )
 
     def tearDown(self):
         self.requests_mock.stop()
@@ -278,7 +280,7 @@ class ReaperScansScraperTestCase(TestCase):
     def test_get_title(self):
         scraper = reaperscans.ReaperScansScraper()
         soup = scraper.get_soup(self.novel_page)
-        self.assertEqual(scraper.get_title(soup), "Player Who Returned 10,000 Years Later")
+        self.assertEqual(scraper.get_title(soup), "Creepy Story Club")
 
     def test_get_status(self):
         scraper = reaperscans.ReaperScansScraper()
@@ -317,32 +319,50 @@ class ReaperScansScraperTestCase(TestCase):
 
     def test_get_chapters(self):
         scraper = reaperscans.ReaperScansScraper()
-        self.requests_mock.post(
-            "/livewire/message/frontend.novel-chapters-list",
-            additional_matcher=lambda r: r.json()["serverMemo"]["data"]["page"] == 1,
-            text=get_test_data("reaperscans_chlist_p1.json"),
-        )
-        self.requests_mock.post(
-            "/livewire/message/frontend.novel-chapters-list",
-            additional_matcher=lambda r: r.json()["serverMemo"]["data"]["page"] > 1,
-            text="{}",
-        )
         soup = scraper.get_soup(self.novel_page)
         chapters = scraper.get_chapters(soup, self.novel_url)
-        chapter = chapters[0]
-        chapter_url = (
-            "https://reaperscans.com/novels/7666-player-who-returned-10000-years-later/chapters/79444921-chapter-152"
-        )
         self.assertEqual(
-            chapter,
-            Chapter(
-                url=chapter_url,
-                title="Chapter 152 - Demon King Balzac (1)",
-                chapter_no="152",
-            ),
+            chapters,
+            [
+                Chapter(
+                    url="https://reaperscans.com/novels/1234-creepy-story-club/chapters/12345678-chapter-3",
+                    title="Chapter 3: Wrath of the Creeper (3)",
+                    chapter_no=3,
+                    slug="novel-chapter-list-12345678-chapter-3",
+                ),
+                Chapter(
+                    url="https://reaperscans.com/novels/1234-creepy-story-club/chapters/23456789-chapter-4",
+                    title="Chapter 4: Side Story: Creeper's Gonna Creep",
+                    chapter_no=4,
+                    slug="novel-chapter-list-23456789-chapter-4",
+                ),
+                Chapter(
+                    url="https://reaperscans.com/novels/1234-creepy-story-club/chapters/5555-chapter-5",
+                    title="Chapter 5: Creepypasta (1)",
+                    chapter_no=5,
+                    slug="novel-chapter-list-5555-chapter-5",
+                ),
+                Chapter(
+                    url="https://reaperscans.com/novels/1234-creepy-story-club/chapters/6666-chapter-6",
+                    title="Chapter 6: Creepypasta (2)",
+                    chapter_no=6,
+                    slug="novel-chapter-list-6666-chapter-6",
+                ),
+                Chapter(
+                    url="https://reaperscans.com/novels/1234-creepy-story-club/chapters/7777-chapter-7",
+                    title="Chapter 7: Creepypasta (3)",
+                    chapter_no=7,
+                    slug="novel-chapter-list-7777-chapter-7",
+                ),
+                Chapter(
+                    url="https://reaperscans.com/novels/1234-creepy-story-club/chapters/8888-chapter-8",
+                    title="Chapter 8: Apostle of the Creep",
+                    chapter_no=8,
+                    slug="novel-chapter-list-8888-chapter-8",
+                ),
+            ],
         )
 
-    @skip
     def test_scrape(self):
         scraper = reaperscans.ReaperScansScraper()
         novel = scraper.scrape(self.novel_url)
@@ -352,21 +372,50 @@ class ReaperScansScraperTestCase(TestCase):
         expected_novel = Novel(
             url=self.novel_url,
             site_id="ReaperScans.com",
-            novel_id="",
-            title="Player Who Returned 10,000 Years Later",
+            novel_id="1234-creepy-story-club",
+            title="Creepy Story Club",
             status=NovelStatus.ONGOING,
             genres=[],
             author=None,
             summary=summary,
-            # Note: There are over a hundred chapters here, so I don't want to have to define all of them. I'll just
-            #       assert that they are all chapter instances below.
-            chapters=mock.ANY,
+            cover_image=Image(url="https://reaperscans.com/imgs/creepy-story-club.jpg"),
+            chapters=[
+                Chapter(
+                    url="https://reaperscans.com/novels/1234-creepy-story-club/chapters/12345678-chapter-3",
+                    title="Chapter 3: Wrath of the Creeper (3)",
+                    chapter_no=3,
+                    slug="novel-chapter-list-12345678-chapter-3",
+                ),
+                Chapter(
+                    url="https://reaperscans.com/novels/1234-creepy-story-club/chapters/23456789-chapter-4",
+                    title="Chapter 4: Side Story: Creeper's Gonna Creep",
+                    chapter_no=4,
+                    slug="novel-chapter-list-23456789-chapter-4",
+                ),
+                Chapter(
+                    url="https://reaperscans.com/novels/1234-creepy-story-club/chapters/5555-chapter-5",
+                    title="Chapter 5: Creepypasta (1)",
+                    chapter_no=5,
+                    slug="novel-chapter-list-5555-chapter-5",
+                ),
+                Chapter(
+                    url="https://reaperscans.com/novels/1234-creepy-story-club/chapters/6666-chapter-6",
+                    title="Chapter 6: Creepypasta (2)",
+                    chapter_no=6,
+                    slug="novel-chapter-list-6666-chapter-6",
+                ),
+                Chapter(
+                    url="https://reaperscans.com/novels/1234-creepy-story-club/chapters/7777-chapter-7",
+                    title="Chapter 7: Creepypasta (3)",
+                    chapter_no=7,
+                    slug="novel-chapter-list-7777-chapter-7",
+                ),
+                Chapter(
+                    url="https://reaperscans.com/novels/1234-creepy-story-club/chapters/8888-chapter-8",
+                    title="Chapter 8: Apostle of the Creep",
+                    chapter_no=8,
+                    slug="novel-chapter-list-8888-chapter-8",
+                ),
+            ],
         )
         self.assertEqual(novel, expected_novel)
-
-        # Assert that Novel.chapters looks like it should.
-        self.assertEqual(len(novel.chapters), 56)  # 22 + 32 + 2
-        self.assertTrue(
-            all(isinstance(ch, Chapter) for ch in novel.chapters),
-            "Novel.chapters needs to be a list of Chapter instances.",
-        )
