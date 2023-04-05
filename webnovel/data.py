@@ -13,6 +13,40 @@ from bs4 import BeautifulSoup, Tag
 from .utils import filter_dict
 
 
+def check_if_jpeg(data: bytes) -> bool:
+    """
+    Check if data has a JPEG header.
+
+    Source: https://stackoverflow.com/questions/36870661/imghdr-python-cant-detec-type-of-some-images-image-extension
+    """
+    JPEG_MARK = (
+        b"\xff\xd8\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07"
+        b"\t\t\x08\n\x0c\x14\r\x0c\x0b\x0b\x0c\x19\x12\x13\x0f"
+    )
+    return (
+        # JPEG data in JFIF format
+        b"JFIF" in data[:23]
+        # JPEG with small header
+        or (len(data) >= 32 and 67 == data[5] and data[:32] == JPEG_MARK)
+        # JPEG data in JFIF or Exif format
+        or (data[6:10] in (b"JFIF", b"Exif") or data[:2] == b"\xff\xd8")
+    )
+
+
+def patch_imghdr():
+    """
+    Monkey patch in additional test for JPEG to imghdr to deal with buggy detection.
+
+    Source: https://stackoverflow.com/questions/36870661/imghdr-python-cant-detec-type-of-some-images-image-extension
+    """
+    from imghdr import tests
+
+    tests.append(lambda h, f: "jpeg" if check_if_jpeg(h) else None)
+
+
+patch_imghdr()
+
+
 class NovelStatus(Enum):
     """Representation of the status of a webnovel."""
 
@@ -39,6 +73,19 @@ class Image:
         "image/webp": ".webp",
         "image/gif": ".gif",
     }
+
+    @staticmethod
+    def get_mimetype_from_image_data(data: bytes):
+        """Get a mimetype string from a blob of image data."""
+        if not data:
+            raise ValueError("Cannot determine mimetype without image data.")
+
+        image_type = imghdr.what(file=None, h=data)
+
+        if not image_type:
+            return None
+
+        return f"image/{image_type}"
 
     @property
     def extension(self):
