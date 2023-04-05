@@ -67,11 +67,12 @@ class NovelCoolScraper(NovelScraper):
         chapter_els = page.select(".chp-item")
         chapters = []
 
-        for element in chapter_els:
+        for idx, element in enumerate(reversed(chapter_els), 1):
             time = element.select_one(".chapter-item-time")
             ch = Chapter(
                 url=element.find("a").get("href"),
                 title=element.find("a").get("title"),
+                chapter_no=idx,
                 pub_date=datetime.datetime.strptime(time.text.strip(), "%b %d, %Y").date() if time else None,
             )
             chapters.append(ch)
@@ -83,6 +84,7 @@ class NovelCoolChapterScraper(ChapterScraper):
     """Scraper for NovelCool.com chapters."""
 
     site_name = SITE_NAME
+    url_pattern = re.compile(HTTPS_PREFIX + r"novelcool.com/chapter/(?P<ChapterID>[\w\d-]+)/\d+/")
 
     def post_processing(self, chapter):
         """Extra NovelCool-specific processing."""
