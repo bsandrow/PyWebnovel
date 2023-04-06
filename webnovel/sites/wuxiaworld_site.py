@@ -7,7 +7,6 @@ from webnovel.html import DEFAULT_FILTERS, ElementBlacklistFilter, HtmlFilter, r
 from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraper, Selector
 
 SITE_NAME = "WuxiaWorld.site"
-NOVEL_URL_PATTERN = HTTPS_PREFIX + r"wuxiaworld\.site/novel/(?P<NovelID>[\w-]+)/"
 
 
 class SiteAdFilter(HtmlFilter):
@@ -29,6 +28,7 @@ class WuxiaWorldDotSiteScraper(NovelScraper):
     """Scraper for WuxiaWorld.site."""
 
     site_name = SITE_NAME
+    url_pattern = HTTPS_PREFIX + r"wuxiaworld\.site/novel/(?P<NovelID>[\w-]+)/"
     title_selector = Selector("div.post-title > h1")
     summary_selector = Selector("div.description-summary > div.summary__content")
     status_selector = Selector("div.post-status > div:nth-child(2) > .summary-content")
@@ -41,13 +41,8 @@ class WuxiaWorldDotSiteScraper(NovelScraper):
     @staticmethod
     def get_novel_id(url: str) -> str:
         """Return the id of the novel that WuxiaWorld.site uses."""
-        match = re.match(NOVEL_URL_PATTERN, url)
+        match = re.match(WuxiaWorldDotSiteScraper.url_pattern, url)
         return match.group(1) if match else None
-
-    @staticmethod
-    def validate_url(url: str) -> bool:
-        """Validate that a URL matches something that works for WuxiaWorld.site and the scraper should support."""
-        return re.match(NOVEL_URL_PATTERN, url) is not None
 
     def get_status(self, page):
         """Return the status of the novel."""

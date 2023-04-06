@@ -14,7 +14,6 @@ from webnovel.logs import LogTimer
 from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraper, Selector
 
 SITE_NAME = "ReaperScans.com"
-URL_PATTERN = r"https?://(?:www\.)?reaperscans\.com/novels/(\d+-[\w-]+)"
 logger = logging.getLogger(__name__)
 timer = LogTimer(logger)
 
@@ -179,6 +178,7 @@ class ReaperScansScraper(NovelScraper):
     """Scraper for ReaperScans.com."""
 
     site_name = SITE_NAME
+    url_pattern = r"https?://(?:www\.)?reaperscans\.com/novels/(\d+-[\w-]+)"
     title_selector = Selector("MAIN > DIV:nth-child(2) > DIV > DIV:first-child H1")
     status_selector = Selector("MAIN > DIV:nth-child(2) > SECTION > DIV:first-child DL > DIV:nth-child(4) DD")
     summary_selector = Selector("MAIN > DIV:nth-child(2) > SECTION > DIV:first-child > DIV > P")
@@ -207,13 +207,8 @@ class ReaperScansScraper(NovelScraper):
     @staticmethod
     def get_novel_id(url: str) -> str:
         """Return the id of the novel that ReaperScans uses."""
-        match = re.match(URL_PATTERN, url)
+        match = re.match(ReaperScansScraper.url_pattern, url)
         return match.group(1) if match is not None else None
-
-    @staticmethod
-    def validate_url(url: str) -> bool:
-        """Validate that a URL matches something that works for ReaperScans.com and the scraper should support."""
-        return re.match(URL_PATTERN, url) is not None
 
     def get_genres(self, page):
         """Return empty list since ReaperScans doesn't have genres listed on the novel page."""

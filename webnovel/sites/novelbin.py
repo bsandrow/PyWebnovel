@@ -8,7 +8,6 @@ from webnovel.html import DEFAULT_FILTERS, HtmlFilter, remove_element
 from webnovel.logs import LogTimer
 from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraper, Selector
 
-NOVEL_URL_PATTERN = HTTPS_PREFIX + r"novelbin\.net/n/(?P<NovelID>[\w-]+)"
 SITE_NAME = "NovelBin.net"
 logger = logging.getLogger(__name__)
 timer = LogTimer(logger)
@@ -61,6 +60,7 @@ class NovelBinScraper(NovelScraper):
     """Scraper for NovelBin.net."""
 
     site_name = SITE_NAME
+    url_pattern = HTTPS_PREFIX + r"novelbin\.net/n/(?P<NovelID>[\w-]+)"
     title_selector = Selector(".col-novel-main > .col-info-desc > .desc > .title")
     status_map = {"ongoing": NovelStatus.ONGOING, "completed": NovelStatus.COMPLETED}
     genre_selector = Selector(".col-novel-main > .col-info-desc > .desc > .info-meta > li:nth-child(3) > a")
@@ -75,17 +75,12 @@ class NovelBinScraper(NovelScraper):
     @staticmethod
     def get_novel_id(url: str) -> str:
         """Return the novel id from the URL."""
-        match = re.match(NOVEL_URL_PATTERN, url)
+        match = re.match(NovelBinScraper.url_pattern, url)
         if match is None:
             return None
         novel_id = match.group("NovelID")
         novel_id = re.sub(r"-nov-?\d+$", "", novel_id)
         return novel_id
-
-    @staticmethod
-    def validate_url(url: str) -> bool:
-        """Validate that a URL matches something that works for NovelBin.net and the scraper should support."""
-        return re.match(NOVEL_URL_PATTERN, url) is not None
 
     def get_status(self, page):
         """

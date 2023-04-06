@@ -43,7 +43,7 @@ CHAPTER_SCRAPERS: list[type[ChapterScraper]] = [
 def find_scraper(url: str) -> type[NovelScraper]:
     """Find a scraper class that matches the provided url."""
     for scraper in NOVEL_SCRAPERS:
-        if scraper.validate_url(url):
+        if scraper.supports_url(url):
             return scraper
 
 

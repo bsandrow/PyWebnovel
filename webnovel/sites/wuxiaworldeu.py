@@ -12,7 +12,6 @@ from webnovel.html import DEFAULT_FILTERS, HtmlFilter, remove_element
 from webnovel.logs import LogTimer
 from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraper, Selector
 
-NOVEL_URL_PATTERN = HTTPS_PREFIX + r"wuxiaworld.eu/novel/(?P<NovelID>[\w\d-]+)"
 SITE_NAME = "WuxiaWorld.eu"
 logger = logging.getLogger(__name__)
 timer = LogTimer(logger)
@@ -45,6 +44,7 @@ class WuxiaWorldEuNovelScraper(NovelScraper):
     """Scraper for WuxiaWorld.eu."""
 
     site_name = SITE_NAME
+    url_pattern = HTTPS_PREFIX + r"wuxiaworld.eu/novel/(?P<NovelID>[\w\d-]+)"
     status_map = {"ongoing": NovelStatus.ONGOING, "completed": NovelStatus.COMPLETED}
     summary_selector = Selector("div.tab-content div.desc-text")
     # cover_image_url_selector = Selector("#novel div.book > img", attribute="src")
@@ -85,15 +85,10 @@ class WuxiaWorldEuNovelScraper(NovelScraper):
     @staticmethod
     def get_novel_id(url: str) -> str:
         """Return the novel id from the URL."""
-        match = re.match(NOVEL_URL_PATTERN, url)
+        match = re.match(WuxiaWorldEuNovelScraper.url_pattern, url)
         if match is None:
             return None
         return match.group("NovelID")
-
-    @staticmethod
-    def validate_url(url: str) -> bool:
-        """Validate that a URL matches something that works for WuxiaWorld.eu and the scraper should support."""
-        return re.match(NOVEL_URL_PATTERN, url) is not None
 
     @timer("fetching chapters list")
     def get_chapters(self, page, url: str) -> list:

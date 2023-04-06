@@ -67,13 +67,13 @@ class NovelBinScraperTestCase(TestCase):
         scraper = novelbin.NovelBinScraper()
         self.assertIsNone(scraper.get_novel_id("https://example.com/"))
 
-    def test_validate_url(self):
-        self.assertTrue(novelbin.NovelBinScraper.validate_url("https://novelbin.net/n/the-frozen-player-returns"))
-        self.assertTrue(novelbin.NovelBinScraper.validate_url("http://novelbin.net/n/the-frozen-player-returns"))
-        self.assertTrue(novelbin.NovelBinScraper.validate_url("https://www.novelbin.net/n/the-frozen-player-returns"))
-        self.assertTrue(novelbin.NovelBinScraper.validate_url("https://www.novelbin.net/n/the-frozen-player-returns/"))
+    def test_supports_url(self):
+        self.assertTrue(novelbin.NovelBinScraper.supports_url("https://novelbin.net/n/the-frozen-player-returns"))
+        self.assertTrue(novelbin.NovelBinScraper.supports_url("http://novelbin.net/n/the-frozen-player-returns"))
+        self.assertTrue(novelbin.NovelBinScraper.supports_url("https://www.novelbin.net/n/the-frozen-player-returns"))
+        self.assertTrue(novelbin.NovelBinScraper.supports_url("https://www.novelbin.net/n/the-frozen-player-returns/"))
         self.assertFalse(
-            novelbin.NovelBinScraper.validate_url("https://www.novelbin.net/novel/the-frozen-player-returns/")
+            novelbin.NovelBinScraper.supports_url("https://www.novelbin.net/novel/the-frozen-player-returns/")
         )
 
     def test_get_title(self):

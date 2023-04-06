@@ -22,13 +22,13 @@ class NovelCoolScraperTestCase(TestCase):
             "Creepy-Story-Club",
         )
 
-    def test_validate_url(self):
-        self.assertTrue(novelcool.NovelCoolScraper.validate_url("https://novelcool.com/novel/Creepy-Story-Club.html"))
-        self.assertTrue(novelcool.NovelCoolScraper.validate_url("http://novelcool.com/novel/Creepy-Story-Club.html"))
+    def test_supports_url(self):
+        self.assertTrue(novelcool.NovelCoolScraper.supports_url("https://novelcool.com/novel/Creepy-Story-Club.html"))
+        self.assertTrue(novelcool.NovelCoolScraper.supports_url("http://novelcool.com/novel/Creepy-Story-Club.html"))
         self.assertTrue(
-            novelcool.NovelCoolScraper.validate_url("http://www.novelcool.com/novel/Creepy-Story-Club.html")
+            novelcool.NovelCoolScraper.supports_url("http://www.novelcool.com/novel/Creepy-Story-Club.html")
         )
-        self.assertFalse(novelcool.NovelCoolScraper.validate_url("http://www.novelcool.com/novel/Creepy-Story-Club"))
+        self.assertFalse(novelcool.NovelCoolScraper.supports_url("http://www.novelcool.com/novel/Creepy-Story-Club"))
 
     def test_get_title(self):
         page = BeautifulSoup(self.novel_page, "html.parser")

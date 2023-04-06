@@ -8,25 +8,20 @@ from webnovel.html import remove_element
 from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraper, Selector
 
 SITE_NAME = "NovelCool.com"
-URL_PATTERN = HTTPS_PREFIX + r"novelcool.com/novel/(?P<NovelID>[\w\d_-]+).html"
 
 
 class NovelCoolScraper(NovelScraper):
     """Scraper for NovelCool.com novels."""
 
     site_name = SITE_NAME
+    url_pattern = HTTPS_PREFIX + r"novelcool.com/novel/(?P<NovelID>[\w\d_-]+).html"
     status_map = {"ongoing": NovelStatus.ONGOING}
 
     @staticmethod
     def get_novel_id(url: str) -> str:
         """Return the id of the novel that NovelCool uses."""
-        match = re.match(URL_PATTERN, url)
+        match = re.match(NovelCoolScraper.url_pattern, url)
         return match.group("NovelID") if match is not None else None
-
-    @staticmethod
-    def validate_url(url: str) -> bool:
-        """Validate that a URL matches something that works for NovelCool.com and the scraper should support."""
-        return re.match(URL_PATTERN, url) is not None
 
     def get_title(self, page):
         """Return the novel title."""

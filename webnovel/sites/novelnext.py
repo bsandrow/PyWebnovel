@@ -4,7 +4,6 @@ from webnovel.scraping import HTTPS_PREFIX
 from webnovel.sites.novelbin import NovelBinChapterScraper, NovelBinScraper
 
 SITE_NAME = "NovelNext.org"
-NOVEL_URL_PATTERN = HTTPS_PREFIX + r"novelnext\.org/novelnext/(?P<NovelID>[\w-]+)"
 
 
 class NovelNextScraper(NovelBinScraper):
@@ -12,6 +11,7 @@ class NovelNextScraper(NovelBinScraper):
 
     site_name = SITE_NAME
     chapter_list_api_url = "https://novelnext.org/ajax/chapter-archive?novelId={novel_id}"
+    url_pattern = HTTPS_PREFIX + r"novelnext\.org/novelnext/(?P<NovelID>[\w-]+)"
 
 
 class NovelNextChapterScraper(NovelBinChapterScraper):

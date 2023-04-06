@@ -10,7 +10,7 @@ from .helpers import get_test_data
 
 @skip
 class WuxiaWorldSiteTestCase(TestCase):
-    def test_validate_url(self):
+    def test_supports_url(self):
         for url, expected_result in [
             ("https://wuxiaworld.site/novel/global-game-afk-in-the-zombie-apocalypse-game-wuxia-dao-novel/", True),
             ("https://www.wuxiaworld.site/novel/global-game-afk-in-the-zombie-apocalypse-game-wuxia-dao-novel/", True),
@@ -18,7 +18,7 @@ class WuxiaWorldSiteTestCase(TestCase):
             ("http://wuxiaworld.site/novel/global-game-afk-in-the-zombie-apocalypse-game-wuxia-dao-novel", False),
         ]:
             with self.subTest(url=url, expected_result=expected_result):
-                actual_result = wuxiaworld_site.validate_url(url)
+                actual_result = wuxiaworld_site.supports_url(url)
                 self.assertTrue(actual_result is expected_result)
 
 

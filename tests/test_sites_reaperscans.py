@@ -245,13 +245,13 @@ class ReaperScansScraperTestCase(TestCase):
         expected = "1234-creepy-story-club"
         self.assertEqual(actual, expected)
 
-    def test_validate_url(self):
-        validate_url = reaperscans.ReaperScansScraper.validate_url
-        self.assertTrue(validate_url("https://reaperscans.com/novels/7145-creepy-story-club"))
-        self.assertTrue(validate_url("https://www.reaperscans.com/novels/7145-creepy-story-club"))
-        self.assertTrue(validate_url("http://www.reaperscans.com/novels/7145-creepy-story-club"))
-        self.assertTrue(validate_url("http://www.reaperscans.com/novels/7145-creepy-story-club/"))
-        self.assertFalse(validate_url("https://reaperscans.com/novels/creepy-story-club/"))
+    def test_supports_url(self):
+        supports_url = reaperscans.ReaperScansScraper.supports_url
+        self.assertTrue(supports_url("https://reaperscans.com/novels/7145-creepy-story-club"))
+        self.assertTrue(supports_url("https://www.reaperscans.com/novels/7145-creepy-story-club"))
+        self.assertTrue(supports_url("http://www.reaperscans.com/novels/7145-creepy-story-club"))
+        self.assertTrue(supports_url("http://www.reaperscans.com/novels/7145-creepy-story-club/"))
+        self.assertFalse(supports_url("https://reaperscans.com/novels/creepy-story-club/"))
 
     @classmethod
     def setUpClass(cls):
