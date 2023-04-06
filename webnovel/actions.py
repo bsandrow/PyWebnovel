@@ -28,14 +28,18 @@ def create_epub(novel_url: str, filename: str = None, cover_image_url: str = Non
     ch_scrapers = {}
 
     with timer("Generating %s", filename):
-        epub_pkg = epub.EpubPackage(file_or_io=filename, metadata=novel, options={})
+        epub_pkg = epub.EpubPackage(
+            file_or_io=filename,
+            metadata=novel,
+            options={},
+            extra_css=novel.extra_css,
+        )
+
         if novel.cover_image:
             novel.cover_image.load(client=scraper.http_client)
             epub_pkg.add_image(image=novel.cover_image, content=novel.cover_image.data, is_cover_image=True)
 
         assert novel.chapters
-
-        time.sleep(1)
 
         chapters = sorted(novel.chapters, key=lambda ch: int(ch.chapter_no))
         if chapter_limit:
