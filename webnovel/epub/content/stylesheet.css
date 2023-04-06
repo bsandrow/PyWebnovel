@@ -34,3 +34,20 @@ P {
 .pywn_bottom-info > DIV {
 	margin-bottom: 0.8em;
 }
+
+.cover_image
+{
+	text-align: center;
+	page-break-inside: avoid;
+	clear: both;
+	padding: 0px;
+	margin: 0em auto;
+	height: 95%;
+}
+
+.cover_image img
+{
+	page-break-inside: avoid;
+	max-height: 100%;
+	max-width: 100%;
+}
