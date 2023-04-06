@@ -17,7 +17,7 @@ class ScribbleHubScraper(NovelScraper):
     """Scraper for ScribbleHub.com."""
 
     site_name = SITE_NAME
-    url_pattern = HTTPS_PREFIX + r"scribblehub\.com/series/(?P<novel_id>\d+)/(?P<novel_title_slug>[\w\d-]+)/"
+    url_pattern = HTTPS_PREFIX + r"scribblehub\.com/series/(?P<NovelID>\d+)/(?P<novel_title_slug>[\w\d-]+)/"
     title_selector = Selector("div.fic_title")
     status_map = {"ongoing": NovelStatus.ONGOING, "completed": NovelStatus.COMPLETED, "hiatus": NovelStatus.HIATUS}
     genre_selector = Selector("a.fic_genre")
@@ -26,11 +26,6 @@ class ScribbleHubScraper(NovelScraper):
     author_url_selector = Selector("div[property='author'] [property='name'] a", attribute="href")
     summary_selector = Selector(".wi_fic_desc")
     cover_image_url_selector = Selector(".novel-cover .fic_image img", attribute="src")
-
-    @staticmethod
-    def get_novel_id(url: str) -> str:
-        """Return the novel id from the URL."""
-        return match.group("novel_id") if (match := re.match(ScribbleHubScraper.url_pattern, url)) else None
 
     def get_status(self, page):
         """

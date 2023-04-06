@@ -82,14 +82,6 @@ class WuxiaWorldEuNovelScraper(NovelScraper):
         """Extract the summary from the page."""
         return page.select_one(".mantine-Spoiler-content").text.strip()
 
-    @staticmethod
-    def get_novel_id(url: str) -> str:
-        """Return the novel id from the URL."""
-        match = re.match(WuxiaWorldEuNovelScraper.url_pattern, url)
-        if match is None:
-            return None
-        return match.group("NovelID")
-
     @timer("fetching chapters list")
     def get_chapters(self, page, url: str) -> list:
         """Extract chapter list from page."""

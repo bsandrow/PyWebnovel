@@ -38,12 +38,6 @@ class WuxiaWorldDotSiteScraper(NovelScraper):
     genre_selector = Selector("div.genres-content > a")
     cover_image_url_selector = Selector("div.summary_image img", attribute="data-src")
 
-    @staticmethod
-    def get_novel_id(url: str) -> str:
-        """Return the id of the novel that WuxiaWorld.site uses."""
-        match = re.match(WuxiaWorldDotSiteScraper.url_pattern, url)
-        return match.group(1) if match else None
-
     def get_status(self, page):
         """Return the status of the novel."""
         for item in page.select("div.post-status .summary-heading"):

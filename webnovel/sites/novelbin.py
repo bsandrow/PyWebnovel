@@ -72,14 +72,12 @@ class NovelBinScraper(NovelScraper):
     cover_image_url_selector = Selector("#novel div.book > img", attribute="src")
     chapter_list_api_url = "https://novelbin.net/ajax/chapter-archive?novelId={novel_id}"
 
-    @staticmethod
-    def get_novel_id(url: str) -> str:
+    @classmethod
+    def get_novel_id(cls, url: str) -> str:
         """Return the novel id from the URL."""
-        match = re.match(NovelBinScraper.url_pattern, url)
-        if match is None:
-            return None
-        novel_id = match.group("NovelID")
-        novel_id = re.sub(r"-nov-?\d+$", "", novel_id)
+        novel_id = match.group("NovelID") if (match := re.match(cls.url_pattern, url)) else None
+        if novel_id:
+            novel_id = re.sub(r"-nov-?\d+$", "", novel_id)
         return novel_id
 
     def get_status(self, page):

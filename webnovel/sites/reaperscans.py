@@ -204,12 +204,6 @@ class ReaperScansScraper(NovelScraper):
         """Return rate limiter for ReaperScans."""
         return LIMITER
 
-    @staticmethod
-    def get_novel_id(url: str) -> str:
-        """Return the id of the novel that ReaperScans uses."""
-        match = re.match(ReaperScansScraper.url_pattern, url)
-        return match.group(1) if match is not None else None
-
     def get_genres(self, page):
         """Return empty list since ReaperScans doesn't have genres listed on the novel page."""
         return []

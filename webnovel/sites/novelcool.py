@@ -17,12 +17,6 @@ class NovelCoolScraper(NovelScraper):
     url_pattern = HTTPS_PREFIX + r"novelcool.com/novel/(?P<NovelID>[\w\d_-]+).html"
     status_map = {"ongoing": NovelStatus.ONGOING}
 
-    @staticmethod
-    def get_novel_id(url: str) -> str:
-        """Return the id of the novel that NovelCool uses."""
-        match = re.match(NovelCoolScraper.url_pattern, url)
-        return match.group("NovelID") if match is not None else None
-
     def get_title(self, page):
         """Return the novel title."""
         novel_data_el = page.find("script", string=lambda t: t and "BOOK_ID" in t)

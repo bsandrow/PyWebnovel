@@ -75,6 +75,11 @@ class NovelScraper(ScraperBase):
     # from.
     extra_css: Optional[str] = None
 
+    @classmethod
+    def get_novel_id(cls, url) -> str:
+        """Return the novel id from the URL."""
+        return match.group("NovelID") if (match := re.match(cls.url_pattern, url)) else None
+
     def get_title(self, page: BeautifulSoup) -> str:
         """Extract the title of the Novel from the page."""
         assert self.title_selector is not None, "title_selector is not defined. Define it, or override get_title."
