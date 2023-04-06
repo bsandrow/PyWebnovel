@@ -572,8 +572,11 @@ class PackageOPF(SingleFileMixin, EpubInternalFile):
                 "media-type": epub_file.mimetype,
             }
 
-            if isinstance(epub_file, ImageFile) and epub_file.is_cover_image:
+            if epub_file == pkg.cover_image:
                 attrs["properties"] = "cover-image"
+
+            if epub_file == pkg.nav:
+                attrs["properties"] = "nav"
 
             create_element(dom, "item", attributes=attrs, parent=manifest)
 

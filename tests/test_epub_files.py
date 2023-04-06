@@ -1085,7 +1085,7 @@ class PackageOPFTestCase(TestCase):
             f'<item id="{pkg.chapter_files[1].file_id}" href="{pkg.chapter_files[1].relative_to(pkg.opf.parent)}" media-type="{pkg.chapter_files[1].mimetype}"/>'
             f'<item id="{pkg.ncx.file_id}" href="{pkg.ncx.relative_to(pkg.opf.parent)}" media-type="{pkg.ncx.mimetype}"/>'
             f'<item id="{pkg.stylesheet.file_id}" href="{pkg.stylesheet.relative_to(pkg.opf.parent)}" media-type="{pkg.stylesheet.mimetype}"/>'
-            f'<item id="{pkg.nav.file_id}" href="{pkg.nav.relative_to(pkg.opf.parent)}" media-type="{pkg.nav.mimetype}"/>'
+            f'<item id="{pkg.nav.file_id}" href="{pkg.nav.relative_to(pkg.opf.parent)}" media-type="{pkg.nav.mimetype}" properties="nav"/>'
             f'<item id="{pkg.cover_image.file_id}" href="{pkg.cover_image.relative_to(pkg.opf.parent)}" media-type="{pkg.cover_image.mimetype}" properties="cover-image"/>'
             f"</manifest>"
             # --- Spine ---
@@ -1152,7 +1152,7 @@ class PackageOPFTestCase(TestCase):
             f'<item id="{pkg.chapter_files[1].file_id}" href="{pkg.chapter_files[1].relative_to(pkg.opf.parent)}" media-type="{pkg.chapter_files[1].mimetype}"/>'
             f'<item id="{pkg.ncx.file_id}" href="{pkg.ncx.relative_to(pkg.opf.parent)}" media-type="{pkg.ncx.mimetype}"/>'
             f'<item id="{pkg.stylesheet.file_id}" href="{pkg.stylesheet.relative_to(pkg.opf.parent)}" media-type="{pkg.stylesheet.mimetype}"/>'
-            f'<item id="{pkg.nav.file_id}" href="{pkg.nav.relative_to(pkg.opf.parent)}" media-type="{pkg.nav.mimetype}"/>'
+            f'<item id="{pkg.nav.file_id}" href="{pkg.nav.relative_to(pkg.opf.parent)}" media-type="{pkg.nav.mimetype}" properties="nav"/>'
             f'<item id="{pkg.cover_image.file_id}" href="{pkg.cover_image.relative_to(pkg.opf.parent)}" media-type="{pkg.cover_image.mimetype}" properties="cover-image"/>'
             f"</manifest>"
             # --- Spine ---
@@ -1214,7 +1214,7 @@ class PackageOPFTestCase(TestCase):
             f'<item id="{pkg.chapter_files[1].file_id}" href="{pkg.chapter_files[1].relative_to(pkg.opf.parent)}" media-type="{pkg.chapter_files[1].mimetype}"/>'
             f'<item id="{pkg.ncx.file_id}" href="{pkg.ncx.relative_to(pkg.opf.parent)}" media-type="{pkg.ncx.mimetype}"/>'
             f'<item id="{pkg.stylesheet.file_id}" href="{pkg.stylesheet.relative_to(pkg.opf.parent)}" media-type="{pkg.stylesheet.mimetype}"/>'
-            f'<item id="{pkg.nav.file_id}" href="{pkg.nav.relative_to(pkg.opf.parent)}" media-type="{pkg.nav.mimetype}"/>'
+            f'<item id="{pkg.nav.file_id}" href="{pkg.nav.relative_to(pkg.opf.parent)}" media-type="{pkg.nav.mimetype}" properties="nav"/>'
             f"</manifest>"
             # --- Spine ---
             f'<spine toc="ncx">'
@@ -1279,7 +1279,7 @@ class PackageOPFTestCase(TestCase):
             f'<item id="{pkg.chapter_files[1].file_id}" href="{pkg.chapter_files[1].relative_to(pkg.opf.parent)}" media-type="{pkg.chapter_files[1].mimetype}"/>'
             f'<item id="{pkg.ncx.file_id}" href="{pkg.ncx.relative_to(pkg.opf.parent)}" media-type="{pkg.ncx.mimetype}"/>'
             f'<item id="{pkg.stylesheet.file_id}" href="{pkg.stylesheet.relative_to(pkg.opf.parent)}" media-type="{pkg.stylesheet.mimetype}"/>'
-            f'<item id="{pkg.nav.file_id}" href="{pkg.nav.relative_to(pkg.opf.parent)}" media-type="{pkg.nav.mimetype}"/>'
+            f'<item id="{pkg.nav.file_id}" href="{pkg.nav.relative_to(pkg.opf.parent)}" media-type="{pkg.nav.mimetype}" properties="nav"/>'
             f'<item id="{pkg.cover_image.file_id}" href="{pkg.cover_image.relative_to(pkg.opf.parent)}" media-type="{pkg.cover_image.mimetype}" properties="cover-image"/>'
             f"</manifest>"
             # --- Spine ---
@@ -1346,7 +1346,7 @@ class PackageOPFTestCase(TestCase):
             f'<item id="{pkg.chapter_files[1].file_id}" href="{pkg.chapter_files[1].relative_to(pkg.opf.parent)}" media-type="{pkg.chapter_files[1].mimetype}"/>'
             f'<item id="{pkg.ncx.file_id}" href="{pkg.ncx.relative_to(pkg.opf.parent)}" media-type="{pkg.ncx.mimetype}"/>'
             f'<item id="{pkg.stylesheet.file_id}" href="{pkg.stylesheet.relative_to(pkg.opf.parent)}" media-type="{pkg.stylesheet.mimetype}"/>'
-            f'<item id="{pkg.nav.file_id}" href="{pkg.nav.relative_to(pkg.opf.parent)}" media-type="{pkg.nav.mimetype}"/>'
+            f'<item id="{pkg.nav.file_id}" href="{pkg.nav.relative_to(pkg.opf.parent)}" media-type="{pkg.nav.mimetype}" properties="nav"/>'
             f'<item id="{pkg.cover_image.file_id}" href="{pkg.cover_image.relative_to(pkg.opf.parent)}" media-type="{pkg.cover_image.mimetype}" properties="cover-image"/>'
             f"</manifest>"
             # --- Spine ---
@@ -1413,7 +1413,7 @@ class PackageOPFTestCase(TestCase):
             f'<item id="{pkg.chapter_files[1].file_id}" href="{pkg.chapter_files[1].relative_to(pkg.opf.parent)}" media-type="{pkg.chapter_files[1].mimetype}"/>'
             f'<item id="{pkg.ncx.file_id}" href="{pkg.ncx.relative_to(pkg.opf.parent)}" media-type="{pkg.ncx.mimetype}"/>'
             f'<item id="{pkg.stylesheet.file_id}" href="{pkg.stylesheet.relative_to(pkg.opf.parent)}" media-type="{pkg.stylesheet.mimetype}"/>'
-            f'<item id="{pkg.nav.file_id}" href="{pkg.nav.relative_to(pkg.opf.parent)}" media-type="{pkg.nav.mimetype}"/>'
+            f'<item id="{pkg.nav.file_id}" href="{pkg.nav.relative_to(pkg.opf.parent)}" media-type="{pkg.nav.mimetype}" properties="nav"/>'
             f'<item id="{pkg.cover_image.file_id}" href="{pkg.cover_image.relative_to(pkg.opf.parent)}" media-type="{pkg.cover_image.mimetype}" properties="cover-image"/>'
             f"</manifest>"
             # --- Spine ---
