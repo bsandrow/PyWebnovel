@@ -178,7 +178,9 @@ class NovelBinScraperTestCase(TestCase):
             # Note: There are over a hundred chapters here, so I don't want to have to define all of them. I'll just
             #       assert that they are all chapter instances below.
             chapters=mock.ANY,
+            extra_css=novelbin.NovelBinScraper.extra_css,
         )
+
         self.assertEqual(novel, expected_novel)
 
         # Assert that Novel.chapters looks like it should.
