@@ -1,13 +1,19 @@
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<?xml version="1.0" encoding="utf-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="{{lang}}" xml:lang="{{lang}}">
 <head>
-  <title>Cover</title>
+  <title>{{title}}</title>
+  <link href="{{stylesheet}}" rel="stylesheet" type="text/css"/>
   <style type="text/css" title="override_css">
     @page { padding: 0pt; margin: 0pt }
     body { text-align: center; padding: 0pt; margin: 0pt; }
     div { margin: 0pt; padding: 0pt; }
   </style>
 </head>
-<body class="pywebnovel_cover_page">
-  <div><img src="{{cover_image_path}}" alt="cover"/></div>
+<body class="pywn_cover-page">
+  <section epub:type="cover">
+    <div class="cover_image">
+      <img id="coverimage" src="{{cover_image_path}}" alt="Cover"/>
+    </div>
+  </section>
 </body>
 </html>

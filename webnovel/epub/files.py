@@ -370,7 +370,12 @@ class CoverPage(SingleFileMixin, EpubInternalFile):
     def generate(self, pkg):
         """Generate cover page XHTML."""
         parent = Path(self.filename).parent
-        template_kwargs = {"cover_image_path": pkg.cover_image.relative_to(parent)}
+        template_kwargs = {
+            "lang": "en",
+            "stylesheet": pkg.stylesheet.relative_to(parent),
+            "title": pkg.metadata.title,
+            "cover_image_path": pkg.cover_image.relative_to(parent),
+        }
         template = JINJA.get_template("cover.xhtml")
         return template.render(**template_kwargs).encode("utf-8")
 

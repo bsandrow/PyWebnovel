@@ -785,17 +785,23 @@ class CoverPageTestCase(TestCase):
 
         actual = pkg.cover_page.generate(pkg)
         expected = (
-            f'<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">\n'
+            f'<?xml version="1.0" encoding="utf-8"?>\n'
+            f'<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en" xml:lang="en">\n'
             f"<head>\n"
-            f"  <title>{pkg.cover_page.title}</title>\n"
+            f"  <title>{pkg.metadata.title}</title>\n"
+            f'  <link href="{pkg.stylesheet.relative_to(pkg.cover_page.parent)}" rel="stylesheet" type="text/css"/>\n'
             f'  <style type="text/css" title="override_css">\n'
             "    @page { padding: 0pt; margin: 0pt }\n"
             "    body { text-align: center; padding: 0pt; margin: 0pt; }\n"
             "    div { margin: 0pt; padding: 0pt; }\n"
             f"  </style>\n"
             f"</head>\n"
-            f'<body class="pywebnovel_cover_page">\n'
-            f'  <div><img src="{pkg.cover_image.relative_to(pkg.cover_page.parent)}" alt="cover"/></div>\n'
+            f'<body class="pywn_cover-page">\n'
+            f'  <section epub:type="cover">\n'
+            f'    <div class="cover_image">\n'
+            f'      <img id="coverimage" src="{pkg.cover_image.relative_to(pkg.cover_page.parent)}" alt="Cover"/>\n'
+            f"    </div>\n"
+            f"  </section>\n"
             f"</body>\n"
             f"</html>"
         ).encode("utf-8")
