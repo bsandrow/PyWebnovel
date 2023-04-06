@@ -70,6 +70,7 @@ class NovelBinScraper(NovelScraper):
     )
     summary_selector = Selector("div.tab-content div.desc-text")
     cover_image_url_selector = Selector("#novel div.book > img", attribute="src")
+    chapter_list_api_url = "https://novelbin.net/ajax/chapter-archive?novelId={novel_id}"
 
     @staticmethod
     def get_novel_id(url: str) -> str:
@@ -108,7 +109,7 @@ class NovelBinScraper(NovelScraper):
         # <option>s so parsing will be different.
         # page = self.get_page(f"https://novelbin.net/ajax/chapter-option?novelId={novel_id}")
 
-        page = self.get_page(f"https://novelbin.net/ajax/chapter-archive?novelId={novel_id}")
+        page = self.get_page(self.chapter_list_api_url.format(novel_id=novel_id))
 
         return [
             Chapter(
