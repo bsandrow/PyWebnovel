@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="{{langcode}}" lang="{{langcode}}">
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="{{lang}}" lang="{{lang}}">
 <head>
-  <title>Navigation</title>
+  <title>{{title}}</title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link rel="stylesheet" href="{{stylesheet}}" type="text/css"/>
 </head>
 <body>
-  <nav epub:type="toc">
-    <ol>
+  <nav id="toc" epub:type="toc">
+    <ol epub:type="list" class="none">
       {% for title, file_path in toc %}
       <li>
         <a href="{{file_path}}">{{title}}</a>
@@ -14,12 +16,13 @@
       {% endfor %}
     </ol>
   </nav>
-  <nav epub:type="landmarks" hidden="">
-    <ol>
+  <nav epub:type="landmarks" class="hidden-tag" hidden="hidden">
+    <ol epub:type="list">
+    {%- if toc_page %}
+      <li><a epub:type="toc" href="{{toc_page}}">Table of Contents</a></li>
+    {% endif -%}
     {%- if cover_page %}
-      <li>
-        <a href="{{cover_page}}" epub:type="cover">Cover</a>
-      </li>
+      <li><a epub:type="cover" href="{{cover_page}}">Begin Reading</a></li>
     {% endif -%}
     </ol>
   </nav>

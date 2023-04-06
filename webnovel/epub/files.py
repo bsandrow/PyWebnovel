@@ -465,9 +465,12 @@ class NavXhtml(SingleFileMixin, EpubInternalFile):
         """Generate nav.xhtml File."""
         parent = Path(self.filename).parent
         template_kwargs = {
+            "title": pkg.metadata.title,
+            "lang": "en",
             "cover_page": (pkg.cover_page.relative_to(parent) if pkg.cover_page else None),
+            "stylesheet": pkg.stylesheet.relative_to(parent),
+            "toc_page": (pkg.toc_page.relative_to(parent) if pkg.toc_page else None),
             "toc": [(item.title, item.relative_to(parent)) for item in generate_toc_list(pkg)],
-            "langcode": "en",
         }
         template = JINJA.get_template("nav.xhtml")
         return template.render(**template_kwargs).encode("utf-8")

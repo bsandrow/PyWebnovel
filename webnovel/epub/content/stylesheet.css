@@ -51,3 +51,6 @@ P {
 	max-height: 100%;
 	max-width: 100%;
 }
+
+ol.none { list-style-type: none; margin: 0em; padding: 0em; }
+.hidden-tag { display: none; visibility: hidden; }

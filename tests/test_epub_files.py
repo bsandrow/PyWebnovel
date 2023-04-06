@@ -823,14 +823,16 @@ class NavXhtmlTestCase(TestCase):
         actual = pkg.nav.generate(pkg)
         expected = (
             f'<?xml version="1.0" encoding="UTF-8"?>\n'
+            f"<!DOCTYPE html>\n"
             f'<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="en" lang="en">\n'
             f"<head>\n"
-            f"  <title>Navigation</title>\n"
+            f"  <title>{pkg.metadata.title}</title>\n"
             f'  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />\n'
+            f'  <link rel="stylesheet" href="{pkg.stylesheet.relative_to(pkg.nav.parent)}" type="text/css"/>\n'
             f"</head>\n"
             f"<body>\n"
-            f'  <nav epub:type="toc">\n'
-            f"    <ol>\n"
+            f'  <nav id="toc" epub:type="toc">\n'
+            f'    <ol epub:type="list" class="none">\n'
             f"      \n"
             f"      <li>\n"
             f'        <a href="{pkg.cover_page.relative_to(pkg.nav.parent)}">{pkg.cover_page.title}</a>\n'
@@ -846,11 +848,11 @@ class NavXhtmlTestCase(TestCase):
             f"      \n"
             f"    </ol>\n"
             f"  </nav>\n"
-            f'  <nav epub:type="landmarks" hidden="">\n'
-            f"    <ol>\n"
-            f"      <li>\n"
-            f'        <a href="{pkg.cover_page.relative_to(pkg.nav.parent)}" epub:type="cover">Cover</a>\n'
-            f"      </li>\n"
+            f'  <nav epub:type="landmarks" class="hidden-tag" hidden="hidden">\n'
+            f'    <ol epub:type="list">\n'
+            f'      <li><a epub:type="toc" href="{pkg.toc_page.relative_to(pkg.nav.parent)}">Table of Contents</a></li>\n'
+            f"    \n"
+            f'      <li><a epub:type="cover" href="{pkg.cover_page.relative_to(pkg.nav.parent)}">Begin Reading</a></li>\n'
             f"    </ol>\n"
             f"  </nav>\n"
             f"</body>\n"
@@ -869,14 +871,16 @@ class NavXhtmlTestCase(TestCase):
         actual = pkg.nav.generate(pkg)
         expected = (
             f'<?xml version="1.0" encoding="UTF-8"?>\n'
+            f"<!DOCTYPE html>\n"
             f'<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="en" lang="en">\n'
             f"<head>\n"
-            f"  <title>Navigation</title>\n"
+            f"  <title>{pkg.metadata.title}</title>\n"
             f'  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />\n'
+            f'  <link rel="stylesheet" href="{pkg.stylesheet.relative_to(pkg.nav.parent)}" type="text/css"/>\n'
             f"</head>\n"
             f"<body>\n"
-            f'  <nav epub:type="toc">\n'
-            f"    <ol>\n"
+            f'  <nav id="toc" epub:type="toc">\n'
+            f'    <ol epub:type="list" class="none">\n'
             f"      \n"
             f"      <li>\n"
             f'        <a href="{pkg.title_page.relative_to(pkg.nav.parent)}">{pkg.title_page.title}</a>\n'
@@ -888,8 +892,10 @@ class NavXhtmlTestCase(TestCase):
             f"      \n"
             f"    </ol>\n"
             f"  </nav>\n"
-            f'  <nav epub:type="landmarks" hidden="">\n'
-            f"    <ol></ol>\n"
+            f'  <nav epub:type="landmarks" class="hidden-tag" hidden="hidden">\n'
+            f'    <ol epub:type="list">\n'
+            f'      <li><a epub:type="toc" href="{pkg.toc_page.relative_to(pkg.nav.parent)}">Table of Contents</a></li>\n'
+            f"    </ol>\n"
             f"  </nav>\n"
             f"</body>\n"
             f"</html>"
@@ -912,14 +918,16 @@ class NavXhtmlTestCase(TestCase):
         actual = pkg.nav.generate(pkg)
         expected = (
             f'<?xml version="1.0" encoding="UTF-8"?>\n'
+            f"<!DOCTYPE html>\n"
             f'<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="en" lang="en">\n'
             f"<head>\n"
-            f"  <title>Navigation</title>\n"
+            f"  <title>{pkg.metadata.title}</title>\n"
             f'  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />\n'
+            f'  <link rel="stylesheet" href="{pkg.stylesheet.relative_to(pkg.nav.parent)}" type="text/css"/>\n'
             f"</head>\n"
             f"<body>\n"
-            f'  <nav epub:type="toc">\n'
-            f"    <ol>\n"
+            f'  <nav id="toc" epub:type="toc">\n'
+            f'    <ol epub:type="list" class="none">\n'
             f"      \n"
             f"      <li>\n"
             f'        <a href="{pkg.cover_page.relative_to(pkg.nav.parent)}">{pkg.cover_page.title}</a>\n'
@@ -943,11 +951,11 @@ class NavXhtmlTestCase(TestCase):
             f"      \n"
             f"    </ol>\n"
             f"  </nav>\n"
-            f'  <nav epub:type="landmarks" hidden="">\n'
-            f"    <ol>\n"
-            f"      <li>\n"
-            f'        <a href="{pkg.cover_page.relative_to(pkg.nav.parent)}" epub:type="cover">Cover</a>\n'
-            f"      </li>\n"
+            f'  <nav epub:type="landmarks" class="hidden-tag" hidden="hidden">\n'
+            f'    <ol epub:type="list">\n'
+            f'      <li><a epub:type="toc" href="{pkg.toc_page.relative_to(pkg.nav.parent)}">Table of Contents</a></li>\n'
+            f"    \n"
+            f'      <li><a epub:type="cover" href="{pkg.cover_page.relative_to(pkg.nav.parent)}">Begin Reading</a></li>\n'
             f"    </ol>\n"
             f"  </nav>\n"
             f"</body>\n"
