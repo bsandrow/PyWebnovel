@@ -571,6 +571,10 @@ class PackageOPF(SingleFileMixin, EpubInternalFile):
                 "href": str(epub_file.relative_to(path)),
                 "media-type": epub_file.mimetype,
             }
+
+            if isinstance(epub_file, ImageFile) and epub_file.is_cover_image:
+                attrs["properties"] = "cover-image"
+
             create_element(dom, "item", attributes=attrs, parent=manifest)
 
         return manifest
