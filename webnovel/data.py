@@ -103,7 +103,7 @@ class Image:
         """
         if not self.did_load or force:
             if client is None:
-                from webnovel.scraping import http_client as client
+                from webnovel.scraping import HttpClient as client
             # Accept headers prefer png or jpg over other formats. This mostly works to avoid WEBP when the server
             # is able to serve PNG or JPEG instead.
             response = client.get(self.url, headers={"Accept": "*/*, image/jpeg, image/png"})
@@ -199,7 +199,7 @@ class Chapter:
             chapter_no=data["chapter_no"],
             slug=data.get("slug"),
             html_content=BeautifulSoup(data["html_content"], "html.parser") if data.get("html_content") else None,
-            pub_date=datetime.date.strptime(data["pub_date"], "%Y-%m-%d") if data.get("pub_date") else None,
+            pub_date=datetime.datetime.strptime(data["pub_date"], "%Y-%m-%d").date() if data.get("pub_date") else None,
         )
 
     @property
