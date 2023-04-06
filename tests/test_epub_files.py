@@ -980,30 +980,41 @@ class TableOfContentsTestCase(TestCase):
 
         actual = pkg.toc_page.generate(pkg)
         expected = (
-            f'<?xml version="1.0" encoding="UTF-8"?>\n'
-            f'<html xmlns="http://www.w3.org/1999/xhtml">\n'
+            f'<?xml version="1.0" encoding="utf-8"?>\n'
+            f"<!DOCTYPE html>\n"
+            f'<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en" xml:lang="en">\n'
             f"  <head>\n"
             f"    <title>{pkg.metadata.title}</title>\n"
             f'    <link href="{pkg.stylesheet.relative_to(pkg.toc_page.parent)}" type="text/css" rel="stylesheet"/>\n'
             f"  </head>\n"
             f'  <body class="pywn-toc-page">\n'
             f"    <div>\n"
-            f"      <h3>Table of Contents</h3>\n"
+            f"      <h1>Table of Contents</h1>\n"
             f"      \n"
-            f'        <a href="{pkg.cover_page.relative_to(pkg.toc_page.parent)}">{pkg.cover_page.title}</a><br />\n'
+            f'      <p><a href="{pkg.cover_page.relative_to(pkg.toc_page.parent)}">{pkg.cover_page.title}</a></p>\n'
             f"      \n"
-            f'        <a href="{pkg.title_page.relative_to(pkg.toc_page.parent)}">{pkg.title_page.title}</a><br />\n'
+            f'      <p><a href="{pkg.title_page.relative_to(pkg.toc_page.parent)}">{pkg.title_page.title}</a></p>\n'
             f"      \n"
-            f'        <a href="{pkg.toc_page.relative_to(pkg.toc_page.parent)}">{pkg.toc_page.title}</a><br />\n'
+            f'      <p><a href="{pkg.toc_page.relative_to(pkg.toc_page.parent)}">{pkg.toc_page.title}</a></p>\n'
             f"      \n"
-            f'        <a href="{pkg.chapter_files[0].relative_to(pkg.toc_page.parent)}">{pkg.chapter_files[0].title}</a><br />\n'
+            f'      <p><a href="{pkg.chapter_files[0].relative_to(pkg.toc_page.parent)}">{pkg.chapter_files[0].title}</a></p>\n'
             f"      \n"
-            f'        <a href="{pkg.chapter_files[1].relative_to(pkg.toc_page.parent)}">{pkg.chapter_files[1].title}</a><br />\n'
+            f'      <p><a href="{pkg.chapter_files[1].relative_to(pkg.toc_page.parent)}">{pkg.chapter_files[1].title}</a></p>\n'
             f"      \n"
             f"    </div>\n"
             f"  </body>\n"
             f"</html>"
         ).encode("utf-8")
+
+        print(
+            f"""
+            =[ Actual ]=
+            {actual!r}
+
+            =[ Expected ]=
+            {expected!r}
+            """
+        )
 
         self.assertEqual(actual, expected)
 
@@ -1022,25 +1033,26 @@ class TableOfContentsTestCase(TestCase):
 
         actual = pkg.toc_page.generate(pkg)
         expected = (
-            f'<?xml version="1.0" encoding="UTF-8"?>\n'
-            f'<html xmlns="http://www.w3.org/1999/xhtml">\n'
+            f'<?xml version="1.0" encoding="utf-8"?>\n'
+            f"<!DOCTYPE html>\n"
+            f'<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en" xml:lang="en">\n'
             f"  <head>\n"
             f"    <title>{pkg.metadata.title} by {pkg.metadata.author.name}</title>\n"
             f'    <link href="{pkg.stylesheet.relative_to(pkg.toc_page.parent)}" type="text/css" rel="stylesheet"/>\n'
             f"  </head>\n"
             f'  <body class="pywn-toc-page">\n'
             f"    <div>\n"
-            f"      <h3>Table of Contents</h3>\n"
+            f"      <h1>Table of Contents</h1>\n"
             f"      \n"
-            f'        <a href="{pkg.cover_page.relative_to(pkg.toc_page.parent)}">{pkg.cover_page.title}</a><br />\n'
+            f'      <p><a href="{pkg.cover_page.relative_to(pkg.toc_page.parent)}">{pkg.cover_page.title}</a></p>\n'
             f"      \n"
-            f'        <a href="{pkg.title_page.relative_to(pkg.toc_page.parent)}">{pkg.title_page.title}</a><br />\n'
+            f'      <p><a href="{pkg.title_page.relative_to(pkg.toc_page.parent)}">{pkg.title_page.title}</a></p>\n'
             f"      \n"
-            f'        <a href="{pkg.toc_page.relative_to(pkg.toc_page.parent)}">{pkg.toc_page.title}</a><br />\n'
+            f'      <p><a href="{pkg.toc_page.relative_to(pkg.toc_page.parent)}">{pkg.toc_page.title}</a></p>\n'
             f"      \n"
-            f'        <a href="{pkg.chapter_files[0].relative_to(pkg.toc_page.parent)}">{pkg.chapter_files[0].title}</a><br />\n'
+            f'      <p><a href="{pkg.chapter_files[0].relative_to(pkg.toc_page.parent)}">{pkg.chapter_files[0].title}</a></p>\n'
             f"      \n"
-            f'        <a href="{pkg.chapter_files[1].relative_to(pkg.toc_page.parent)}">{pkg.chapter_files[1].title}</a><br />\n'
+            f'      <p><a href="{pkg.chapter_files[1].relative_to(pkg.toc_page.parent)}">{pkg.chapter_files[1].title}</a></p>\n'
             f"      \n"
             f"    </div>\n"
             f"  </body>\n"

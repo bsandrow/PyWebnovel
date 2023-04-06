@@ -54,3 +54,19 @@ P {
 
 ol.none { list-style-type: none; margin: 0em; padding: 0em; }
 .hidden-tag { display: none; visibility: hidden; }
+
+.pywn_toc-page H1 {
+	font-size: 1.55em;
+	margin-top: 10%;
+	margin-bottom: 2em;
+	text-align: center;
+	text-indent: 0em;
+	line-height: 1.2em;
+}
+
+.pywn_toc-page P {
+	text-indent: 0em;
+	margin-top: 6pt;
+	margin-bottom: 6pt;
+	text-align: left;
+}
