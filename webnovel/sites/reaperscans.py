@@ -178,7 +178,7 @@ class ReaperScansScraper(NovelScraper):
     """Scraper for ReaperScans.com."""
 
     site_name = SITE_NAME
-    url_pattern = r"https?://(?:www\.)?reaperscans\.com/novels/(\d+-[\w-]+)"
+    url_pattern = r"https?://(?:www\.)?reaperscans\.com/novels/(?P<NovelID>\d+-[\w-]+)"
     title_selector = Selector("MAIN > DIV:nth-child(2) > DIV > DIV:first-child H1")
     status_selector = Selector("MAIN > DIV:nth-child(2) > SECTION > DIV:first-child DL > DIV:nth-child(4) DD")
     summary_selector = Selector("MAIN > DIV:nth-child(2) > SECTION > DIV:first-child > DIV > P")
