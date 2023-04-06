@@ -35,6 +35,8 @@ P {
 	margin-bottom: 0.8em;
 }
 
+img { display: inline; }
+
 .cover_image
 {
 	text-align: center;
