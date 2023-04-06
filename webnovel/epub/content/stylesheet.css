@@ -72,3 +72,21 @@ ol.none { list-style-type: none; margin: 0em; padding: 0em; }
 	margin-bottom: 6pt;
 	text-align: left;
 }
+
+.pywn_cover-page {
+	margin: 0;
+	padding: 0;
+}
+
+.pywn_cover-page img {
+	max-height: 100%;
+	max-width: 100%;
+	object-fit: contain;
+	width: auto;
+}
+
+.pywn_cover-page .cover_image {
+	height: 100%;
+	max-width: 100%;
+	max-height: 100%;
+}
