@@ -65,6 +65,9 @@ class EpubPackage:
             if isinstance(metadata, Novel)
             else metadata
         )
+        self.extra_css = (
+            extra_css if extra_css else metadata.extra_css if isinstance(metadata, Novel) else self.extra_css
+        )
         self.options = EpubOptions.from_dict(options) if isinstance(options, dict) else options
         self.file_map = files or {}
         self.epub_uid = epub_uid or self.get_epub_uid()

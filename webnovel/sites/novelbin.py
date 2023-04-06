@@ -72,6 +72,8 @@ class NovelBinScraper(NovelScraper):
     cover_image_url_selector = Selector("#novel div.book > img", attribute="src")
     chapter_list_api_url = "https://novelbin.net/ajax/chapter-archive?novelId={novel_id}"
 
+    extra_css = ".desc-text { white-space: pre-line; }"
+
     @classmethod
     def get_novel_id(cls, url: str) -> str:
         """Return the novel id from the URL."""
