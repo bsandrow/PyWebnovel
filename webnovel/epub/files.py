@@ -448,6 +448,7 @@ class ChapterFile(EpubInternalFile):
             "stylesheet": pkg.stylesheet.relative_to(parent),
             "content": str(chapter.html_content),
             "css": None,
+            "lang": "en",
         }
         template = JINJA.get_template("chapter.xhtml")
         return template.render(**template_kwargs).encode("utf-8")
@@ -466,6 +467,7 @@ class NavXhtml(SingleFileMixin, EpubInternalFile):
         parent = Path(self.filename).parent
         template_kwargs = {
             "title": pkg.metadata.title,
+            "file_id": self.file_id,
             "lang": "en",
             "cover_page": (pkg.cover_page.relative_to(parent) if pkg.cover_page else None),
             "stylesheet": pkg.stylesheet.relative_to(parent),

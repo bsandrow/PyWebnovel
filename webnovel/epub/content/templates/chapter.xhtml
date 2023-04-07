@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="{{lang}}" xml:lang="{{lang}}">
 	<head>
 		<title>{{title}}</title>
 		<link href="{{stylesheet}}" type="text/css" rel="stylesheet"/>
@@ -12,7 +14,9 @@
 		{% endif %}
 	</head>
 	<body class="pywn_chapter">
-		<h3 class="pywn_chapter_title">{{title}}</h3>
-		{{content|safe}}
+		<section epub:type="bodymatter chapter" id="{{file_id}}">
+			<h1 class="pywn_chapter_title">{{title}}</h1>
+			{{content|safe}}
+		</section>
 	</body>
 </html>
