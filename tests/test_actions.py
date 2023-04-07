@@ -110,6 +110,12 @@ class SetCoverImageTestCase(TestCase):
             after_file_map = {fname: zfh.read(fname) for fname in zfh.namelist()}
 
         #
+        # Check that the EpubMetadata.cover_image_url has changed.
+        #
+        pkg = epub.EpubPackage.load(self.epub_w_cover)
+        self.assertEqual(pkg.metadata.cover_image_url, "https://example.com/imgs/cover-image.png")
+
+        #
         # Assert that the full list of files we expect to be there, are there.
         #
         actual_filenames = set(after_file_map.keys())
