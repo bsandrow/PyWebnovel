@@ -103,7 +103,9 @@ class Image:
         """
         if not self.did_load or force:
             if client is None:
-                from webnovel.scraping import HttpClient as client
+                from webnovel.http import get_client
+
+                client = get_client()
             # Accept headers prefer png or jpg over other formats. This mostly works to avoid WEBP when the server
             # is able to serve PNG or JPEG instead.
             response = client.get(self.url, headers={"Accept": "*/*, image/jpeg, image/png"})

@@ -1,11 +1,11 @@
 """Functions to perform actions pulling multiple components together."""
 
 import logging
+from pathlib import Path
 import time
 
 from webnovel import epub, sites, utils
 from webnovel.data import Image
-from webnovel.epub.data import EpubOptions
 from webnovel.logs import LogTimer
 
 logger = logging.getLogger(__name__)
@@ -55,3 +55,36 @@ def create_epub(novel_url: str, filename: str = None, cover_image_url: str = Non
             epub_pkg.add_chapter(chapter)
 
         epub_pkg.save()
+
+
+def set_cover_image_for_epub(epub_file: str, cover_image_path: str) -> None:
+    """
+    Set the cover image for an existing .epub file.
+
+    :param epub_file: Path to an existing .epub file.
+    :param cover_image_path: Path to a local image file or a (http/https) URL to
+        a remove image file to set as the new cover image.
+    """
+    epub_pkg = epub.EpubPackage.load(epub_file)
+
+    if cover_image_path.lower().startswith("http:") or cover_image_path.lower().startswith("https:"):
+        logger.debug("Cover image path is URL. Downloading cover image from URL.")
+        cover_image = Image(url=cover_image_path)
+        cover_image.load()
+    else:
+        cover_image_path: Path = Path(cover_image_path)
+        if not cover_image_path.exists():
+            raise OSError(f"File does not exist: {cover_image_path}")
+
+        with cover_image_path.open("rb") as fh:
+            imgdata = fh.read()
+
+        cover_image = Image(
+            url="",
+            data=imgdata,
+            mimetype=Image.get_mimetype_from_image_data(imgdata),
+            did_load=True,
+        )
+
+    epub_pkg.add_image(image=cover_image, content=cover_image.data, is_cover_image=True)
+    epub_pkg.save()
