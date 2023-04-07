@@ -30,10 +30,10 @@ def setup_logging():
     logger.setLevel(logging.DEBUG)
 
 
-def run():
+def run(args=None):
     """Run the command."""
     turn_on_logging()
-    options = arg_parser.parse_args()
+    options = arg_parser.parse_args(args)
     actions.create_epub(
         options.novel_url,
         options.filename,
