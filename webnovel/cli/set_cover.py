@@ -10,18 +10,6 @@ arg_parser.add_argument("epub", help="The epub file to set the cover image for."
 arg_parser.add_argument("cover_image", help="The path (or URL) for the cover image.")
 
 
-def setup_logging():
-    """Initialize logging settings."""
-    logger = logging.getLogger("webnovel")
-    loghandler = logging.StreamHandler()
-    loghandler.setFormatter(
-        logging.Formatter("PYWN: %(levelname)s: %(asctime)s: %(filename)s(%(lineno)d): %(message)s")
-    )
-    logger.addHandler(loghandler)
-    loghandler.setLevel(logging.DEBUG)
-    logger.setLevel(logging.DEBUG)
-
-
 def run(args=None):
     """Run the command."""
     turn_on_logging()

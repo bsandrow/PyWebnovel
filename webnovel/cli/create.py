@@ -18,18 +18,6 @@ arg_parser.add_argument(
 )
 
 
-def setup_logging():
-    """Initialize logging settings."""
-    logger = logging.getLogger("webnovel")
-    loghandler = logging.StreamHandler()
-    loghandler.setFormatter(
-        logging.Formatter("PYWN: %(levelname)s: %(asctime)s: %(filename)s(%(lineno)d): %(message)s")
-    )
-    logger.addHandler(loghandler)
-    loghandler.setLevel(logging.DEBUG)
-    logger.setLevel(logging.DEBUG)
-
-
 def run(args=None):
     """Run the command."""
     turn_on_logging()
