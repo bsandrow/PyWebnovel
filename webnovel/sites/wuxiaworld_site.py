@@ -47,12 +47,6 @@ class WuxiaWorldDotSiteScraper(NovelScraper):
                     return self.status_map.get(content.text.strip(), NovelStatus.UNKNOWN)
         return NovelStatus.UNKNOWN
 
-    @staticmethod
-    def get_novel_id(url: str) -> str:
-        """Return the Novel ID for the novel."""
-        match = re.match(NOVEL_URL_PATTERN, url)
-        return match.group("NovelID") if match is not None else None
-
     def get_chapters(self, page, url: str) -> list:
         """Return the list of Chapter instances for WuxiaWorld.site."""
         url = url if url.endswith("/") else f"{url}/"
