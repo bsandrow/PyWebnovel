@@ -88,3 +88,18 @@ def set_cover_image_for_epub(epub_file: str, cover_image_path: str) -> None:
 
     epub_pkg.add_image(image=cover_image, content=cover_image.data, is_cover_image=True)
     epub_pkg.save()
+
+
+def rebuild(epub_file: str) -> None:
+    """
+    Force the Epub package to be rebuilt from the JSON file.
+
+    This is useful to regenerate an epub after changes have been made to the
+    code in webnovel.epub. For example, applying fixes to the xhtml templates.
+    Rebuilding the file prevents the need to build a new epub from scratch
+    (including all of the downloading / scraping of content).
+
+    :param epub_file: The epub file to rebuild.
+    """
+    epub_pkg = epub.EpubPackage.load(epub_file)
+    epub_pkg.save()

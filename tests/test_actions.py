@@ -1,6 +1,8 @@
+from contextlib import contextmanager
 import os
 from pathlib import Path
 import tempfile
+from typing import Iterable, Optional
 from unittest import TestCase
 from zipfile import ZipFile
 
@@ -10,6 +12,119 @@ import requests_mock
 from webnovel import actions, data, epub
 
 from .helpers import get_test_data
+
+
+class ActionTestCaseMixin(TestCase):
+    @contextmanager
+    def assert_files_changed(
+        self,
+        epub_file: str,
+        expected_changed_files: Iterable,
+        expected_new_files: Optional[Iterable] = None,
+        expected_initial_files: Optional[Iterable] = None,
+    ):
+        with ZipFile(epub_file) as zfh:
+            pre_file_map = {fname: zfh.read(fname) for fname in zfh.namelist()}
+            pre_files = set(pre_file_map.keys())
+
+        if expected_initial_files is not None:
+            self.assertEqual(pre_files, expected_initial_files)
+
+        yield
+
+        with ZipFile(epub_file) as zfh:
+            post_file_map = {fname: zfh.read(fname) for fname in zfh.namelist()}
+
+        post_files = set(post_file_map.keys())
+
+        if expected_new_files is not None:
+            actual_new_files = post_files - pre_files
+            self.assertEqual(actual_new_files, expected_new_files)
+
+        changed_files = set()
+        unchanged_files = set()
+        common_files = pre_files & post_files
+
+        # Make sure that all files we expect to have changes were preset both
+        # before _and_ after the change.
+        self.assertEqual(
+            expected_changed_files - common_files,
+            set(),
+            (
+                f"Files that were expected to change where not present either in "
+                f"the package before or after the change: {expected_changed_files - common_files}"
+            ),
+        )
+
+        for filename in common_files - expected_changed_files:
+            self.assertEqual(
+                pre_file_map[filename],
+                post_file_map[filename],
+                (
+                    f"\n"
+                    f"File {filename} unexpectedly had changes to content.\n\n"
+                    f"==[ Before ]==\n\n"
+                    f"{pre_file_map[filename]!r}\n\n"
+                    f"==[ After  ]==\n\n"
+                    f"{post_file_map[filename]!r}\n\n"
+                    f"==============\n"
+                ),
+            )
+
+        for filename in expected_changed_files:
+            self.assertNotEqual(
+                pre_file_map[filename],
+                post_file_map[filename],
+                (
+                    f"\n"
+                    f"File {filename} was expected to change, but didn't\n\n"
+                    f"==[ Contents ]==\n\n"
+                    f"{pre_file_map[filename]!r}\n\n"
+                    f"==============\n"
+                ),
+            )
+
+
+class RebuildTestCase(ActionTestCaseMixin, TestCase):
+    jpg: bytes
+
+    @classmethod
+    def setUpClass(cls):
+        cls.jpg: bytes = get_test_data("test-image.jpg", use_bytes=True)
+
+    def setUp(self):
+        _, self.epub = tempfile.mkstemp(prefix="pywebnovel_")
+        pkg = epub.EpubPackage(
+            file_or_io=self.epub,
+            options={
+                "include_title_page": True,
+                "include_toc_page": True,
+                "include_images": True,
+            },
+            metadata={
+                "novel_url": "https://example.com/novel/creepy-story-club",
+                "site_id": "Example.com",
+                "novel_id": "creepy-story-club",
+                "title": "Creepy Story Club",
+                "status": data.NovelStatus.ONGOING.value,
+                "summary": "A\nB\nC",
+                "summary_type": epub.SummaryType.text.value,
+                "author": {"name": "John Smythe"},
+                "cover_image_url": "https://example.com/imgs/creepy-story-club.jpg",
+            },
+        )
+        pkg.add_image(
+            image=data.Image(url="", data=self.jpg, mimetype="image/jpeg", did_load=True),
+            content=self.jpg,
+            is_cover_image=True,
+        )
+
+        with freeze_time("2001-01-01 12:15"):
+            pkg.save()
+
+    def test_rebuild_action(self):
+        with self.assert_files_changed(self.epub, expected_changed_files={"OEBPS/Text/title_page.xhtml"}):
+            actions.rebuild(self.epub)
 
 
 class SetCoverImageTestCase(TestCase):
