@@ -35,7 +35,6 @@ def pywn(ctx, debug, format):
     NOTE: Only ebooks created by PyWebnovel can be managed in this way as
           application data is stored in a JSON file within the ebook itself.
     """
-    print("--> HERE <--")
     ctx.ensure_object(Namespace)
     ctx.obj.debug = debug
     ctx.obj.format = format
