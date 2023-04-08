@@ -4,6 +4,9 @@ version = "1"
 description = "Library for scraping and dealing with webnovels."
 authors = ["Brandy Sandrowicz <brandy@sandrowicz.org>"]
 
+[tool.poetry.scripts]
+pywn = "webnovel.cli:pywn"
+
 # [[tool.poetry.source]]
 # name = "private pypi"
 # url = "https://devpi.example.com/example/example/+simple/"
