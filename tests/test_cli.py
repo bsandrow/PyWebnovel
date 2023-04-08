@@ -20,7 +20,16 @@ class RebuildCommandTestCase(TestCase):
         runner = CliRunner()
         result = runner.invoke(cli.pywn, ["rebuild", "mybook.epub"])
         self.assertEqual(result.exit_code, 0)
-        action_mock.assert_called_once_with("mybook.epub")
+        action_mock.assert_called_once_with("mybook.epub", reload_chapters=tuple())
+
+    @mock.patch("webnovel.actions.rebuild")
+    def test_reload_chapters(self, action_mock):
+        runner = CliRunner()
+        result = runner.invoke(
+            cli.pywn, ["rebuild", "mybook.epub", "--reload-chapter=chapter-1-slug", "--reload-chapter=chapter-33-slug"]
+        )
+        self.assertEqual(result.exit_code, 0)
+        action_mock.assert_called_once_with("mybook.epub", reload_chapters=("chapter-1-slug", "chapter-33-slug"))
 
 
 class CreateCommandTestCase(TestCase):

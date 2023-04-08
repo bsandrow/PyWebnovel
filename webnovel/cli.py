@@ -72,8 +72,15 @@ def create(opts, novel_url, filename, chapter_limit, cover_image):
 
 @pywn.command()
 @click.argument("ebook")
+@click.option(
+    "--reload-chapter",
+    "reload_chapters",
+    metavar="SLUG",
+    multiple=True,
+    help="Redownload / process the specified chapter(s)",
+)
 @click.pass_obj
-def rebuild(opts, ebook):
+def rebuild(opts, ebook, reload_chapters):
     """
     Rebuild an existing ebook.
 
@@ -82,7 +89,7 @@ def rebuild(opts, ebook):
     from scratch which would include re-downloading all chapters, images, etc.
     """
     turn_on_logging()
-    actions.rebuild(ebook)
+    actions.rebuild(ebook, reload_chapters=reload_chapters)
 
 
 @pywn.command()
