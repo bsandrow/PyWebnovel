@@ -2,9 +2,8 @@
 
 import logging
 from pathlib import Path
-import time
 
-from webnovel import epub, sites, utils
+from webnovel import epub, http, sites, utils
 from webnovel.data import Image
 from webnovel.logs import LogTimer
 
@@ -14,10 +13,11 @@ timer = LogTimer(logger)
 
 def create_epub(novel_url: str, filename: str = None, cover_image_url: str = None, chapter_limit: int = None) -> None:
     """Create an epub file for the URL pointing at a webnovel."""
+    http_client = http.get_client()
     scraper_class = sites.find_scraper(novel_url)
     if scraper_class is None:
         raise RuntimeError(f"Found no scraper class for: {novel_url}")
-    scraper = scraper_class()
+    scraper = scraper_class(http_client=http_client)
     novel = scraper.scrape(novel_url)
     logger.info(f"Found %d Chapter(s).", len(novel.chapters))
 
@@ -36,7 +36,7 @@ def create_epub(novel_url: str, filename: str = None, cover_image_url: str = Non
         )
 
         if novel.cover_image:
-            novel.cover_image.load(client=scraper.http_client)
+            novel.cover_image.load(client=http_client)
             epub_pkg.add_image(image=novel.cover_image, content=novel.cover_image.data, is_cover_image=True)
 
         assert novel.chapters
@@ -46,12 +46,15 @@ def create_epub(novel_url: str, filename: str = None, cover_image_url: str = Non
             chapters = chapters[:chapter_limit]
         for chapter in chapters:
             logger.info(f"Processing chapter: {chapter.title}")
+
             ch_scraper_class = sites.find_chapter_scraper(chapter.url)
             if ch_scraper_class in ch_scrapers:
                 ch_scraper = ch_scrapers[ch_scraper_class]
             else:
-                ch_scraper = ch_scrapers[ch_scraper_class] = ch_scraper_class()
+                ch_scraper = ch_scrapers[ch_scraper_class] = ch_scraper_class(http_client=http_client)
+
             ch_scraper.process_chapter(chapter)
+
             epub_pkg.add_chapter(chapter)
 
         epub_pkg.save()
