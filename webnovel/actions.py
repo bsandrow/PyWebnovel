@@ -1,5 +1,6 @@
 """Functions to perform actions pulling multiple components together."""
 
+import datetime
 import logging
 from pathlib import Path
 
@@ -44,8 +45,10 @@ def create_epub(novel_url: str, filename: str = None, cover_image_url: str = Non
         chapters = sorted(novel.chapters, key=lambda ch: int(ch.chapter_no))
         if chapter_limit:
             chapters = chapters[:chapter_limit]
+
+        start = datetime.datetime.utcnow()
         for chapter in chapters:
-            logger.info(f"Processing chapter: {chapter.title}")
+            logger.info("Processing chapter: %s", chapter.title)
 
             ch_scraper_class = sites.find_chapter_scraper(chapter.url)
             if ch_scraper_class in ch_scrapers:
@@ -56,6 +59,15 @@ def create_epub(novel_url: str, filename: str = None, cover_image_url: str = Non
             ch_scraper.process_chapter(chapter)
 
             epub_pkg.add_chapter(chapter)
+        end = datetime.datetime.utcnow()
+
+        total_time = (end - start).total_seconds()
+        time_per_chapter = float(total_time) / float(len(chapters))
+        logger.info(
+            "Averaged %.2f second(s) per chapter or %.2f chapter(s) per second.",
+            time_per_chapter,
+            1.0 / time_per_chapter,
+        )
 
         epub_pkg.save()
 
