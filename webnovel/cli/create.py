@@ -7,6 +7,7 @@ from webnovel import actions, turn_on_logging
 arg_parser = argparse.ArgumentParser(description="Create an .epub file ")
 arg_parser.add_argument("-u", "--novel-url", help="The URL of the novel.")
 arg_parser.add_argument("-f", "--filename", help='The name of the .epub file to create. Defaults to "Novel Title.epub"')
+arg_parser.add_argument("--chapter-limit", "-c", default=None, type=int, help="Limit the number of chapters to fetch.")
 arg_parser.add_argument(
     "--cover-image-url",
     help=(
@@ -25,7 +26,7 @@ def run(args=None):
         options.novel_url,
         options.filename,
         cover_image_url=options.cover_image_url,
-        chapter_limit=None,
+        chapter_limit=options.chapter_limit,
     )
 
 
