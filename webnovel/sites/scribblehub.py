@@ -59,7 +59,7 @@ class ScribbleHubScraper(NovelScraper):
                 title=Chapter.clean_title(chapter_li.select_one("A").text),
                 chapter_no=idx + 1,
                 slug=ScribbleHubChapterScraper.get_chapter_slug(url),
-                pub_date=chapter_li.select_one(".fic_date_pub").get("title"),
+                # pub_date=chapter_li.select_one(".fic_date_pub").get("title"),
             )
             for idx, chapter_li in enumerate(reversed(page.select("LI")))
         ]
