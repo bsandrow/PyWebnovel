@@ -1,8 +1,11 @@
 [tool.poetry]
-name = "pyWebNovel"
+name = "PyWebnovel"
 version = "1"
 description = "Library for scraping and dealing with webnovels."
 authors = ["Brandy Sandrowicz <brandy@sandrowicz.org>"]
+packages = [
+  { include = "webnovel" }
+]
 
 [tool.poetry.scripts]
 pywn = "webnovel.cli:pywn"
