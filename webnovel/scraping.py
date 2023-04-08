@@ -23,8 +23,8 @@ class ScraperBase:
     limiter: Limiter
     parser: str
 
-    def __init__(self, parser: str = "html.parser") -> None:
-        self.http_client = http.get_client()
+    def __init__(self, parser: str = "html.parser", http_client: http.HttpClient = None) -> None:
+        self.http_client = http_client or http.get_client()
         self.limiter = self.get_limiter()
         self.parser = parser
         assert self.site_name is not None
