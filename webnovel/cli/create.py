@@ -1,7 +1,6 @@
 """Command to create an epub file from a link to a webnovel."""
 
 import argparse
-import logging
 
 from webnovel import actions, turn_on_logging
 
