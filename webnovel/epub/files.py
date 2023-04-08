@@ -486,6 +486,39 @@ class Epub3Refs:
     refs: list[Element]
     tag_id_fmt: str = "id-{counter:03d}"
 
+    # Reference: https://idpf.org/epub/20/spec/OPF_2.0_final_spec.html#TOC2.2.6
+    types = {
+        "adapter": "adp",
+        "annotator": "ann",
+        "arranger": "arr",
+        "artist": "art",
+        "associated name": "asn",
+        "author": "aut",
+        "author in quotations or text extracts": "aqt",
+        "author of afterword, colophon, etc.": "aft",
+        "author of introduction, etc.": "aui",
+        "bibliographic antecedent": "ant",
+        "book producer": "bkp",
+        "collaborator": "clb",
+        "commentator": "cmm",
+        "designer": "dsr",
+        "editor": "edt",
+        "illustrator": "ill",
+        "lyricist": "lyr",
+        "metadata contact": "mdc",
+        "musician": "mus",
+        "narrator": "nrt",
+        "other": "oth",
+        "photographer": "pht",
+        "printer": "prt",
+        "redactor": "red",
+        "reviewer": "rev",
+        "sponsor": "spn",
+        "thesis advisor": "ths",
+        "transcriber": "trc",
+        "translator": "trl",
+    }
+
     def __init__(self, dom: Document) -> None:
         self.counter = 0
         self.refs = []
