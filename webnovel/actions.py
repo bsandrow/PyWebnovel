@@ -3,6 +3,7 @@
 import datetime
 import logging
 from pathlib import Path
+from typing import Iterable, Optional
 
 from webnovel import epub, http, sites, utils
 from webnovel.data import Image
@@ -105,7 +106,7 @@ def set_cover_image_for_epub(epub_file: str, cover_image_path: str) -> None:
     epub_pkg.save()
 
 
-def rebuild(epub_file: str) -> None:
+def rebuild(epub_file: str, reload_chapters: Optional[Iterable[str]] = None) -> None:
     """
     Force the Epub package to be rebuilt from the JSON file.
 
