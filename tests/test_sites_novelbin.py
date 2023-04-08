@@ -152,7 +152,7 @@ class NovelBinScraperTestCase(TestCase):
                 url="https://novelbin.net/n/the-frozen-player-returns/chapter-1-prologue",
                 title="Chapter 1: Prologue",
                 chapter_no=0,
-                slug=None,
+                slug="chapter-1-prologue",
                 html_content=None,
             ),
         )

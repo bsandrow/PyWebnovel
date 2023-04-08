@@ -35,7 +35,7 @@ class NovelBinChapterScraper(ChapterScraper):
     """Scraper for NovelBin.net chapter content."""
 
     site_name = SITE_NAME
-    url_pattern = HTTPS_PREFIX + r"novel-?bin\.net/(?:n|novel-bin)/(?P<NovelID>[\w\d-]+)/(?P<ChapterId>[\w\d-]+)"
+    url_pattern = HTTPS_PREFIX + r"novel-?bin\.net/(?:n|novel-bin)/(?P<NovelID>[\w\d-]+)/(?P<ChapterID>[\w\d-]+)"
     content_selector = Selector("#chr-content")
     content_filters = DEFAULT_FILTERS + (RemoveStayTunedMessage(),)
 
@@ -108,9 +108,10 @@ class NovelBinScraper(NovelScraper):
 
         return [
             Chapter(
-                url=chapter_li.select_one("A").get("href"),
+                url=(url := chapter_li.select_one("A").get("href")),
                 title=(title := Chapter.clean_title(chapter_li.select_one("A").get("title"))),
                 chapter_no=idx,
+                slug=NovelBinChapterScraper.get_chapter_slug(url),
             )
             for idx, chapter_li in enumerate(page.select("UL.list-chapter > LI"))
         ]

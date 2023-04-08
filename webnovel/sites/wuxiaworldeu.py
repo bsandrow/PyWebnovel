@@ -96,6 +96,7 @@ class WuxiaWorldEuNovelScraper(NovelScraper):
                 url="https://www.wuxiaworld.eu/chapter/" + chapter["novSlugChapSlug"],
                 title=chapter["title"],
                 chapter_no=chapter["index"],
+                slug=chapter["novSlugChapSlug"],
             )
             for chapter in json_data
         ]

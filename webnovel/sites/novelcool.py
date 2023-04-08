@@ -59,9 +59,10 @@ class NovelCoolScraper(NovelScraper):
         for idx, element in enumerate(reversed(chapter_els), 1):
             time = element.select_one(".chapter-item-time")
             ch = Chapter(
-                url=element.find("a").get("href"),
+                url=(url := element.find("a").get("href")),
                 title=element.find("a").get("title"),
                 chapter_no=idx,
+                slug=NovelCoolChapterScraper.get_chapter_slug(url),
                 pub_date=datetime.datetime.strptime(time.text.strip(), "%b %d, %Y").date() if time else None,
             )
             chapters.append(ch)

@@ -177,6 +177,20 @@ class ChapterScraper(ScraperBase):
     content_filters: tuple[html.HtmlFilter] = html.DEFAULT_FILTERS
     extra_css: Optional[str] = None
 
+    @classmethod
+    def get_chapter_slug(cls, url: str) -> Optional[str]:
+        """
+        Extract the chapter's slug from the chapter url.
+
+        :param url: The URL of a chapter.
+        """
+        if not cls.supports_url(url):
+            raise ValueError("Not a valid chapter url for {cls.site_name}: {url}")
+
+        if match := re.match(cls.url_pattern, url):
+            return match.group("ChapterID")
+        return None
+
     def post_processing(self, chapter: Chapter) -> None:
         """
         Post-processing of the chapter after html_content has been filled in.

@@ -18,4 +18,4 @@ class NovelNextChapterScraper(NovelBinChapterScraper):
     """Chapter Scraper for NovelNext.org."""
 
     site_name = SITE_NAME
-    url_pattern = HTTPS_PREFIX + r"novelnext\.org/novelnext/(?P<NovelID>[\w\d-]+)/(?P<ChapterId>[\w\d-]+)"
+    url_pattern = HTTPS_PREFIX + r"novelnext\.org/novelnext/(?P<NovelID>[\w\d-]+)/(?P<ChapterID>[\w\d-]+)"

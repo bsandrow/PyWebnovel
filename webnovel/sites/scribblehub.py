@@ -55,10 +55,11 @@ class ScribbleHubScraper(NovelScraper):
         )
         return [
             Chapter(
-                url=chapter_li.select_one("A").get("href"),
+                url=(url := chapter_li.select_one("A").get("href")),
                 title=Chapter.clean_title(chapter_li.select_one("A").text),
                 chapter_no=idx + 1,
-                # pub_date = chapter_li.select_one(".fic_date_pub").get("title"),
+                slug=ScribbleHubChapterScraper.get_chapter_slug(url),
+                pub_date=chapter_li.select_one(".fic_date_pub").get("title"),
             )
             for idx, chapter_li in enumerate(reversed(page.select("LI")))
         ]
@@ -68,7 +69,7 @@ class ScribbleHubChapterScraper(ChapterScraper):
     """Scraper for ScribbleHub.com Chapters."""
 
     site_name = SITE_NAME
-    url_pattern = HTTPS_PREFIX + r"scribblehub\.com/read/(?P<NovelId>\d+)-[\d\w-]+/chapter/(?P<ChapterId>\d+)/"
+    url_pattern = HTTPS_PREFIX + r"scribblehub\.com/read/(?P<NovelID>\d+)-[\d\w-]+/chapter/(?P<ChapterID>\d+)/"
     extra_css: str = """\
         .wi_authornotes {border: 2px solid black; padding: 10px;}
         .wi_authornotes .p-avatar-wrap {float: left;}
