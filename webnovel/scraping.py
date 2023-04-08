@@ -1,5 +1,6 @@
 """Base Functionality for Scraping Webnovel Content."""
 
+import logging
 import re
 from typing import Optional, Union
 
@@ -9,9 +10,13 @@ from pyrate_limiter import Duration, Limiter, RequestRate
 
 from webnovel import html, http
 from webnovel.data import Chapter, Image, Novel, NovelStatus, Person
+from webnovel.logs import LogTimer
 
 HTTPS_PREFIX = r"https?://(?:www\.)?"
 DEFAULT_LIMITER = Limiter(RequestRate(5, Duration.SECOND))
+
+logger = logging.getLogger(__name__)
+timer = LogTimer(logger)
 
 
 class ScraperBase:
@@ -46,6 +51,8 @@ class ScraperBase:
         client_method = getattr(self.http_client, method)
         with self.limiter.ratelimit("get_page", delay=True):
             response = client_method(url, data=data)
+            if response.elapsed.total_seconds() > 1:
+                logger.debug("Took %f second(s) to fetch url=%s", response.elapsed.total_seconds(), repr(url))
         response.raise_for_status()
         return self.get_soup(response.text)
 
