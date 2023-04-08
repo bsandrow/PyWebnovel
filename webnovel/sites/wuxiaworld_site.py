@@ -98,7 +98,8 @@ class WuxiaWorldSiteChapterScraper(ChapterScraper):
         super().post_processing(chapter)
 
         results = chapter.html_content.find_all(limit=1)
-        if results and (match := Chapter.is_title_ish(results[0])):
+        candidate = results[0].text.strip() if results else ""
+        if candidate and (match := Chapter.is_title_ish(candidate)):
             chapter.title = Chapter.clean_title(match.group(0))
             remove_element(results[0])
         chapter.title = chapter.title.replace(" - : ", ": ")
