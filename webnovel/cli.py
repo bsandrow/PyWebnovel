@@ -20,8 +20,13 @@ class Namespace(dict):
 
 
 @click.group()
-@click.option("--debug/--no-debug", default=False)
-@click.option("--format", default="epub", help="Specify the format of the ebook. Currently only 'epub' is supported.")
+@click.option("--debug/--no-debug", default=False, help="Enable/disable debugging output.")
+@click.option(
+    "--format",
+    metavar="FORMAT",
+    default="epub",
+    help="Specify the format of the ebook. Currently only 'epub' is supported.",
+)
 @click.pass_context
 def pywn(ctx, debug, format):
     """
