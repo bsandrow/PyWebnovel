@@ -628,6 +628,19 @@ class PackageOPF(SingleFileMixin, EpubInternalFile):
         epub3_refs = Epub3Refs(dom)
         create_element(dom, "dc:identifier", text=pkg.epub_uid, attributes={"id": "pywebnovel-uid"}, parent=metadata)
 
+        # if pkg.is_epub3:
+        #     create_element(dom, "meta", attributes={"property": "dcterms:modified"}, text=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"))
+        # else:
+        #     if pkg.metadata.published_on:
+        #         create_element(dom, "dc:date", attributes={"opf:event": "publication"}, text=pkg.metadata.published_on.strftime("%Y-%m-%d"))
+
+        #     if pkg.metadata.created_on:
+        #         create_element(dom, "dc:date", attributes={"opf:event": "creation"}, text=pkg.metadata.created_on.strftime("%Y-%m-%d"))
+
+        #     if pkg.metadata.updated_on:
+        #         create_element(dom, "dc:date", attributes={"opf:event": "modification"}, text=pkg.metadata.updated_on.strftime("%Y-%m-%d"))
+        #         create_element(dom, "meta", attributes={"name": "calibre:timestamp", "content": pkg.metadata.updated_on.strftime("")}, text=pkg.metadata.updated_on.strftime("%Y-%m-%d"))
+
         if pkg.metadata.title:
             tag_id = epub3_refs.get_tag_id()
             create_element(dom, "dc:title", text=pkg.metadata.title, attributes={"id": tag_id}, parent=metadata)

@@ -1,6 +1,7 @@
 """Representations of scraper data to be stored within the EPUB file."""
 
 from dataclasses import asdict, dataclass, fields
+import datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Optional
 
@@ -57,6 +58,9 @@ class EpubMetadata:
     translator: Optional[Person] = None
     cover_image_url: Optional[str] = None
     cover_image_id: Optional[str] = None
+    # published_on: Optional[datetime.date] = None
+    # created_on: Optional[datetime.date] = None
+    # updated_on: Optional[datetime.date] = None
     extras: Optional[dict] = None
 
     @classmethod
