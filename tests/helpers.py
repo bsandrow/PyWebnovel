@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 import pathlib
+import shutil
 import tempfile
 from typing import Iterable, Optional, Union
 from unittest import TestCase as TestCase_orig
@@ -19,6 +20,8 @@ def get_test_data(filename, use_bytes: bool = False) -> Union[str, bytes]:
 
 
 class TestCase(TestCase_orig):
+    TEST_DIR: str
+
     # requests_mock: RequestsMocker
 
     # # A mapping of URL / Path to file contents
@@ -34,10 +37,20 @@ class TestCase(TestCase_orig):
     # def tearDown(self):
     #     self.requests_mock.stop()
 
-    @staticmethod
-    def create_epub(jpg: bytes = None, timestamp: str = "2001-01-01 12:15", chapters: list[data.Chapter] = None):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.TEST_DIR = tempfile.mkdtemp(suffix=".pywn-test")
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shutil.rmtree(cls.TEST_DIR)
+
+    @classmethod
+    def create_epub(cls, jpg: bytes = None, timestamp: str = "2001-01-01 12:15", chapters: list[data.Chapter] = None):
         """Create an epub file for testing purposes."""
-        _, epubfile = tempfile.mkstemp(prefix="pywebnovel_")
+        _, epubfile = tempfile.mkstemp(prefix=f"pywn_{cls.__name__}_", suffix=".epub", dir=cls.TEST_DIR)
         pkg = epub.EpubPackage(
             file_or_io=epubfile,
             options={

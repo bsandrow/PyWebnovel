@@ -20,6 +20,7 @@ class RebuildTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
+        super().setUpClass()
         cls.jpg: bytes = get_test_data("test-image.jpg", use_bytes=True)
 
     def setUp(self):
@@ -101,6 +102,7 @@ class SetCoverImageTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
+        super().setUpClass()
         cls.jpg: bytes = get_test_data("test-image.jpg", use_bytes=True)
         cls.png: bytes = get_test_data("test-image.png", use_bytes=True)
 
