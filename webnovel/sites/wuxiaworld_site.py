@@ -67,7 +67,7 @@ class WuxiaWorldSiteChapterScraper(ChapterScraper):
     """Scraper for WuxiaWorld.site chapter content."""
 
     site_name = SITE_NAME
-    url_pattern = HTTPS_PREFIX + r"wuxiaworld\.site/novel/(?P<NovelID>[\w\d-]+)/(?P<ChapterID>[\w\d-]+)"
+    url_pattern = HTTPS_PREFIX + r"wuxiaworld\.site/novel/(?P<NovelID>[\w\d-]+)/(?P<ChapterID>[\w\d-]+)/?"
 
     # Notes:
     #   - Need to filter out .chapter-warning because some chapters have this above the content which means we grab that
