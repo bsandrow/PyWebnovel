@@ -3,14 +3,37 @@
 import datetime
 import logging
 from pathlib import Path
-from typing import Iterable, Optional
+from typing import TYPE_CHECKING, Iterable, Optional, Type
 
 from webnovel import epub, http, sites, utils
 from webnovel.data import Image
 from webnovel.logs import LogTimer
+from webnovel.scraping import ScraperBase
 
 logger = logging.getLogger(__name__)
 timer = LogTimer(logger)
+
+
+class ScraperCache:
+    """
+    A cache for instances of NovelScraper and/or ChapterScraper.
+
+    Avoid creating a new scraper instance for each url to be processed.
+    """
+
+    def __init__(self):
+        self.scraper_map: dict[Type[ScraperBase], ScraperBase] = {}
+        self.http_client: http.HttpClient = http.get_client()
+
+    def get_scraper(self, url: str) -> ScraperBase:
+        """Return an instance of a NovelScraper/ChapterScraper class that supports the provided url."""
+        scraper_class = sites.find_chapter_scraper(url)
+        if not scraper_class:
+            return None
+        scraper = self.scraper_map.get(scraper_class)
+        if not scraper:
+            scraper = self.scraper_map[scraper_class] = scraper_class(http_client=self.http_client)
+        return scraper
 
 
 def create_epub(novel_url: str, filename: str = None, cover_image_url: str = None, chapter_limit: int = None) -> None:
@@ -116,6 +139,29 @@ def rebuild(epub_file: str, reload_chapters: Optional[Iterable[str]] = None) -> 
     (including all of the downloading / scraping of content).
 
     :param epub_file: The epub file to rebuild.
+    :param reload_chapters: A list of chapter slugs.
     """
+    logger.info("Rebuilding package: %s", epub_file)
     epub_pkg = epub.EpubPackage.load(epub_file)
+
+    if reload_chapters:
+        with timer("Reloading Chapters"):
+            chapter_slug_map = {chapter.slug: chapter for chapter in epub_pkg.chapters.values()}
+            scraper_cache = ScraperCache()
+
+            for chapter_slug in set(reload_chapters):
+                logger.info("Reloading chapter for slug '%s'", chapter_slug)
+                chapter_slug = chapter_slug.strip()
+
+                if chapter_slug not in chapter_slug_map:
+                    logger.warning("Not a valid chapter (slug=%s). Skipping slug.", repr(chapter_slug))
+                    continue
+
+                chapter = chapter_slug_map[chapter_slug]
+                scraper = scraper_cache.get_scraper(chapter.url)
+                if scraper:
+                    scraper.process_chapter(chapter)
+                else:
+                    logger.warning("Unable to find scraper for url: %s", chapter.url)
+
     epub_pkg.save()

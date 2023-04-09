@@ -21,21 +21,23 @@ def get_test_data(filename, use_bytes: bool = False) -> Union[str, bytes]:
 
 class TestCase(TestCase_orig):
     TEST_DIR: str
+    req_mock: RequestsMocker
 
-    # requests_mock: RequestsMocker
+    # A mapping of URL / Path to file contents
+    mocked_requests: dict[str, Union[str, bytes]] = None
 
-    # # A mapping of URL / Path to file contents
-    # mocked_requests: dict[str, str] = None
+    def setUp(self):
+        super().setUp()
+        self.requests_mock = RequestsMocker()
+        self.requests_mock.start()
+        if self.mocked_requests:
+            for url, content in self.mocked_requests.items():
+                kwargs = {"content": content} if isinstance(content, bytes) else {"text": content}
+                self.requests_mock.get(url, **kwargs)
 
-    # def setUp(self):
-    #     self.requests_mock = RequestsMocker()
-    #     self.requests_mock.start()
-    #     for url, content in (self.mocked_requests or {}).items():
-    #         kwargs = {"content": content} if isinstance(content, bytes) else {"text": content}
-    #         self.requests_mock.get(url, **kwargs)
-
-    # def tearDown(self):
-    #     self.requests_mock.stop()
+    def tearDown(self):
+        self.requests_mock.stop()
+        super().setUp()
 
     @classmethod
     def setUpClass(cls):

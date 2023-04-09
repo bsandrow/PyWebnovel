@@ -18,25 +18,92 @@ class RebuildTestCase(TestCase):
     jpg: bytes
     epub: str
 
+    mocked_requests = {
+        "/n/creepy-story-club/chapter-1/": (
+            """
+            <div>
+            <div id="chr-content">
+                <p>Lorem ipsum dolor sit amet. Quo quas commodi ut quod vitae
+                33 maiores soluta et provident nostrum. Eum nulla
+                necessitatibus qui perspiciatis voluptate eum maxime galisum
+                est obcaecati molestias aut labore cupiditate eum blanditiis
+                doloremque. </p>
+                <p>Qui labore architecto est dolore quibusdam et consequatur
+                vitae sed voluptate consectetur aut beatae eveniet sed nihil
+                nihil. Sed obcaecati vero in consequatur galisum quo veritatis
+                dicta et pariatur reprehenderit. Non voluptatem voluptas qui
+                illum nesciunt aut optio quibusdam non enim esse.</p>
+                <p>Aut totam assumenda ea necessitatibus molestiae ut incidunt
+                incidunt. Est dolorum repellendus 33 excepturi nulla ea atque
+                illum 33 temporibus optio. 33 quia ullam et quis laudantium qui
+                facere culpa.</p>
+            </div>
+            </div>
+            """
+        ),
+        "/n/creepy-story-club/chapter-2/": (
+            """
+            <div>
+            <div id="chr-content">
+                <p>Lorem ipsum dolor sit amet. Quo quas commodi ut quod vitae
+                33 maiores soluta et provident nostrum. Eum nulla
+                necessitatibus qui perspiciatis voluptate eum maxime galisum
+                est obcaecati molestias aut labore cupiditate eum blanditiis
+                doloremque. </p>
+                <p>Qui labore architecto est dolore quibusdam et consequatur
+                vitae sed voluptate consectetur aut beatae eveniet sed nihil
+                nihil. Sed obcaecati vero in consequatur galisum quo veritatis
+                dicta et pariatur reprehenderit. Non voluptatem voluptas qui
+                illum nesciunt aut optio quibusdam non enim esse.</p>
+                <p>Aut totam assumenda ea necessitatibus molestiae ut incidunt
+                incidunt. Est dolorum repellendus 33 excepturi nulla ea atque
+                illum 33 temporibus optio. 33 quia ullam et quis laudantium qui
+                facere culpa.</p>
+            </div>
+            </div>
+            """
+        ),
+        "/n/creepy-story-club/chapter-14/": (
+            """
+            <div>
+            <div id="chr-content">
+                <p>Lorem ipsum dolor sit amet. Quo quas commodi ut quod vitae
+                33 maiores soluta et provident nostrum. Eum nulla
+                necessitatibus qui perspiciatis voluptate eum maxime galisum
+                est obcaecati molestias aut labore cupiditate eum blanditiis
+                doloremque. </p>
+                <p>Qui labore architecto est dolore quibusdam et consequatur
+                vitae sed voluptate consectetur aut beatae eveniet sed nihil
+                nihil. Sed obcaecati vero in consequatur galisum quo veritatis
+                dicta et pariatur reprehenderit. Non voluptatem voluptas qui
+                illum nesciunt aut optio quibusdam non enim esse.</p>
+                <p>Aut totam assumenda ea necessitatibus molestiae ut incidunt
+                incidunt. Est dolorum repellendus 33 excepturi nulla ea atque
+                illum 33 temporibus optio. 33 quia ullam et quis laudantium qui
+                facere culpa.</p>
+            </div>
+            </div>
+            """
+        ),
+    }
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         cls.jpg: bytes = get_test_data("test-image.jpg", use_bytes=True)
 
     def setUp(self):
+        super().setUp()
         self.epub = self.create_epub(jpg=self.jpg)
 
     def tearDown(self):
+        super().tearDown()
         os.unlink(self.epub)
 
-    def test_rebuild_action(self):
-        with self.assert_files_changed(self.epub, expected_changed_files={"OEBPS/Text/title_page.xhtml"}):
-            actions.rebuild(self.epub)
-
-    def test_reload_chapters(self):
+    def add_chapters_to_epub(self):
         chapters = [
             data.Chapter(
-                url="https://wuxiaworld.site/novel/creepy-story-club/chapter-1/",
+                url="https://novelbin.net/n/creepy-story-club/chapter-1/",
                 slug="chapter-1",
                 chapter_no=1,
                 html_content=BeautifulSoup(
@@ -48,11 +115,12 @@ class RebuildTestCase(TestCase):
                     est obcaecati molestias aut labore cupiditate eum blanditiis
                     doloremque. </p>
                     </div>
-                    """
+                    """,
+                    "html.parser",
                 ),
             ),
             data.Chapter(
-                url="https://wuxiaworld.site/novel/creepy-story-club/chapter-2/",
+                url="https://novelbin.net/n/creepy-story-club/chapter-2/",
                 slug="chapter-2",
                 chapter_no=2,
                 html_content=BeautifulSoup(
@@ -64,11 +132,12 @@ class RebuildTestCase(TestCase):
                     est obcaecati molestias aut labore cupiditate eum blanditiis
                     doloremque. </p>
                     </div>
-                    """
+                    """,
+                    "html.parser",
                 ),
             ),
             data.Chapter(
-                url="https://wuxiaworld.site/novel/creepy-story-club/chapter-14/",
+                url="https://novelbin.net/n/creepy-story-club/chapter-14/",
                 slug="chapter-14",
                 chapter_no=14,
                 html_content=BeautifulSoup(
@@ -80,20 +149,112 @@ class RebuildTestCase(TestCase):
                     est obcaecati molestias aut labore cupiditate eum blanditiis
                     doloremque. </p>
                     </div>
-                    """
+                    """,
+                    "html.parser",
                 ),
             ),
         ]
 
-        pkg = epub.EpubPackage.load(self.epub)
-        for chapter in chapters:
-            pkg.add_chapter(chapter)
-        pkg.save()
+        with freeze_time("2009-01-01 11:41"):
+            pkg = epub.EpubPackage.load(self.epub)
+            for chapter in chapters:
+                pkg.add_chapter(chapter)
+            pkg.save()
 
+    def test_rebuild_action(self):
         with self.assert_files_changed(self.epub, expected_changed_files={"OEBPS/Text/title_page.xhtml"}):
-            actions.rebuild(
-                self.epub,
-            )
+            actions.rebuild(self.epub)
+
+    def test_reload_chapters(self):
+        self.add_chapters_to_epub()
+
+        with self.assert_files_changed(
+            self.epub,
+            expected_initial_files={
+                "META-INF/container.xml",
+                "OEBPS/Images/223f9ca11722e7eccae9eadb158fa2c7bf806ed0aa6ee4390a96df7770035ba4.jpg",
+                "OEBPS/Text/ch00001.xhtml",
+                "OEBPS/Text/ch00002.xhtml",
+                "OEBPS/Text/ch00003.xhtml",
+                "OEBPS/Text/cover.xhtml",
+                "OEBPS/Text/nav.xhtml",
+                "OEBPS/Text/title_page.xhtml",
+                "OEBPS/Text/toc_page.xhtml",
+                "OEBPS/content.opf",
+                "OEBPS/stylesheet.css",
+                "OEBPS/toc.ncx",
+                "mimetype",
+                "pywebnovel.json",
+            },
+            expected_changed_files={
+                "OEBPS/Text/ch00001.xhtml",
+                "OEBPS/Text/title_page.xhtml",
+                "pywebnovel.json",
+            },
+        ):
+            actions.rebuild(self.epub, reload_chapters=["chapter-1"])
+
+    def test_reload_chapters_handles_multiple_chapters(self):
+        self.add_chapters_to_epub()
+
+        with self.assert_files_changed(
+            self.epub,
+            expected_initial_files={
+                "META-INF/container.xml",
+                "OEBPS/Images/223f9ca11722e7eccae9eadb158fa2c7bf806ed0aa6ee4390a96df7770035ba4.jpg",
+                "OEBPS/Text/ch00001.xhtml",
+                "OEBPS/Text/ch00002.xhtml",
+                "OEBPS/Text/ch00003.xhtml",
+                "OEBPS/Text/cover.xhtml",
+                "OEBPS/Text/nav.xhtml",
+                "OEBPS/Text/title_page.xhtml",
+                "OEBPS/Text/toc_page.xhtml",
+                "OEBPS/content.opf",
+                "OEBPS/stylesheet.css",
+                "OEBPS/toc.ncx",
+                "mimetype",
+                "pywebnovel.json",
+            },
+            expected_changed_files={
+                "OEBPS/Text/ch00001.xhtml",
+                "OEBPS/Text/ch00002.xhtml",
+                "OEBPS/Text/ch00003.xhtml",
+                "OEBPS/Text/title_page.xhtml",
+                "pywebnovel.json",
+            },
+        ):
+            actions.rebuild(self.epub, reload_chapters=["chapter-1", "chapter-2", "chapter-14"])
+
+    def test_reload_chapters_ignores_bad_slug(self):
+        self.add_chapters_to_epub()
+
+        with self.assert_files_changed(
+            self.epub,
+            expected_initial_files={
+                "META-INF/container.xml",
+                "OEBPS/Images/223f9ca11722e7eccae9eadb158fa2c7bf806ed0aa6ee4390a96df7770035ba4.jpg",
+                "OEBPS/Text/ch00001.xhtml",
+                "OEBPS/Text/ch00002.xhtml",
+                "OEBPS/Text/ch00003.xhtml",
+                "OEBPS/Text/cover.xhtml",
+                "OEBPS/Text/nav.xhtml",
+                "OEBPS/Text/title_page.xhtml",
+                "OEBPS/Text/toc_page.xhtml",
+                "OEBPS/content.opf",
+                "OEBPS/stylesheet.css",
+                "OEBPS/toc.ncx",
+                "mimetype",
+                "pywebnovel.json",
+            },
+            expected_changed_files={
+                "OEBPS/Text/ch00001.xhtml",
+                "OEBPS/Text/ch00002.xhtml",
+                "OEBPS/Text/ch00003.xhtml",
+                "OEBPS/Text/title_page.xhtml",
+                "pywebnovel.json",
+            },
+        ):
+            actions.rebuild(self.epub, reload_chapters=["chapter-1", "chapter-2", "chapter-33", "chapter-14"])
 
 
 class SetCoverImageTestCase(TestCase):
@@ -108,14 +269,13 @@ class SetCoverImageTestCase(TestCase):
 
     @freeze_time("2001-01-01 12:15")
     def setUp(self):
-        self.requests_mock = requests_mock.Mocker()
-        self.requests_mock.start()
+        super().setUp()
         self.requests_mock.get("/imgs/cover-image.png", content=self.png, headers={"content-type": "image/png"})
-
         self.epub_wo_cover = self.create_epub()
         self.epub_w_cover = self.create_epub(jpg=self.jpg)
 
     def tearDown(self):
+        super().tearDown()
         os.unlink(self.epub_wo_cover)
         os.unlink(self.epub_w_cover)
 
