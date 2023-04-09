@@ -15,6 +15,41 @@ from .helpers import get_test_data
 
 
 class ActionTestCaseMixin(TestCase):
+    @staticmethod
+    def create_epub(jpg: bytes = None, timestamp: str = "2001-01-01 12:15"):
+        _, epubfile = tempfile.mkstemp(prefix="pywebnovel_")
+        pkg = epub.EpubPackage(
+            file_or_io=epubfile,
+            options={
+                "include_title_page": True,
+                "include_toc_page": True,
+                "include_images": True,
+            },
+            metadata={
+                "novel_url": "https://example.com/novel/creepy-story-club",
+                "site_id": "Example.com",
+                "novel_id": "creepy-story-club",
+                "title": "Creepy Story Club",
+                "status": data.NovelStatus.ONGOING.value,
+                "summary": "A\nB\nC",
+                "summary_type": epub.SummaryType.text.value,
+                "author": {"name": "John Smythe"},
+                "cover_image_url": "https://example.com/imgs/creepy-story-club.jpg",
+            },
+        )
+
+        if jpg:
+            pkg.add_image(
+                image=data.Image(url="", data=jpg, mimetype="image/jpeg", did_load=True),
+                content=jpg,
+                is_cover_image=True,
+            )
+
+        with freeze_time(timestamp):
+            pkg.save()
+
+        return epubfile
+
     @contextmanager
     def assert_files_changed(
         self,
@@ -126,34 +161,11 @@ class RebuildTestCase(ActionTestCaseMixin, TestCase):
         cls.jpg: bytes = get_test_data("test-image.jpg", use_bytes=True)
 
     def setUp(self):
-        _, self.epub = tempfile.mkstemp(prefix="pywebnovel_")
-        pkg = epub.EpubPackage(
-            file_or_io=self.epub,
-            options={
-                "include_title_page": True,
-                "include_toc_page": True,
-                "include_images": True,
-            },
-            metadata={
-                "novel_url": "https://example.com/novel/creepy-story-club",
-                "site_id": "Example.com",
-                "novel_id": "creepy-story-club",
-                "title": "Creepy Story Club",
-                "status": data.NovelStatus.ONGOING.value,
-                "summary": "A\nB\nC",
-                "summary_type": epub.SummaryType.text.value,
-                "author": {"name": "John Smythe"},
-                "cover_image_url": "https://example.com/imgs/creepy-story-club.jpg",
-            },
-        )
-        pkg.add_image(
-            image=data.Image(url="", data=self.jpg, mimetype="image/jpeg", did_load=True),
-            content=self.jpg,
-            is_cover_image=True,
-        )
+        self.epub = self.create_epub(jpg=self.jpg)
 
-        with freeze_time("2001-01-01 12:15"):
-            pkg.save()
+    def tearDown(self):
+        os.unlink(self.epub_wo_cover)
+        os.unlink(self.epub_w_cover)
 
     def test_rebuild_action(self):
         with self.assert_files_changed(self.epub, expected_changed_files={"OEBPS/Text/title_page.xhtml"}):
@@ -175,55 +187,8 @@ class SetCoverImageTestCase(ActionTestCaseMixin, TestCase):
         self.requests_mock.start()
         self.requests_mock.get("/imgs/cover-image.png", content=self.png, headers={"content-type": "image/png"})
 
-        _, self.epub_wo_cover = tempfile.mkstemp(prefix="pywebnovel_")
-
-        pkg = epub.EpubPackage(
-            file_or_io=self.epub_wo_cover,
-            options={
-                "include_title_page": True,
-                "include_toc_page": True,
-                "include_images": True,
-            },
-            metadata={
-                "novel_url": "https://example.com/novel/creepy-story-club",
-                "site_id": "Example.com",
-                "novel_id": "creepy-story-club",
-                "title": "Creepy Story Club",
-                "status": data.NovelStatus.ONGOING.value,
-                "summary": "A\nB\nC",
-                "summary_type": epub.SummaryType.text.value,
-                "author": {"name": "John Smythe"},
-                "cover_image_url": "https://example.com/imgs/creepy-story-club.jpg",
-            },
-        )
-        pkg.save()
-
-        _, self.epub_w_cover = tempfile.mkstemp(prefix="pywebnovel_")
-        pkg = epub.EpubPackage(
-            file_or_io=self.epub_w_cover,
-            options={
-                "include_title_page": True,
-                "include_toc_page": True,
-                "include_images": True,
-            },
-            metadata={
-                "novel_url": "https://example.com/novel/creepy-story-club",
-                "site_id": "Example.com",
-                "novel_id": "creepy-story-club",
-                "title": "Creepy Story Club",
-                "status": data.NovelStatus.ONGOING.value,
-                "summary": "A\nB\nC",
-                "summary_type": epub.SummaryType.text.value,
-                "author": {"name": "John Smythe"},
-                "cover_image_url": "https://example.com/imgs/creepy-story-club.jpg",
-            },
-        )
-        pkg.add_image(
-            image=data.Image(url="", data=self.jpg, mimetype="image/jpeg", did_load=True),
-            content=self.jpg,
-            is_cover_image=True,
-        )
-        pkg.save()
+        self.epub_wo_cover = self.create_epub()
+        self.epub_w_cover = self.create_epub(jpg=self.jpg)
 
     def tearDown(self):
         os.unlink(self.epub_wo_cover)
