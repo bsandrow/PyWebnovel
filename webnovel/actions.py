@@ -165,3 +165,8 @@ def rebuild(epub_file: str, reload_chapters: Optional[Iterable[str]] = None) -> 
                     logger.warning("Unable to find scraper for url: %s", chapter.url)
 
     epub_pkg.save()
+
+
+def update(ebook: str) -> None:
+    """Update ebook."""
+    pass

@@ -14,6 +14,15 @@ class SetCoverTestCase(TestCase):
         action_mock.assert_called_once_with("mybook.epub", "cover-image.tiff")
 
 
+class UpdateCommandTestCase(TestCase):
+    @mock.patch("webnovel.actions.update")
+    def test_run(self, action_mock):
+        runner = CliRunner()
+        result = runner.invoke(cli.pywn, ["update", "mybook.epub"])
+        self.assertEqual(result.exit_code, 0)
+        action_mock.assert_called_once_with("mybook.epub")
+
+
 class RebuildCommandTestCase(TestCase):
     @mock.patch("webnovel.actions.rebuild")
     def test_run(self, action_mock):
