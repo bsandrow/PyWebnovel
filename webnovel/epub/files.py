@@ -346,6 +346,12 @@ class TitlePage(SingleFileMixin, EpubInternalFile):
         items["Publisher"] = pkg.metadata.site_id
         items["Chapter Count"] = len(pkg.chapters)
 
+        if pkg.metadata.published_on:
+            items["Published On"] = pkg.metadata.published_on.strftime("%b %-d, %Y")
+
+        if pkg.metadata.last_updated_on:
+            items["Novel Last Updated On"] = pkg.metadata.last_updated_on.strftime("%b %-d, %Y")
+
         if pkg.metadata.genres:
             items["Genres"] = ", ".join(pkg.metadata.genres)
 

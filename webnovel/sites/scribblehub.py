@@ -95,7 +95,14 @@ class ScribbleHubScraper(NovelScraper):
             if _json.get("@type") == "Book":
                 pub_date_str = _json.get("datePublished")
                 if pub_date_str:
-                    novel.extras["Date Published"] = datetime.datetime.strptime(pub_date_str, "%Y-%m-%d")
+                    novel.published_on = datetime.datetime.strptime(pub_date_str, "%Y-%m-%d")
+
+        chapter_pub_dates = [ch.pub_date for ch in novel.chapters if ch.pub_date is not None]
+        has_chapter_pub_dates = len(chapter_pub_dates) == len(
+            novel.chapters
+        )  # don't do this if we only have some pub dates
+        if has_chapter_pub_dates:
+            novel.last_updated_on = max(chapter_pub_dates)
 
         return super().post_processing(page, url, novel)
 

@@ -58,9 +58,8 @@ class EpubMetadata:
     translator: Optional[Person] = None
     cover_image_url: Optional[str] = None
     cover_image_id: Optional[str] = None
-    # published_on: Optional[datetime.date] = None
-    # created_on: Optional[datetime.date] = None
-    # updated_on: Optional[datetime.date] = None
+    published_on: Optional[datetime.date] = None
+    last_updated_on: Optional[datetime.date] = None
     extras: Optional[dict] = None
 
     @classmethod
@@ -79,6 +78,8 @@ class EpubMetadata:
             summary=str(novel.summary) if novel.summary else None,
             summary_type=SummaryType.html if isinstance(novel.summary, Tag) else SummaryType.text,
             cover_image_url=novel.cover_image.url if novel.cover_image else None,
+            published_on=novel.published_on,
+            last_updated_on=novel.last_updated_on,
             extras=novel.extras,
         )
 
@@ -91,6 +92,12 @@ class EpubMetadata:
         kwargs["translator"] = Person.from_dict(data["translator"]) if data.get("translator") else None
         kwargs["status"] = NovelStatus(data["status"]) if data.get("status") else NovelStatus.UNKNOWN
         kwargs["summary_type"] = SummaryType(data["summary_type"]) if data.get("summary_type") else SummaryType.text
+        kwargs["published_on"] = (
+            datetime.datetime.strptime(kwargs["published_on"], "%Y-%m-%d") if kwargs.get("published_on") else None
+        )
+        kwargs["last_updated_on"] = (
+            datetime.datetime.strptime(kwargs["last_updated_on"], "%Y-%m-%d") if kwargs.get("last_updated_on") else None
+        )
         return EpubMetadata(**kwargs)
 
     def to_dict(self) -> dict:
@@ -101,4 +108,6 @@ class EpubMetadata:
         data["translator"] = self.translator.to_dict() if self.translator else None
         data["status"] = self.status.value if self.status else None
         data["summary_type"] = self.summary_type.value
+        data["published_on"] = self.published_on.strftime("%Y-%m-%d")
+        data["last_updated_on"] = self.last_updated_on.strftime("%Y-%m-%d")
         return data

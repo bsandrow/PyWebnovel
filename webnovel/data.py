@@ -307,3 +307,6 @@ class Novel:
     chapters: Optional[list[Chapter]] = None
     cover_image: Optional[Image] = None
     extra_css: Optional[str] = None
+    extras: Optional[dict] = None
+    published_on: Optional[datetime.date] = None
+    last_updated_on: Optional[datetime.date] = None

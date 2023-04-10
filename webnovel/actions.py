@@ -236,5 +236,7 @@ def update(ebook: str) -> None:
 
     # TODO Fetch chapter content + add chapters to ebook + save ebook
 
+    # TODO updated "last_updated_on" value
+
     chapter_slug_map = {c.slug: c for c in pkg.chapters.values()}
     raise NotImplementedError
