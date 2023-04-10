@@ -57,7 +57,7 @@ class EpubPackage:
         chapters: Optional[dict[Chapter]] = None,
         cover_image_id: Optional[str] = None,
     ) -> None:
-        self.zipio = normalize_io(file_or_io, "wb")
+        self.zipio = file_or_io
         self.metadata = (
             EpubMetadata.from_dict(metadata)
             if isinstance(metadata, dict)
@@ -194,8 +194,8 @@ class EpubPackage:
             for epub_file in self.file_map.values():
                 epub_file.write(pkg=self, zipfile=zfh)
 
-        self.zipio.seek(0)
-        self.zipio.write(bytesio.getvalue())
+        with normalize_io(self.zipio, "wb") as fh:
+            fh.write(bytesio.getvalue())
 
     @property
     def cover_page(self) -> Optional[CoverPage]:
