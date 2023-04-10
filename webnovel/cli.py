@@ -72,11 +72,12 @@ def create(opts, novel_url, filename, chapter_limit, cover_image):
 
 @pywn.command()
 @click.argument("ebook")
+@click.option("--limit", type=int, default=None)
 @click.pass_obj
-def update(opts, ebook):
+def update(opts, ebook, limit):
     """Update EBOOK with any new chapters that have been published."""
     turn_on_logging()
-    actions.update(ebook)
+    actions.update(ebook, limit)
 
 
 @pywn.command()
