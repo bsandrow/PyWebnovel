@@ -150,11 +150,14 @@ class NovelScraper(ScraperBase):
         :param url: The url of the novel's page.
         """
 
+    def post_processing(self, page: BeautifulSoup, url: str, novel: Novel):
+        """Additional scraper-specific code to add things to or modify the Novel before returning from scrape()."""
+
     def scrape(self, url: str) -> Novel:
         """Scrape URL to return a Novel instance populated from extracted information."""
         page = self.get_page(url)
         novel_id = self.get_novel_id(url)
-        return Novel(
+        novel = Novel(
             url=url,
             site_id=self.site_name,
             novel_id=novel_id,
@@ -168,6 +171,8 @@ class NovelScraper(ScraperBase):
             cover_image=self.get_cover_image(page),
             extra_css=self.extra_css,
         )
+        self.post_processing(page, url, novel)
+        return novel
 
 
 class ChapterScraper(ScraperBase):
