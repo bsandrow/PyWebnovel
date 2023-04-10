@@ -761,6 +761,10 @@ class PyWebNovelJSON(SingleFileMixin, EpubInternalFile):
                 return item.to_dict()
             if is_dataclass(item):
                 return asdict(item)
+            if isinstance(item, datetime.date) and not isinstance(item, datetime.datetime):
+                return item.strftime("%Y-%m-%d")
+            if isinstance(item, datetime.date) and isinstance(item, datetime.datetime):
+                return item.strftime("%Y-%m-%d %H:%M")
             if isinstance(item, Enum):
                 return item.value
             return super().default(item)
