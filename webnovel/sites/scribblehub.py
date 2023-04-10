@@ -1,9 +1,11 @@
 """ScribbleHub.com scrapers and utilities."""
 
+import datetime
+import json
 import logging
 import re
 
-from webnovel.data import Chapter, NovelStatus
+from webnovel.data import Chapter, Novel, NovelStatus
 from webnovel.html import DEFAULT_FILTERS, remove_element
 from webnovel.logs import LogTimer
 from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraper, Selector
@@ -53,16 +55,49 @@ class ScribbleHubScraper(NovelScraper):
             method="post",
             data={"action": "wi_getreleases_pagination", "pagenum": "-1", "mypostid": str(novel_id)},
         )
+
+        def parse_date(date_string):
+            if date_string:
+                return datetime.datetime.strptime(date_string, "%b %d, %Y %I:%M %p")
+            return None
+
         return [
             Chapter(
                 url=(url := chapter_li.select_one("A").get("href")),
                 title=Chapter.clean_title(chapter_li.select_one("A").text),
                 chapter_no=idx + 1,
                 slug=ScribbleHubChapterScraper.get_chapter_slug(url),
-                # pub_date=chapter_li.select_one(".fic_date_pub").get("title"),
+                # pub_date format: Mar 30, 2020 04:46 AM
+                pub_date=parse_date(chapter_li.select_one(".fic_date_pub").get("title")),
             )
             for idx, chapter_li in enumerate(reversed(page.select("LI")))
         ]
+
+    def post_processing(self, page, url, novel):
+        """Scrape extra information from the novel page."""
+        novel.extras = {}
+
+        content_warnings = [li.text for li in page.select("li.mature_contains")]
+        if content_warnings:
+            novel.extras["Content Warning"] = content_warnings
+
+        rankings = page.select("a.rank-link span.catname")
+        if rankings:
+            novel.extras["Rankings"] = ["Ranked " + r.text.strip() for r in rankings]
+
+        user_stats = page.select("ul.statUser li")
+        if user_stats:
+            novel.extras["User Stats"] = [stat.text.strip().replace("\n", " ") for stat in user_stats]
+
+        ld_json_content = page.select("script[type='application/ld+json']")
+        for ld_json in ld_json_content:
+            _json = json.loads(ld_json.text)
+            if _json.get("@type") == "Book":
+                pub_date_str = _json.get("datePublished")
+                if pub_date_str:
+                    novel.extras["Date Published"] = datetime.datetime.strptime(pub_date_str, "%Y-%m-%d")
+
+        return super().post_processing(page, url, novel)
 
 
 class ScribbleHubChapterScraper(ChapterScraper):
