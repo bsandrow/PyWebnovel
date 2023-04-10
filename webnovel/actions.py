@@ -169,4 +169,72 @@ def rebuild(epub_file: str, reload_chapters: Optional[Iterable[str]] = None) -> 
 
 def update(ebook: str) -> None:
     """Update ebook."""
-    pass
+    logger.info("Updating package: %s", ebook)
+    pkg = epub.EpubPackage.load(ebook)
+
+    novel_url = pkg.metadata.novel_url
+    if not novel_url:
+        raise ValueError(f"Unable to extract Novel URL from ebook: {ebook}")
+
+    scraper_class = sites.find_scraper(novel_url)
+    if not scraper_class:
+        raise ValueError(f"Unable to find novel scraper for URL: {novel_url}")
+
+    http_client = http.get_client()
+    scraper = scraper_class(http_client=http_client)
+    novel = scraper.scrape(novel_url)
+
+    chapter_urls_in_file = set(pkg.chapters.keys())
+    chapter_urls_fetched = {c.url for c in novel.chapters}
+
+    #
+    # Bail out if there are chapters in the file that do not match the fetched
+    # chapter list.  This will need to be handled at some point in the future,
+    # as one of the causes is an author pulling chapters from the site. In this
+    # case, ignoring the orphaned chapters is something that the user may want
+    # to do. If this is supported in the future, it might be required to only be
+    # supported on a per scraper basis, as some sites don't provide enough
+    # information to make this work correctly. Another cause, is that the site
+    # goes through a revamp and the chapter url format has changed. In this
+    # case, ignoring the orphans would basically screw up the whole ebook
+    # with duplicate chapters. For now, the safest way to handle this is bail
+    # out with an error, and in the future _maybe_ supporting the ability to
+    # proceed even with orphans.
+    #
+    orphaned_urls = chapter_urls_in_file - chapter_urls_fetched
+    if orphaned_urls:
+        raise ValueError(f"Found chapter urls in file that are missing from the fetched chapter list: {orphaned_urls}")
+
+    #
+    # Create a list of the missing chapters. If there are no missing chapters,
+    # bail out with a log message as there is nothing to do here.
+    #
+    missing_chapters = [chapter for chapter in novel.chapters if chapter.url not in chapter_urls_in_file]
+    if len(missing_chapters) < 1:
+        logger.info("No new chapters found.")
+        return
+
+    #
+    # Check that there are not out-of-order chapters popping up. We only want to
+    # handle the case where the missing chapters come _after_ the pre-existing
+    # chapters, sequentially.  Supporting filling in chapter gaps would have to
+    # be for a future update (if support is ever added).
+    #
+    max_chapter_no = max(ch.chapter_no for ch in pkg.chapters.values())
+    non_sequential_chapters = [ch.title or ch.url for ch in novel.chapters if ch.chapter_no < max_chapter_no]
+    if non_sequential_chapters:
+        raise ValueError(
+            f"Found missing chapters ({non_sequential_chapters}) that don't come after the most "
+            f"recent chapters in the ebook. PyWebnovel currently does not support filling in gaps "
+            f"between chapters or handling the author going back to add a chapter in "
+            f"the middle of previous chapters. (Note: this may change in the future though)"
+        )
+
+    # TODO make sure that the chapter_no values match up. Need to standardize
+    #      handling of chapter_no across all scrapers to make sure this doesn't
+    #      run into any snags.
+
+    # TODO Fetch chapter content + add chapters to ebook + save ebook
+
+    chapter_slug_map = {c.slug: c for c in pkg.chapters.values()}
+    raise NotImplementedError
