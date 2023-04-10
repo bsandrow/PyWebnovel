@@ -79,6 +79,7 @@ class EpubMetadata:
             summary=str(novel.summary) if novel.summary else None,
             summary_type=SummaryType.html if isinstance(novel.summary, Tag) else SummaryType.text,
             cover_image_url=novel.cover_image.url if novel.cover_image else None,
+            extras=novel.extras,
         )
 
     @classmethod
