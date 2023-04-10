@@ -188,10 +188,14 @@ class EpubPackage:
 
     def save(self):
         """Save the epub package."""
-        with ZipFile(self.zipio, "w") as zfh:
+        bytesio = BytesIO()
+
+        with ZipFile(bytesio, "w") as zfh:
             for epub_file in self.file_map.values():
-                # print(f"Writing: {epub_file.filename}")
                 epub_file.write(pkg=self, zipfile=zfh)
+
+        self.zipio.seek(0)
+        self.zipio.write(bytesio.getvalue())
 
     @property
     def cover_page(self) -> Optional[CoverPage]:
