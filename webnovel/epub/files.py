@@ -8,7 +8,7 @@ from pathlib import Path
 import pkgutil
 import posixpath
 import sys
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Iterable, Optional, Union
 from xml.dom.minidom import Document, Element, getDOMImplementation
 from zipfile import ZIP_DEFLATED, ZIP_STORED, ZipFile
 
@@ -354,6 +354,15 @@ class TitlePage(SingleFileMixin, EpubInternalFile):
 
         if pkg.metadata.tags:
             items["Tags"] = ", ".join(pkg.metadata.tags)
+
+        if pkg.metadata.extras:
+            for title, value in pkg.metadata.extras.items():
+                if isinstance(value, Iterable):
+                    items[title] = ", ".join(value)
+                elif isinstance(value, datetime.datetime):
+                    items[title] = value.strftime("%b %d, %Y")
+                else:
+                    items[title] = str(value)
 
         template = JINJA.get_template("title_page.xhtml")
         return template.render(**template_kwargs).encode("utf-8")
