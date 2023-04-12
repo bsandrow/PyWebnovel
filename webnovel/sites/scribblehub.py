@@ -104,6 +104,18 @@ class ScribbleHubScraper(NovelScraper):
         if has_chapter_pub_dates:
             novel.last_updated_on = max(chapter_pub_dates)
 
+        fic_stats = page.select_one(".fic_stats")
+        if fic_stats:
+            for stat in fic_stats.select("span.st_item"):
+                for check, key in {
+                    "Views": "Views",
+                    "Favorites": "Favourites",
+                    "Chapters/Week": "Chapters per Week",
+                    "Readers": "Readers",
+                }.items():
+                    if check in stat.text:
+                        novel.extras[key] = f"{stat.text} (as of {datetime.date.today():%Y-%b-%d})"
+
         return super().post_processing(page, url, novel)
 
 
