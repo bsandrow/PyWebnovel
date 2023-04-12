@@ -112,6 +112,5 @@ def set_cover(opts: Namespace, ebook: str, cover_image: str) -> None:
 
     COVER_IMAGE can be a path to an image file or a URL.
     """
-    click.echo("GOT HERE!")
     turn_on_logging()
     actions.set_cover_image_for_epub(ebook, cover_image)
