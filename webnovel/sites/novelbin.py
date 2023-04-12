@@ -3,6 +3,7 @@
 import logging
 import re
 
+from webnovel import errors
 from webnovel.data import Chapter, NovelStatus
 from webnovel.html import DEFAULT_FILTERS, HtmlFilter, remove_element
 from webnovel.logs import LogTimer
@@ -115,3 +116,31 @@ class NovelBinScraper(NovelScraper):
             )
             for idx, chapter_li in enumerate(page.select("UL.list-chapter > LI"))
         ]
+
+    def post_processing(self, page, url, novel):
+        """Parse out additional Novel metadata."""
+        novel.extras = novel.extras or {}
+
+        info_metas = page.select(".info-meta")
+        if len(info_metas) < 1:
+            raise errors.ParseError("Unable to find any elements for selector: .info-meta")
+        if len(info_metas) > 1:
+            raise errors.ParseError("Found multiple elements for selector when only one was expected: .info-meta")
+        info_meta = info_metas[0]
+
+        for li in info_meta.find_all("li", recursive=False):
+            children = list(li.children)
+            title = children[0].text.strip() if children and children[0] else ""
+
+            if title.lower() == "alternative names:":
+                novel.extras["Alternative Titles"] = re.split(r"\s*,\s+", children[1].text.strip())
+
+            if title.lower() == "source:":
+                novel.extras["'Source'"] = children[1].text.strip()
+
+        rating_control = page.select_one("[itemprop='aggregateRating']")
+        if rating_control:
+            rating_value = rating_control.select_one("[itemprop='ratingValue']")
+            rating_max = rating_control.select_one("[itemprop='bestRating']")
+            votes = rating_control.select_one("[itemprop='reviewCount']")
+            novel.extras["Rating"] = f"{rating_value.text} out of {rating_max.text} [{votes.text} vote(s)]"
