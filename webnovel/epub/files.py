@@ -363,7 +363,7 @@ class TitlePage(SingleFileMixin, EpubInternalFile):
 
         if pkg.metadata.extras:
             for title, value in pkg.metadata.extras.items():
-                if isinstance(value, Iterable):
+                if isinstance(value, Iterable) and not isinstance(value, (str, bytes)):
                     items[title] = ", ".join(value)
                 elif isinstance(value, datetime.datetime):
                     items[title] = value.strftime("%b %d, %Y")
