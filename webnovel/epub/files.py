@@ -643,18 +643,32 @@ class PackageOPF(SingleFileMixin, EpubInternalFile):
         epub3_refs = Epub3Refs(dom)
         create_element(dom, "dc:identifier", text=pkg.epub_uid, attributes={"id": "pywebnovel-uid"}, parent=metadata)
 
-        # if pkg.is_epub3:
-        #     create_element(dom, "meta", attributes={"property": "dcterms:modified"}, text=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"))
+        if pkg.is_epub3:
+            create_element(
+                dom,
+                "meta",
+                attributes={"property": "dcterms:modified"},
+                text=datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                parent=metadata,
+            )
+            if pkg.metadata.published_on:
+                create_element(
+                    dom, "dc:date", text=pkg.metadata.published_on.strftime("%Y-%m-%dT00:00:00Z"), parent=metadata
+                )
+
+        #
+        # Set the site this was scraped from as the publisher.
+        #
+        create_element(dom, "dc:publisher", text=pkg.metadata.site_id, parent=metadata)
+
         # else:
         #     if pkg.metadata.published_on:
-        #         create_element(dom, "dc:date", attributes={"opf:event": "publication"}, text=pkg.metadata.published_on.strftime("%Y-%m-%d"))
-
+        #         create_element(dom, "dc:date", attributes={"opf:event": "publication"}, text=pkg.metadata.published_on.strftime("%Y-%m-%dT00:00:00Z"))
         #     if pkg.metadata.created_on:
         #         create_element(dom, "dc:date", attributes={"opf:event": "creation"}, text=pkg.metadata.created_on.strftime("%Y-%m-%d"))
-
         #     if pkg.metadata.updated_on:
-        #         create_element(dom, "dc:date", attributes={"opf:event": "modification"}, text=pkg.metadata.updated_on.strftime("%Y-%m-%d"))
-        #         create_element(dom, "meta", attributes={"name": "calibre:timestamp", "content": pkg.metadata.updated_on.strftime("")}, text=pkg.metadata.updated_on.strftime("%Y-%m-%d"))
+        #         create_element(dom, "dc:date", attributes={"opf:event": "modification"}, text=pkg.metadata.updated_on.strftime("%Y-%m-%dT00:00:00Z"))
+        #         create_element(dom, "meta", attributes={"name": "calibre:timestamp", "content": pkg.metadata.updated_on.strftime("%Y-%m-%d")}, text=pkg.metadata.updated_on.strftime("%Y-%m-%d"))
 
         if pkg.metadata.title:
             tag_id = epub3_refs.get_tag_id()
