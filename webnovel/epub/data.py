@@ -108,6 +108,6 @@ class EpubMetadata:
         data["translator"] = self.translator.to_dict() if self.translator else None
         data["status"] = self.status.value if self.status else None
         data["summary_type"] = self.summary_type.value
-        data["published_on"] = self.published_on.strftime("%Y-%m-%d")
-        data["last_updated_on"] = self.last_updated_on.strftime("%Y-%m-%d")
+        data["published_on"] = self.published_on.strftime("%Y-%m-%d") if self.published_on else None
+        data["last_updated_on"] = self.last_updated_on.strftime("%Y-%m-%d") if self.last_updated_on else None
         return data
