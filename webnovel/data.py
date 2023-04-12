@@ -244,6 +244,11 @@ class Chapter:
         # Fix "Chapter 761: - No Openings" => "Chapter 761: No Openings"
         title = title.replace(": - ", ": ")
 
+        # Fix titles like "Chapter 761: Chapter 761", but make it open enough
+        # that _anything_ repeated with just ": " separating will get caught, so
+        # "Side Story 1: Side Story 1" would also be caught.
+        title = re.sub(r"^([^:]+): \1$", r"\1", title, re.IGNORECASE)
+
         # Change "Chapter 100: 100 The Black Dragon" => "Chapter 100: The Black Dragon"
         # -- it's possible for false matches here, but I'm deeming the likelihood low since
         #    it would have to be an exact match for the chapter number. E.g.:
