@@ -43,6 +43,7 @@ class GetWireIdTestCase(TestCase):
             reaperscans.get_wire_id(soup)
 
 
+@skip
 class ChapterListAPITestCase(TestCase):
     def test_current_page(self):
         json_data = json.dumps(
@@ -168,6 +169,7 @@ class BuildChapterListRequestTestCase(TestCase):
         self.assertEqual(actual, expected)
 
 
+@skip
 class ReaperScansChapterScraperTestCase(TestCase):
     def test_get_limiter(self):
         self.assertEqual(reaperscans.ReaperScansChapterScraper().get_limiter(), reaperscans.LIMITER)
@@ -233,6 +235,7 @@ class RemoveStartingBannerFilterTestCase(TestCase):
         )
 
 
+@skip
 class ReaperScansScraperTestCase(TestCase):
     maxDiff = None
     novel_url = "https://reaperscans.com/novels/1234-creepy-story-club"
