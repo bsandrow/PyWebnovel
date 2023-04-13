@@ -1098,13 +1098,16 @@ class PackageOPFTestCase(TestCase):
         pkg.add_chapter(Chapter(url="http://example.come/chapter-2", chapter_no=2, title="Chapter 2. Example 2"))
         pkg.add_chapter(Chapter(url="http://example.come/chapter-1", chapter_no=1, title="Chapter 1. Example 1"))
 
-        actual = pkg.opf.generate(pkg)
+        with freezegun.freeze_time("2011-09-08 05:56:00"):
+            actual = pkg.opf.generate(pkg)
         expected = (
             f'<?xml version="1.0" encoding="utf-8"?>'
             f'<package version="3.0" xmlns="http://www.idpf.org/2007/opf" unique-identifier="pywebnovel-uid">'
             # --- Metadata ---
             f'<metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">'
             f'<dc:identifier id="pywebnovel-uid">{pkg.epub_uid}</dc:identifier>'
+            f'<meta property="dcterms:modified">2011-09-08T05:56:00Z</meta>'
+            f"<dc:publisher>{pkg.metadata.site_id}</dc:publisher>"
             f'<dc:title id="id-000">{pkg.metadata.title}</dc:title>'
             f'<dc:contributor id="id-001">PyWebnovel [https://github.com/bsandrow/PyWebnovel]</dc:contributor>'
             f"<dc:language>en</dc:language>"
@@ -1163,13 +1166,16 @@ class PackageOPFTestCase(TestCase):
         pkg.add_chapter(Chapter(url="http://example.come/chapter-2", chapter_no=2, title="Chapter 2. Example 2"))
         pkg.add_chapter(Chapter(url="http://example.come/chapter-1", chapter_no=1, title="Chapter 1. Example 1"))
 
-        actual = pkg.opf.generate(pkg)
+        with freezegun.freeze_time("2011-09-08 05:56:00"):
+            actual = pkg.opf.generate(pkg)
         expected = (
             f'<?xml version="1.0" encoding="utf-8"?>'
             f'<package version="3.0" xmlns="http://www.idpf.org/2007/opf" unique-identifier="pywebnovel-uid">'
             # --- Metadata ---
             f'<metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">'
             f'<dc:identifier id="pywebnovel-uid">{pkg.epub_uid}</dc:identifier>'
+            f'<meta property="dcterms:modified">2011-09-08T05:56:00Z</meta>'
+            f"<dc:publisher>{pkg.metadata.site_id}</dc:publisher>"
             f'<dc:title id="id-000">{pkg.metadata.title}</dc:title>'
             f'<dc:creator id="id-001">{pkg.metadata.author.name}</dc:creator>'
             f'<dc:contributor id="id-002">PyWebnovel [https://github.com/bsandrow/PyWebnovel]</dc:contributor>'
@@ -1229,13 +1235,16 @@ class PackageOPFTestCase(TestCase):
         pkg.add_chapter(Chapter(url="http://example.come/chapter-2", chapter_no=2, title="Chapter 2. Example 2"))
         pkg.add_chapter(Chapter(url="http://example.come/chapter-1", chapter_no=1, title="Chapter 1. Example 1"))
 
-        actual = pkg.opf.generate(pkg)
+        with freezegun.freeze_time("2011-09-08 05:56:00"):
+            actual = pkg.opf.generate(pkg)
         expected = (
             f'<?xml version="1.0" encoding="utf-8"?>'
             f'<package version="3.0" xmlns="http://www.idpf.org/2007/opf" unique-identifier="pywebnovel-uid">'
             # --- Metadata ---
             f'<metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">'
             f'<dc:identifier id="pywebnovel-uid">{pkg.epub_uid}</dc:identifier>'
+            f'<meta property="dcterms:modified">2011-09-08T05:56:00Z</meta>'
+            f"<dc:publisher>{pkg.metadata.site_id}</dc:publisher>"
             f'<dc:title id="id-000">{pkg.metadata.title}</dc:title>'
             f'<dc:contributor id="id-001">PyWebnovel [https://github.com/bsandrow/PyWebnovel]</dc:contributor>'
             f"<dc:language>en</dc:language>"
@@ -1289,13 +1298,16 @@ class PackageOPFTestCase(TestCase):
         pkg.add_chapter(Chapter(url="http://example.come/chapter-2", chapter_no=2, title="Chapter 2. Example 2"))
         pkg.add_chapter(Chapter(url="http://example.come/chapter-1", chapter_no=1, title="Chapter 1. Example 1"))
 
-        actual = pkg.opf.generate(pkg)
+        with freezegun.freeze_time("2011-09-08 05:56:00"):
+            actual = pkg.opf.generate(pkg)
         expected = (
             f'<?xml version="1.0" encoding="utf-8"?>'
             f'<package version="3.0" xmlns="http://www.idpf.org/2007/opf" unique-identifier="pywebnovel-uid">'
             # --- Metadata ---
             f'<metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">'
             f'<dc:identifier id="pywebnovel-uid">{pkg.epub_uid}</dc:identifier>'
+            f'<meta property="dcterms:modified">2011-09-08T05:56:00Z</meta>'
+            f"<dc:publisher>{pkg.metadata.site_id}</dc:publisher>"
             f'<dc:title id="id-000">{pkg.metadata.title}</dc:title>'
             f'<dc:contributor id="id-001">PyWebnovel [https://github.com/bsandrow/PyWebnovel]</dc:contributor>'
             f"<dc:language>en</dc:language>"
@@ -1358,13 +1370,16 @@ class PackageOPFTestCase(TestCase):
         pkg.add_chapter(Chapter(url="http://example.come/chapter-2", chapter_no=2, title="Chapter 2. Example 2"))
         pkg.add_chapter(Chapter(url="http://example.come/chapter-1", chapter_no=1, title="Chapter 1. Example 1"))
 
-        actual = pkg.opf.generate(pkg)
+        with freezegun.freeze_time("2011-09-08 05:56:00"):
+            actual = pkg.opf.generate(pkg)
         expected = (
             f'<?xml version="1.0" encoding="utf-8"?>'
             f'<package version="3.0" xmlns="http://www.idpf.org/2007/opf" unique-identifier="pywebnovel-uid">'
             # --- Metadata ---
             f'<metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">'
             f'<dc:identifier id="pywebnovel-uid">{pkg.epub_uid}</dc:identifier>'
+            f'<meta property="dcterms:modified">2011-09-08T05:56:00Z</meta>'
+            f"<dc:publisher>{pkg.metadata.site_id}</dc:publisher>"
             f'<dc:title id="id-000">{pkg.metadata.title}</dc:title>'
             f'<dc:contributor id="id-001">PyWebnovel [https://github.com/bsandrow/PyWebnovel]</dc:contributor>'
             f"<dc:language>en</dc:language>"
@@ -1425,13 +1440,16 @@ class PackageOPFTestCase(TestCase):
         pkg.add_chapter(Chapter(url="http://example.come/chapter-2", chapter_no=2, title="Chapter 2. Example 2"))
         pkg.add_chapter(Chapter(url="http://example.come/chapter-1", chapter_no=1, title="Chapter 1. Example 1"))
 
-        actual = pkg.opf.generate(pkg)
+        with freezegun.freeze_time("2011-09-08 05:56:00"):
+            actual = pkg.opf.generate(pkg)
         expected = (
             f'<?xml version="1.0" encoding="utf-8"?>'
             f'<package version="3.0" xmlns="http://www.idpf.org/2007/opf" unique-identifier="pywebnovel-uid">'
             # --- Metadata ---
             f'<metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">'
             f'<dc:identifier id="pywebnovel-uid">{pkg.epub_uid}</dc:identifier>'
+            f'<meta property="dcterms:modified">2011-09-08T05:56:00Z</meta>'
+            f"<dc:publisher>{pkg.metadata.site_id}</dc:publisher>"
             f'<dc:title id="id-000">{pkg.metadata.title}</dc:title>'
             f'<dc:contributor id="id-001">PyWebnovel [https://github.com/bsandrow/PyWebnovel]</dc:contributor>'
             f"<dc:language>en</dc:language>"
@@ -1543,6 +1561,8 @@ class PyWebNovelJSONTestCase(TestCase):
             '"translator": null, '
             '"cover_image_url": "https://example.com/imgs/novel-cover.jpg", '
             '"cover_image_id": "a9f3e367e50428226eacadb181826c6e2357a14c025f3b4e0fcfa096fa9062e4", '
+            '"published_on": null, '
+            '"last_updated_on": null, '
             '"extras": null'
             "}, "
             # -- options
