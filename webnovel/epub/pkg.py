@@ -7,8 +7,10 @@ from io import BytesIO
 import logging
 from pathlib import Path
 from typing import IO, Optional, Union
+import urllib.parse
 from zipfile import ZIP_STORED, ZipFile
 
+from webnovel import http
 from webnovel.data import Chapter, Image, Novel
 from webnovel.epub.data import EpubMetadata, EpubOptions
 from webnovel.epub.files import (
@@ -56,8 +58,10 @@ class EpubPackage:
         extra_css: Optional[str] = None,
         chapters: Optional[dict[Chapter]] = None,
         cover_image_id: Optional[str] = None,
+        http_client: Optional[http.HttpClient] = None,
     ) -> None:
         self.zipio = file_or_io
+        self.http_client = http_client or http.get_client()
         self.metadata = (
             EpubMetadata.from_dict(metadata)
             if isinstance(metadata, dict)
@@ -157,7 +161,7 @@ class EpubPackage:
             key=lambda img: img.filename,
         )
 
-    def add_image(self, image: Image, content: bytes, file_id: str = None, is_cover_image: bool = False) -> None:
+    def add_image(self, image: Image, content: bytes, file_id: str = None, is_cover_image: bool = False) -> ImageFile:
         """
         Add an Image to the package.
 
@@ -185,6 +189,7 @@ class EpubPackage:
             if not self.cover_page:
                 self.add_file(CoverPage())
         self.add_file(image_file)
+        return image_file
 
     def save(self):
         """Save the epub package."""
@@ -274,6 +279,25 @@ class EpubPackage:
             file_id=file_id or f"ch{chapter_no:05d}",
             title=chapter.title,
         )
+
+        #
+        # If include_images is on, we need to find all images in chapter content, download them, add them to the epub package
+        #
+        if self.include_images:
+            img_tags = chapter.html_content.find_all("img") if chapter.html_content else []
+            for img_tag in img_tags:
+                img_url = urllib.parse.urljoin(base=chapter.url, url=img_tag.get("src").strip())
+                image = Image(url=img_url)
+                image.load(client=self.http_client)
+                file_id = hashlib.sha256(image.data).hexdigest()
+                image_file = self.file_map.get(file_id)
+                if not image_file:
+                    image_file = self.add_image(image=image, content=image.data)
+                img_tag["src"] = f"IMAGE:{file_id}"
+
+                # TODO store image URLs somehow to prevent multiple downloads of
+                #      the same image
+
         self.chapters[chapter.chapter_id] = chapter
         self.add_file(chapter_file)
 

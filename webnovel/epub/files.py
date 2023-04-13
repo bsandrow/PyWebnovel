@@ -457,11 +457,17 @@ class ChapterFile(EpubInternalFile):
         """Generate the XHTML file for a chapter."""
         chapter = self.get_chapter(pkg)
         parent = Path(self.filename).parent
+        content = str(chapter.html_content)
+
+        if pkg.include_images:
+            for image_file in pkg.images:
+                content = content.replace(f"IMAGE:{image_file.file_id}", image_file.relative_to(self.parent))
+
         template_kwargs = {
             "title": self.title or chapter.title,
             "url": chapter.url,
             "stylesheet": pkg.stylesheet.relative_to(parent),
-            "content": str(chapter.html_content),
+            "content": content,
             "css": None,
             "lang": "en",
         }
