@@ -162,7 +162,9 @@ class RebuildTestCase(TestCase):
             pkg.save()
 
     def test_rebuild_action(self):
-        with self.assert_files_changed(self.epub, expected_changed_files={"OEBPS/Text/title_page.xhtml"}):
+        with self.assert_files_changed(
+            self.epub, expected_changed_files={"OEBPS/content.opf", "OEBPS/Text/title_page.xhtml"}
+        ):
             actions.rebuild(self.epub)
 
     def test_reload_chapters(self):
@@ -187,6 +189,7 @@ class RebuildTestCase(TestCase):
                 "pywebnovel.json",
             },
             expected_changed_files={
+                "OEBPS/content.opf",
                 "OEBPS/Text/ch00001.xhtml",
                 "OEBPS/Text/title_page.xhtml",
                 "pywebnovel.json",
@@ -216,6 +219,7 @@ class RebuildTestCase(TestCase):
                 "pywebnovel.json",
             },
             expected_changed_files={
+                "OEBPS/content.opf",
                 "OEBPS/Text/ch00001.xhtml",
                 "OEBPS/Text/ch00002.xhtml",
                 "OEBPS/Text/ch00003.xhtml",
@@ -247,6 +251,7 @@ class RebuildTestCase(TestCase):
                 "pywebnovel.json",
             },
             expected_changed_files={
+                "OEBPS/content.opf",
                 "OEBPS/Text/ch00001.xhtml",
                 "OEBPS/Text/ch00002.xhtml",
                 "OEBPS/Text/ch00003.xhtml",

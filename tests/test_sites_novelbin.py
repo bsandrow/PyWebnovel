@@ -177,6 +177,9 @@ class NovelBinScraperTestCase(TestCase):
             cover_image=Image(url="https://media.novelbin.net/novel/the-frozen-player-returns.jpg"),
             # Note: There are over a hundred chapters here, so I don't want to have to define all of them. I'll just
             #       assert that they are all chapter instances below.
+            extras={"Rating": "7.9 out of 10 [259 vote(s)]"},
+            published_on=None,
+            last_updated_on=None,
             chapters=mock.ANY,
             extra_css=novelbin.NovelBinScraper.extra_css,
         )
