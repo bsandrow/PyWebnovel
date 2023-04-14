@@ -56,6 +56,9 @@ class NovelBinChapterScraper(ChapterScraper):
             chapter.title = Chapter.clean_title(match.group(0))
             remove_element(title_header)
 
+        chapter.title = re.sub(r"Side Story  (\d+):", r"Side Story Chapter \1:", chapter.title, re.IGNORECASE)
+        chapter.title = re.sub(r"(Chapter \d+)- ", r"\1: ", chapter.title, re.IGNORECASE)
+
 
 class NovelBinScraper(NovelScraper):
     """Scraper for NovelBin.net."""
