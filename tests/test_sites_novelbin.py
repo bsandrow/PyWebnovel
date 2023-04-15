@@ -31,7 +31,7 @@ class NovelBinChapterScraperTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.chapter_page = get_test_data("novelbin_chapter.html")
+        cls.chapter_page = get_test_data("novelbin/chapter.html")
 
     def test_chapter_scraper(self):
         with requests_mock.Mocker() as m:
@@ -60,8 +60,8 @@ class NovelBinScraperTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.novel_page = get_test_data("novelbin_novel.html")
-        cls.chlist_page = get_test_data("novelbin_chapterlist.html")
+        cls.novel_page = get_test_data("novelbin/novel.html")
+        cls.chlist_page = get_test_data("novelbin/chapterlist.html")
 
     def test_get_novel_id_fails(self):
         scraper = novelbin.NovelBinScraper()

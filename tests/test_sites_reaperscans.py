@@ -15,7 +15,7 @@ class GetCsrfTokenTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.novel_page = get_test_data("reaperscans_novel.html")
+        cls.novel_page = get_test_data("reaperscans/novel.html")
 
     def test_extracts_csrf_token(self):
         soup = BeautifulSoup(self.novel_page, "html.parser")
@@ -258,9 +258,9 @@ class ReaperScansScraperTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.novel_page = get_test_data("reaperscans_novel.html")
-        cls.json_p1 = get_test_data("reaperscans_chlist_p1.json")
-        cls.json_p2 = get_test_data("reaperscans_chlist_p2.json")
+        cls.novel_page = get_test_data("reaperscans/novel.html")
+        cls.json_p1 = get_test_data("reaperscans/chlist_p1.json")
+        cls.json_p2 = get_test_data("reaperscans/chlist_p2.json")
 
     def setUp(self):
         self.requests_mock = requests_mock.Mocker()

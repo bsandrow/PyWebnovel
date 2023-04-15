@@ -29,8 +29,8 @@ class WuxiaWorldDotSiteScraperTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.novel_page = get_test_data("wuxiaworld_site_novel.html")
-        cls.chlist_page = get_test_data("wuxiaworld_site_chlist.html")
+        cls.novel_page = get_test_data("wuxiaworldsite/novel.html")
+        cls.chlist_page = get_test_data("wuxiaworldsite/chlist.html")
 
     def setUp(self):
         self.requests_mock = requests_mock.Mocker()
