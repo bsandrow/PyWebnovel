@@ -38,20 +38,20 @@ class NovelBinChapterScraperTestCase(TestCase):
             m.get(self.url, text=self.chapter_page)
             scraper = novelbin.NovelBinChapterScraper()
             chapter = Chapter(url=self.url, title="Chapter 405. Return of the Moon (4)", chapter_no=405)
-            self.assertIsNone(chapter.html_content)
+            self.assertIsNone(chapter.html)
             scraper.process_chapter(chapter)
-            self.assertIsInstance(chapter.html_content, Tag)
+            self.assertIsInstance(chapter.html, Tag)
             self.assertIn("Chapter 405. Return of the Moon (4)", self.chapter_page)
-            self.assertNotIn("Chapter 405. Return of the Moon (4)", str(chapter.html_content))
+            self.assertNotIn("Chapter 405. Return of the Moon (4)", str(chapter.html))
 
     def test_chapter_scraper_without_title_in_content(self):
         with requests_mock.Mocker() as m:
             m.get(self.url, text=self.chapter_page.replace("Chapter 405. Return of", ""))
             scraper = novelbin.NovelBinChapterScraper()
             chapter = Chapter(url=self.url, title="Chapter 405. Return of the Moon (4)", chapter_no=405)
-            self.assertIsNone(chapter.html_content)
+            self.assertIsNone(chapter.html)
             scraper.process_chapter(chapter)
-            self.assertIsInstance(chapter.html_content, Tag)
+            self.assertIsInstance(chapter.html, Tag)
 
 
 class NovelBinScraperTestCase(TestCase):
@@ -153,7 +153,7 @@ class NovelBinScraperTestCase(TestCase):
                 title="Chapter 1: Prologue",
                 chapter_no=0,
                 slug="chapter-1-prologue",
-                html_content=None,
+                html=None,
             ),
         )
 

@@ -457,7 +457,7 @@ class ChapterFile(EpubInternalFile):
         """Generate the XHTML file for a chapter."""
         chapter = self.get_chapter(pkg)
         parent = Path(self.filename).parent
-        content = str(chapter.html_content)
+        content = str(chapter.html)
 
         if pkg.include_images:
             for image_file in pkg.images:

@@ -198,11 +198,11 @@ class ChapterScraper(ScraperBase):
 
     def post_processing(self, chapter: Chapter) -> None:
         """
-        Post-processing of the chapter after html_content has been filled in.
+        Post-processing of the chapter after html has been filled in.
 
         By default, this will run the
         """
-        html.run_filters(chapter.html_content, filters=self.content_filters)
+        html.run_filters(chapter.html, filters=self.content_filters)
 
     def get_content(self, page: BeautifulSoup) -> Tag:
         """Extract the section of the HTML from page that contains the chapter's content."""
@@ -210,11 +210,11 @@ class ChapterScraper(ScraperBase):
 
     def process_chapter(self, chapter: Chapter) -> None:
         """
-        Populate the html_content of a Chapter.
+        Populate the html of a Chapter.
 
         Use content_selector to extract chapter content, then pass to post_processing
         a Chapter fetched via Chapter.url.
         """
         page = self.get_page(chapter.url)
-        chapter.html_content = self.get_content(page)
+        chapter.html = self.get_content(page)
         self.post_processing(chapter)

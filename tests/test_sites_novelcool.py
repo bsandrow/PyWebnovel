@@ -84,7 +84,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 32",
                         chapter_no=32,
                         slug="creepy-story-club-Chapter-32",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 8, 20),
                     ),
                     Chapter(
@@ -92,7 +92,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 31",
                         chapter_no=31,
                         slug="creepy-story-club-Chapter-31",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 8, 20),
                     ),
                     Chapter(
@@ -100,7 +100,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 30",
                         chapter_no=30,
                         slug="creepy-story-club-Chapter-30",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 8, 20),
                     ),
                     Chapter(
@@ -108,7 +108,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 29",
                         chapter_no=29,
                         slug="creepy-story-club-Chapter-29",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 8, 20),
                     ),
                     Chapter(
@@ -116,7 +116,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 28",
                         chapter_no=28,
                         slug="creepy-story-club-Chapter-28",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 8, 20),
                     ),
                     Chapter(
@@ -124,7 +124,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 27",
                         chapter_no=27,
                         slug="creepy-story-club-Chapter-27",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 8, 20),
                     ),
                     Chapter(
@@ -132,7 +132,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 26",
                         chapter_no=26,
                         slug="creepy-story-club-Chapter-26",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 8, 20),
                     ),
                     Chapter(
@@ -140,7 +140,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 25",
                         chapter_no=25,
                         slug="creepy-story-club-Chapter-25",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 8, 20),
                     ),
                     Chapter(
@@ -148,7 +148,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 24",
                         chapter_no=24,
                         slug="creepy-story-club-Chapter-24",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 8, 20),
                     ),
                     Chapter(
@@ -156,7 +156,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 23",
                         chapter_no=23,
                         slug="creepy-story-club-Chapter-23",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 8, 20),
                     ),
                     Chapter(
@@ -164,7 +164,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 22",
                         chapter_no=22,
                         slug="creepy-story-club-Chapter-22",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 8, 20),
                     ),
                     Chapter(
@@ -172,7 +172,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 21",
                         chapter_no=21,
                         slug="creepy-story-club-Chapter-21",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 8, 20),
                     ),
                     Chapter(
@@ -180,7 +180,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 20",
                         chapter_no=20,
                         slug="creepy-story-club-Chapter-20",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 8, 20),
                     ),
                     Chapter(
@@ -188,7 +188,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 19",
                         chapter_no=19,
                         slug="creepy-story-club-Chapter-19",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 8, 20),
                     ),
                     Chapter(
@@ -196,7 +196,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 18",
                         chapter_no=18,
                         slug="creepy-story-club-Chapter-18",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 8, 5),
                     ),
                     Chapter(
@@ -204,7 +204,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 17",
                         chapter_no=17,
                         slug="creepy-story-club-Chapter-17",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 8, 5),
                     ),
                     Chapter(
@@ -212,7 +212,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 16",
                         chapter_no=16,
                         slug="creepy-story-club-Chapter-16",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 8, 5),
                     ),
                     Chapter(
@@ -220,7 +220,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 15",
                         chapter_no=15,
                         slug="creepy-story-club-Chapter-15",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 8, 5),
                     ),
                     Chapter(
@@ -228,7 +228,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 14",
                         chapter_no=14,
                         slug="creepy-story-club-Chapter-14",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 8, 5),
                     ),
                     Chapter(
@@ -236,7 +236,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 13",
                         chapter_no=13,
                         slug="creepy-story-club-Chapter-13",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 8, 5),
                     ),
                     Chapter(
@@ -244,7 +244,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 12",
                         chapter_no=12,
                         slug="creepy-story-club-Chapter-12",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 8, 5),
                     ),
                     Chapter(
@@ -252,7 +252,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 11",
                         chapter_no=11,
                         slug="creepy-story-club-Chapter-11",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 8, 5),
                     ),
                     Chapter(
@@ -260,7 +260,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 10",
                         chapter_no=10,
                         slug="creepy-story-club-Chapter-10",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 8, 5),
                     ),
                     Chapter(
@@ -268,7 +268,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 9",
                         chapter_no=9,
                         slug="creepy-story-club-Chapter-9",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 7, 26),
                     ),
                     Chapter(
@@ -276,7 +276,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 8",
                         chapter_no=8,
                         slug="creepy-story-club-Chapter-8",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 7, 26),
                     ),
                     Chapter(
@@ -284,7 +284,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 7",
                         chapter_no=7,
                         slug="creepy-story-club-Chapter-7",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 7, 26),
                     ),
                     Chapter(
@@ -292,7 +292,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 6",
                         chapter_no=6,
                         slug="creepy-story-club-Chapter-6",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 7, 23),
                     ),
                     Chapter(
@@ -300,7 +300,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 5",
                         chapter_no=5,
                         slug="creepy-story-club-Chapter-5",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 7, 23),
                     ),
                     Chapter(
@@ -308,7 +308,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 4",
                         chapter_no=4,
                         slug="creepy-story-club-Chapter-4",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 7, 23),
                     ),
                     Chapter(
@@ -316,7 +316,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 3",
                         chapter_no=3,
                         slug="creepy-story-club-Chapter-3",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 7, 23),
                     ),
                     Chapter(
@@ -324,7 +324,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 2",
                         chapter_no=2,
                         slug="creepy-story-club-Chapter-2",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 7, 23),
                     ),
                     Chapter(
@@ -332,7 +332,7 @@ class NovelCoolScraperTestCase(TestCase):
                         title="Creepy Story Club Chapter 1",
                         chapter_no=1,
                         slug="creepy-story-club-Chapter-1",
-                        html_content=None,
+                        html=None,
                         pub_date=datetime.date(2022, 7, 23),
                     ),
                 ]
@@ -359,7 +359,7 @@ class NovelCoolChapterScraperTestCase(TestCase):
         chapter = Chapter(
             url="https://example.com",
             title="Chapter 32",
-            html_content=novelcool.NovelCoolChapterScraper().get_content(page),
+            html=novelcool.NovelCoolChapterScraper().get_content(page),
         )
         novelcool.NovelCoolChapterScraper().post_processing(chapter)
         expected = (
@@ -372,4 +372,4 @@ class NovelCoolChapterScraperTestCase(TestCase):
             "\n\n"
             "</div>"
         )
-        self.assertEqual(str(chapter.html_content), expected)
+        self.assertEqual(str(chapter.html), expected)

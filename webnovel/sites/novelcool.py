@@ -80,7 +80,7 @@ class NovelCoolChapterScraper(ChapterScraper):
         """Extra NovelCool-specific processing."""
         super().post_processing(chapter)
 
-        ch_title = chapter.html_content.select_one(".chapter-title")
+        ch_title = chapter.html.select_one(".chapter-title")
         if ch_title:
             remove_element(ch_title)
 

@@ -44,7 +44,7 @@ class NovelBinChapterScraper(ChapterScraper):
         """Do extra chapter title processing."""
         super().post_processing(chapter)
 
-        target_html = chapter.html_content
+        target_html = chapter.html
         direct_descendants = target_html.find_all(recursive=False)
 
         while len(direct_descendants) == 1:
