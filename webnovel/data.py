@@ -1,6 +1,6 @@
 """Define all of the basic datastructures we'll use to pass novels around."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 import datetime
 from enum import Enum
 import imghdr
@@ -315,3 +315,24 @@ class Novel:
     extras: Optional[dict] = None
     published_on: Optional[datetime.date] = None
     last_updated_on: Optional[datetime.date] = None
+
+
+@dataclass
+class ParsingOptions:
+    """Options that control parsing."""
+
+    # Control whether or not to include "Author's Notes" sections in the chapter
+    # content, or to remove it entirely.
+    include_authors_notes: bool = True
+
+    # Control which html parsr to use with BeautifulSoup. Default is the
+    # built-in html.parser. This is not meant to be exposed to users (e.g. via
+    # the command-line)
+    html_parser: str = "html.parser"
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "ParsingOptions":
+        """Initialize from a dictionary."""
+        field_types_map = {field.name: field.type for field in fields(cls)}
+        kwargs = {key: value for key, value in data.items() if key in field_types_map}
+        return cls(**kwargs)

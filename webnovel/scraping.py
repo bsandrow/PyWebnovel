@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup, Tag
 from pyrate_limiter import Duration, Limiter, RequestRate
 
 from webnovel import html, http
-from webnovel.data import Chapter, Image, Novel, NovelStatus, Person
+from webnovel.data import Chapter, Image, Novel, NovelStatus, ParsingOptions, Person
 from webnovel.logs import LogTimer
 
 HTTPS_PREFIX = r"https?://(?:www\.)?"
@@ -26,12 +26,20 @@ class ScraperBase:
     site_name: str
     http_client: http.HttpClient
     limiter: Limiter
-    parser: str
+    options: ParsingOptions
 
-    def __init__(self, parser: str = "html.parser", http_client: http.HttpClient = None) -> None:
+    def __init__(
+        self, options: Optional[Union[dict, ParsingOptions]] = None, http_client: http.HttpClient = None
+    ) -> None:
         self.http_client = http_client or http.get_client()
         self.limiter = self.get_limiter()
-        self.parser = parser
+        self.options = (
+            options
+            if isinstance(options, ParsingOptions)
+            else ParsingOptions.from_dict(options)
+            if isinstance(options, dict)
+            else ParsingOptions()
+        )
         assert self.site_name is not None
 
     def get_limiter(self):
@@ -44,7 +52,7 @@ class ScraperBase:
 
         :param content: The HTML content to pass to the parser.
         """
-        return BeautifulSoup(content, self.parser)
+        return BeautifulSoup(content, self.options.html_parser)
 
     def get_page(self, url, method: str = "get", data: dict = None) -> BeautifulSoup:
         """Fetch the page at the url and return it as a BeautifulSoup instance."""
