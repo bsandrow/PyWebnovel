@@ -54,6 +54,16 @@ class ScraperBase:
         """
         return BeautifulSoup(content, self.options.html_parser)
 
+    def get_json(self, url, method: str = "get", data: dict = None) -> Union[dict, list]:
+        """Fetch the JSON at the URL and return it."""
+        client_method = getattr(self.http_client, method)
+        with self.limiter.ratelimit("get_page", delay=True):
+            response = client_method(url, data=data)
+            if response.elapsed.total_seconds() > 1:
+                logger.debug("Took %f second(s) to fetch url=%s", response.elapsed.total_seconds(), repr(url))
+        response.raise_for_status()
+        return response.json()
+
     def get_page(self, url, method: str = "get", data: dict = None) -> BeautifulSoup:
         """Fetch the page at the url and return it as a BeautifulSoup instance."""
         client_method = getattr(self.http_client, method)
