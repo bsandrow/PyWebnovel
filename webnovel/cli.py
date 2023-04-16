@@ -2,7 +2,35 @@
 
 import click
 
-from webnovel import actions, turn_on_logging
+from webnovel import actions, http, turn_on_logging
+
+
+class App:
+    """Central Application for PyWebnovel."""
+
+    debug: bool = False
+    format: str = "epub"
+    client: http.HttpClient
+
+    def __init__(self, debug: bool = False, format: str = "epub"):
+        self.debug = debug
+        self.format = format
+        self.client = http.get_client()
+
+    def __getattr__(self, name: str):
+        """Override attribute access to pass through to 'actions'."""
+        try:
+            return getattr(actions, name)
+        except AttributeError:
+            raise AttributeError(name)
+
+    def set_user_agent(self, user_agent_string: str) -> None:
+        """Set the User-Agent header on the session."""
+        self.client._session.headers["User-Agent"] = user_agent_string
+
+    def set_cookie(self, cookie_name: str, cookie_value: str) -> None:
+        """Set a cookie name/value pair on the current session."""
+        self.client._session.cookies.set(cookie_name, cookie_value)
 
 
 class Namespace(dict):
@@ -19,8 +47,14 @@ class Namespace(dict):
         self[name] = value
 
 
+# Make sure we are always passing App instance.
+pass_app = click.make_pass_decorator(App)
+
+
 @click.group()
 @click.option("--debug/--no-debug", default=False, help="Enable/disable debugging output.")
+@click.option("--user-agent", help="Set the User-Agent header for all requests.")
+@click.option("--cookie", "cookies", metavar="VAR=VALUE", multiple=True, help="Set a cookie value.")
 @click.option(
     "--format",
     metavar="FORMAT",
@@ -28,16 +62,18 @@ class Namespace(dict):
     help="Specify the format of the ebook. Currently only 'epub' is supported.",
 )
 @click.pass_context
-def pywn(ctx, debug, format):
+def pywn(ctx, debug, user_agent, cookies, format):
     """
     Create, edit and update ebooks of webnovels.
 
     NOTE: Only ebooks created by PyWebnovel can be managed in this way as
           application data is stored in a JSON file within the ebook itself.
     """
-    ctx.ensure_object(Namespace)
-    ctx.obj.debug = debug
-    ctx.obj.format = format
+    ctx.obj = app = App(debug=debug, format=format)
+    app.set_user_agent(user_agent)
+    for cookie in cookies:
+        name, _, value = cookie.partition("=")
+        app.set_cookie(name, value)
 
 
 @pywn.command()
@@ -58,8 +94,8 @@ def pywn(ctx, debug, format):
         "providing a path to an image file will also be supported."
     ),
 )
-@click.pass_obj
-def create(opts, novel_url, filename, chapter_limit, cover_image):
+@pass_app
+def create(app, novel_url, filename, chapter_limit, cover_image):
     """Create an ebook file from NOVEL_URL."""
     turn_on_logging()
     actions.create_epub(
@@ -73,8 +109,8 @@ def create(opts, novel_url, filename, chapter_limit, cover_image):
 @pywn.command()
 @click.argument("ebook")
 @click.option("--limit", type=int, default=None)
-@click.pass_obj
-def update(opts, ebook, limit):
+@pass_app
+def update(app, ebook, limit):
     """Update EBOOK with any new chapters that have been published."""
     turn_on_logging()
     actions.update(ebook, limit)
@@ -89,8 +125,8 @@ def update(opts, ebook, limit):
     multiple=True,
     help="Redownload / process the specified chapter(s)",
 )
-@click.pass_obj
-def rebuild(opts, ebook, reload_chapters):
+@pass_app
+def rebuild(app, ebook, reload_chapters):
     """
     Rebuild an existing ebook.
 
@@ -105,8 +141,8 @@ def rebuild(opts, ebook, reload_chapters):
 @pywn.command()
 @click.argument("ebook")
 @click.argument("cover_image")
-@click.pass_obj
-def set_cover(opts: Namespace, ebook: str, cover_image: str) -> None:
+@pass_app
+def set_cover(app: App, ebook: str, cover_image: str) -> None:
     """
     Set the cover image for EBOOK.
 
