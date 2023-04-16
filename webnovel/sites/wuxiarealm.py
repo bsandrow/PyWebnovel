@@ -1,12 +1,13 @@
 """WuxiaRealm.com scrapers and utilities."""
 
+import datetime
 import logging
 import re
 from typing import Union
 
 from bs4 import BeautifulSoup, Comment
 
-from webnovel import data
+from webnovel import data, errors
 from webnovel.logs import LogTimer
 from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraper, Selector
 
@@ -15,16 +16,25 @@ logger = logging.getLogger(__name__)
 timer = LogTimer(logger)
 
 
-class ScribbleHubScraper(NovelScraper):
+class WuxiaRealmScraper(NovelScraper):
     """Novel Scraper for WuxiaRealm.com."""
 
     url_pattern = HTTPS_PREFIX + r"wuxiarealm\.com/novel/(?P<NovelID>[\w\d-]+)/"
+    site_name = "WuxiaRealm.com"
     url_cache: dict
     status_map = {
         "ongoing": data.NovelStatus.ONGOING,
-        "completed": data.NovelStatus.COMPLETED,
+        "complete": data.NovelStatus.COMPLETED,
         "hiatus": data.NovelStatus.HIATUS,
     }
+
+    @staticmethod
+    def build_chapter_list_url(novel_id: str, page_size: int = 100, order: str = "ASC", page_no: int = 1):
+        """Build the chapter list API URL based on the passed parameters."""
+        assert order in ("ASC", "DESC"), "Only valid values to order are: ASC and DESC"
+        assert page_size <= 100, "The API limits page size to 100. Larger values are ignored."
+        params = f"category={novel_id}&perpage={page_size}&order={order}&paged={page_no}"
+        return f"https://wuxiarealm.com/wp-json/novel-id/v1/dapatkan_chapter_dengan_novel?{params}"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -52,7 +62,7 @@ class ScribbleHubScraper(NovelScraper):
         """Extract the series summary."""
         url = self.get_series_json_url(page)
         series_json = self.get_series_json(url)
-        return list(BeautifulSoup(series_json["content"]["rendered"], "html.parser").children)[0]
+        return next(BeautifulSoup(series_json["content"]["rendered"], "html.parser").children)
 
     def get_genres(self, page):
         """Extract genres."""
@@ -64,19 +74,9 @@ class ScribbleHubScraper(NovelScraper):
         return [genre["name"] for genre in genres_json]
 
     def get_tags(self, page):
-        """
-        Extract tags.
-
-        For now, trying to use this method to access the tags list results in a
-        401, so just do nothing.
-        """
-        # url = self.get_series_json_url(page)
-        # series_json = self.get_series_json(url)
-        # series_id = series_json["id"]
-        # tags_url = f"https://wuxiarealm.com/wp-json/wp/v2/tags?post={series_id}"
-        # tags_json = self.get_series_json(tags_url)
-        # return [tag["name"] for genre in tags_url]
-        return None
+        """Extract tags."""
+        tags_list = page.select_one("#tagku")
+        return [list_item.text.strip() for list_item in tags_list.find_all("li", recursive=False)]
 
     def get_author(self, page):
         """Return the author."""
@@ -88,22 +88,47 @@ class ScribbleHubScraper(NovelScraper):
                     return data.Person(name=li.text.strip())
         return None
 
+    def get_chapters(self, page, url):
+        """Iterate over the paginated chapter list API to build the list of chapters."""
+        url = self.get_series_json_url(page)
+        series_json = self.get_series_json(url)
+        series_id = series_json["id"]
+        page_no = 1
+        chapter_list = []
+
+        while chapter_json := self.get_json(self.build_chapter_list_url(novel_id=series_id, page_no=page_no)):
+            if not isinstance(chapter_json, list):
+                raise errors.ParseError("Expect chapter json response to be a list.")
+
+            for idx, chapter_data in enumerate(chapter_json, start=len(chapter_list)):
+                pub_date_str = chapter_data["post_date"]
+                chapter = data.Chapter(
+                    url=chapter_data["permalink"],
+                    chapter_no=idx,
+                    slug=chapter_data["post_name"],
+                    title=chapter_data["post_title"],
+                    pub_date=datetime.datetime.strptime(pub_date_str, "%Y-%m-%d %H:%M:%S") if pub_date_str else None,
+                )
+                chapter_list.append(chapter)
+
+            page_no += 1
+
+        return chapter_list
+
     def get_status(self, page):
         """Extract the status of the series."""
         for elem in page.select("div.mb-4"):
             h3 = elem.find("h3")
             if h3 and h3.text.strip() == "Status":
                 li = elem.find("li")
-                return self.status_map.get(li.text.strip().lower()) if li else data.NovelStatus.UNKNOWN
+                value = li.text.strip().lower() if li else None
+                return self.status_map[value] if value in self.status_map else data.NovelStatus.UNKNOWN
         return data.NovelStatus.UNKNOWN
 
     def get_cover_image(self, page):
         """Extract the cover image."""
-        comment = page.find(
-            text=lambda text: isinstance(text, Comment) and comment.string.strip().lower() == "novel thumbnail"
-        )
-        img = comment.next_sibling.find("img") if comment else None
-        return data.Image(url=img["href"]) if img else None
+        cover_image = page.find("img", alt=lambda alt: alt and alt.startswith("Thumbnail "))
+        return data.Image(url=cover_image["data-src"]) if cover_image else None
 
     def post_processing(self, page, url, novel):
         """Post-process novel-scraping."""
