@@ -7,7 +7,7 @@ from typing import Union
 
 from bs4 import BeautifulSoup, Comment
 
-from webnovel import data, errors
+from webnovel import data, errors, html
 from webnovel.logs import LogTimer
 from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraper, Selector
 
@@ -159,3 +159,28 @@ class WuxiaRealmScraper(NovelScraper):
             ratings_votes = match.group("votes")
             ratings_score = match.group("score")
             novel.extras["Rating"] = f"{ratings_score} ({ratings_votes} vote(s))"
+
+
+class RemoveChapterControls(html.HtmlFilter):
+    """Html Filter to Remove Chapter Controls Mixed with Chapter Content."""
+
+    def filter(self, html_tree):
+        """Filter the elements out of the provided tree."""
+        for selector in (
+            ".chapternav",
+            ".code-block-1",
+            ".code-block-2",
+            ".code-block-3",
+            "[title='Edited Translated']",
+        ):
+            for element in html_tree.select(selector):
+                html.remove_element(element)
+
+
+class WuxiaRealmChapterScraper(ChapterScraper):
+    """Chapter Scraper for WuxiaRealm.com."""
+
+    site_name = SITE_NAME
+    url_pattern = HTTPS_PREFIX + r"wuxiarealm.com/(?P<NovelID>[\w\d-]+)/(?P<ChapterID>[\w\d-]+)/"
+    content_selector = Selector("#soop")
+    content_filters = ChapterScraper.content_filters + [RemoveChapterControls]
