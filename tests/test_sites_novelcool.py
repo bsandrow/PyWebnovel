@@ -8,13 +8,12 @@ from webnovel.sites import novelcool
 
 from .helpers import get_test_data
 
+NOVEL_PAGE = get_test_data("novelcool/novel.html")
+CHAPTER_PAGE = get_test_data("novelcool/chapter.html")
+
 
 class NovelCoolScraperTestCase(TestCase):
     maxDiff = None
-
-    @classmethod
-    def setUpClass(cls):
-        cls.novel_page = get_test_data("novelcool/novel.html")
 
     def test_get_novel_id(self):
         self.assertEqual(
@@ -31,37 +30,37 @@ class NovelCoolScraperTestCase(TestCase):
         self.assertFalse(novelcool.NovelCoolScraper.supports_url("http://www.novelcool.com/novel/Creepy-Story-Club"))
 
     def test_get_title(self):
-        page = BeautifulSoup(self.novel_page, "html.parser")
+        page = BeautifulSoup(NOVEL_PAGE, "html.parser")
         actual = novelcool.NovelCoolScraper().get_title(page)
         expected = "Creepy Story Club"
         self.assertEqual(actual, expected)
 
     def test_get_author(self):
-        page = BeautifulSoup(self.novel_page, "html.parser")
+        page = BeautifulSoup(NOVEL_PAGE, "html.parser")
         actual = novelcool.NovelCoolScraper().get_author(page)
         expected = Person(name="每月一更")
         self.assertEqual(actual, expected)
 
     def test_get_status(self):
-        page = BeautifulSoup(self.novel_page, "html.parser")
+        page = BeautifulSoup(NOVEL_PAGE, "html.parser")
         actual = novelcool.NovelCoolScraper().get_status(page)
         expected = NovelStatus.ONGOING
         self.assertEqual(actual, expected)
 
     def test_get_cover_image(self):
-        page = BeautifulSoup(self.novel_page, "html.parser")
+        page = BeautifulSoup(NOVEL_PAGE, "html.parser")
         actual = novelcool.NovelCoolScraper().get_cover_image(page)
         expected = Image(url="https://img.novelcool.com/logo/202207/ae/creepy_story_club3051.jpg")
         self.assertEqual(actual, expected)
 
     def test_get_genres(self):
-        page = BeautifulSoup(self.novel_page, "html.parser")
+        page = BeautifulSoup(NOVEL_PAGE, "html.parser")
         actual = set(novelcool.NovelCoolScraper().get_genres(page))
         expected = {"Fantasy", "Creepy", "Xuanhuan"}
         self.assertEqual(actual, expected)
 
     def test_get_summary(self):
-        page = BeautifulSoup(self.novel_page, "html.parser")
+        page = BeautifulSoup(NOVEL_PAGE, "html.parser")
         actual = novelcool.NovelCoolScraper().get_summary(page)
         expected = (
             "Left out during elementary school picnic.\n"
@@ -74,7 +73,7 @@ class NovelCoolScraperTestCase(TestCase):
         self.assertEqual(actual, expected)
 
     def test_get_chapters(self):
-        page = BeautifulSoup(self.novel_page, "html.parser")
+        page = BeautifulSoup(NOVEL_PAGE, "html.parser")
         actual = novelcool.NovelCoolScraper().get_chapters(page, url="")
         expected = list(
             reversed(
@@ -344,18 +343,14 @@ class NovelCoolScraperTestCase(TestCase):
 class NovelCoolChapterScraperTestCase(TestCase):
     maxDiff = None
 
-    @classmethod
-    def setUpClass(cls):
-        cls.ch_page = get_test_data("novelcool/chapter.html")
-
     def test_get_content(self):
-        page = BeautifulSoup(self.ch_page, "html.parser")
+        page = BeautifulSoup(CHAPTER_PAGE, "html.parser")
         actual = novelcool.NovelCoolChapterScraper().get_content(page)
         expected = page.select_one(".overflow-hidden")
         self.assertEqual(actual, expected)
 
     def test_get_content_with_post_processing(self):
-        page = BeautifulSoup(self.ch_page, "html.parser")
+        page = BeautifulSoup(CHAPTER_PAGE, "html.parser")
         chapter = Chapter(
             url="https://example.com",
             title="Chapter 32",

@@ -9,16 +9,14 @@ from webnovel.sites import reaperscans
 
 from .helpers import get_test_data
 
+NOVEL_PAGE = get_test_data("reaperscans/novel.html")
+JSON_P1 = get_test_data("reaperscans/chlist_p1.json")
+JSON_P2 = get_test_data("reaperscans/chlist_p2.json")
+
 
 class GetCsrfTokenTestCase(TestCase):
-    novel_page: str
-
-    @classmethod
-    def setUpClass(cls):
-        cls.novel_page = get_test_data("reaperscans/novel.html")
-
     def test_extracts_csrf_token(self):
-        soup = BeautifulSoup(self.novel_page, "html.parser")
+        soup = BeautifulSoup(NOVEL_PAGE, "html.parser")
         actual = reaperscans.get_csrf_token(soup)
         expected = "9DQroQWIrwO7dV7lV8P5LRx1H7RT5hc90UzLVNrj"
         self.assertEqual(actual, expected)
@@ -239,9 +237,6 @@ class RemoveStartingBannerFilterTestCase(TestCase):
 class ReaperScansScraperTestCase(TestCase):
     maxDiff = None
     novel_url = "https://reaperscans.com/novels/1234-creepy-story-club"
-    novel_page: str
-    json_p1: str
-    json_p2: str
 
     def test_get_novel_id(self):
         actual = reaperscans.ReaperScansScraper.get_novel_id("https://reaperscans.com/novels/1234-creepy-story-club")
@@ -256,25 +251,19 @@ class ReaperScansScraperTestCase(TestCase):
         self.assertTrue(supports_url("http://www.reaperscans.com/novels/7145-creepy-story-club/"))
         self.assertFalse(supports_url("https://reaperscans.com/novels/creepy-story-club/"))
 
-    @classmethod
-    def setUpClass(cls):
-        cls.novel_page = get_test_data("reaperscans/novel.html")
-        cls.json_p1 = get_test_data("reaperscans/chlist_p1.json")
-        cls.json_p2 = get_test_data("reaperscans/chlist_p2.json")
-
     def setUp(self):
         self.requests_mock = requests_mock.Mocker()
         self.requests_mock.start()
-        self.requests_mock.get("/novels/1234-creepy-story-club", text=self.novel_page)
+        self.requests_mock.get("/novels/1234-creepy-story-club", text=NOVEL_PAGE)
         self.requests_mock.post(
             "/livewire/message/frontend.novel-chapters-list",
             additional_matcher=lambda r: r.json()["serverMemo"]["data"]["page"] == 1,
-            text=self.json_p1,
+            text=JSON_P1,
         )
         self.requests_mock.post(
             "/livewire/message/frontend.novel-chapters-list",
             additional_matcher=lambda r: r.json()["serverMemo"]["data"]["page"] > 1,
-            text=self.json_p2,
+            text=JSON_P2,
         )
 
     def tearDown(self):
@@ -282,27 +271,27 @@ class ReaperScansScraperTestCase(TestCase):
 
     def test_get_title(self):
         scraper = reaperscans.ReaperScansScraper()
-        soup = scraper.get_soup(self.novel_page)
+        soup = scraper.get_soup(NOVEL_PAGE)
         self.assertEqual(scraper.get_title(soup), "Creepy Story Club")
 
     def test_get_status(self):
         scraper = reaperscans.ReaperScansScraper()
-        soup = scraper.get_soup(self.novel_page)
+        soup = scraper.get_soup(NOVEL_PAGE)
         self.assertEqual(scraper.get_status(soup), NovelStatus.ONGOING)
 
     def test_get_genres(self):
         scraper = reaperscans.ReaperScansScraper()
-        soup = scraper.get_soup(self.novel_page)
+        soup = scraper.get_soup(NOVEL_PAGE)
         self.assertEqual(scraper.get_genres(soup), [])
 
     def test_get_author(self):
         scraper = reaperscans.ReaperScansScraper()
-        soup = scraper.get_soup(self.novel_page)
+        soup = scraper.get_soup(NOVEL_PAGE)
         self.assertIsNone(scraper.get_author(soup))
 
     def test_get_summary(self):
         scraper = reaperscans.ReaperScansScraper()
-        soup = scraper.get_soup(self.novel_page)
+        soup = scraper.get_soup(NOVEL_PAGE)
         result = scraper.get_summary(soup)
         self.assertEqual(
             result.text.strip(),
@@ -322,7 +311,7 @@ class ReaperScansScraperTestCase(TestCase):
 
     def test_get_chapters(self):
         scraper = reaperscans.ReaperScansScraper()
-        soup = scraper.get_soup(self.novel_page)
+        soup = scraper.get_soup(NOVEL_PAGE)
         chapters = scraper.get_chapters(soup, self.novel_url)
         self.assertEqual(
             chapters,

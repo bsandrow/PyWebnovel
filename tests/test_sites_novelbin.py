@@ -9,6 +9,10 @@ from webnovel.sites import novelbin
 
 from .helpers import get_test_data
 
+NOVEL_PAGE = get_test_data("novelbin/novel.html")
+CHAPTER_PAGE = get_test_data("novelbin/chapter.html")
+CHAPTER_LIST_PAGE = get_test_data("novelbin/chapterlist.html")
+
 
 class RemoveStayTunedMessageTestCase(TestCase):
     html = (
@@ -26,27 +30,22 @@ class RemoveStayTunedMessageTestCase(TestCase):
 
 
 class NovelBinChapterScraperTestCase(TestCase):
-    chapter_page: str
     url: str = "https://novelbin.net/n/the-frozen-player-returns-nov906203625/cchapter-405-return-of-the-moon-4"
-
-    @classmethod
-    def setUpClass(cls):
-        cls.chapter_page = get_test_data("novelbin/chapter.html")
 
     def test_chapter_scraper(self):
         with requests_mock.Mocker() as m:
-            m.get(self.url, text=self.chapter_page)
+            m.get(self.url, text=CHAPTER_PAGE)
             scraper = novelbin.NovelBinChapterScraper()
             chapter = Chapter(url=self.url, title="Chapter 405. Return of the Moon (4)", chapter_no=405)
             self.assertIsNone(chapter.html)
             scraper.process_chapter(chapter)
             self.assertIsInstance(chapter.html, Tag)
-            self.assertIn("Chapter 405. Return of the Moon (4)", self.chapter_page)
+            self.assertIn("Chapter 405. Return of the Moon (4)", CHAPTER_PAGE)
             self.assertNotIn("Chapter 405. Return of the Moon (4)", str(chapter.html))
 
     def test_chapter_scraper_without_title_in_content(self):
         with requests_mock.Mocker() as m:
-            m.get(self.url, text=self.chapter_page.replace("Chapter 405. Return of", ""))
+            m.get(self.url, text=CHAPTER_PAGE.replace("Chapter 405. Return of", ""))
             scraper = novelbin.NovelBinChapterScraper()
             chapter = Chapter(url=self.url, title="Chapter 405. Return of the Moon (4)", chapter_no=405)
             self.assertIsNone(chapter.html)
@@ -55,14 +54,6 @@ class NovelBinChapterScraperTestCase(TestCase):
 
 
 class NovelBinScraperTestCase(TestCase):
-    novel_page: str
-    chlist_page: str
-
-    @classmethod
-    def setUpClass(cls):
-        cls.novel_page = get_test_data("novelbin/novel.html")
-        cls.chlist_page = get_test_data("novelbin/chapterlist.html")
-
     def test_get_novel_id_fails(self):
         scraper = novelbin.NovelBinScraper()
         self.assertIsNone(scraper.get_novel_id("https://example.com/"))
@@ -78,17 +69,17 @@ class NovelBinScraperTestCase(TestCase):
 
     def test_get_title(self):
         scraper = novelbin.NovelBinScraper()
-        soup = scraper.get_soup(self.novel_page)
+        soup = scraper.get_soup(NOVEL_PAGE)
         self.assertEqual(scraper.get_title(soup), "The Frozen Player Returns")
 
     def test_get_status(self):
         scraper = novelbin.NovelBinScraper()
-        soup = scraper.get_soup(self.novel_page)
+        soup = scraper.get_soup(NOVEL_PAGE)
         self.assertEqual(scraper.get_status(soup), NovelStatus.ONGOING)
 
     def test_get_status_handles_unknown(self):
         scraper = novelbin.NovelBinScraper()
-        soup = scraper.get_soup(self.novel_page)
+        soup = scraper.get_soup(NOVEL_PAGE)
         for item in soup.select(".col-novel-main > .col-info-desc > .desc > .info-meta > li"):
             remove_element(item)
         self.assertEqual(soup.select(".col-novel-main > .col-info-desc > .desc > .info-meta > li"), [])
@@ -96,19 +87,19 @@ class NovelBinScraperTestCase(TestCase):
 
     def test_get_genres(self):
         scraper = novelbin.NovelBinScraper()
-        soup = scraper.get_soup(self.novel_page)
+        soup = scraper.get_soup(NOVEL_PAGE)
         self.assertEqual(
             scraper.get_genres(soup), ["Fantasy", "Shounen", "Adventure", "Supernatural", "Romance", "Action"]
         )
 
     def test_get_author(self):
         scraper = novelbin.NovelBinScraper()
-        soup = scraper.get_soup(self.novel_page)
+        soup = scraper.get_soup(NOVEL_PAGE)
         self.assertEqual(scraper.get_author(soup), Person(name="제리엠", url="https://novelbin.net/a/제리엠"))
 
     def test_get_summary(self):
         scraper = novelbin.NovelBinScraper()
-        soup = scraper.get_soup(self.novel_page)
+        soup = scraper.get_soup(NOVEL_PAGE)
         result = scraper.get_summary(soup)
         self.assertIsInstance(result, Tag)
         self.assertEqual(
@@ -141,9 +132,9 @@ class NovelBinScraperTestCase(TestCase):
 
     def test_get_chapters(self):
         scraper = novelbin.NovelBinScraper()
-        soup = scraper.get_soup(self.novel_page)
+        soup = scraper.get_soup(NOVEL_PAGE)
         with requests_mock.Mocker() as m:
-            m.get("/ajax/chapter-archive?novelId=the-frozen-player-returns", text=self.chlist_page)
+            m.get("/ajax/chapter-archive?novelId=the-frozen-player-returns", text=CHAPTER_LIST_PAGE)
             result = scraper.get_chapters(page=soup, url="https://novelbin.net/n/the-frozen-player-returns")
 
         self.assertEqual(
@@ -159,11 +150,11 @@ class NovelBinScraperTestCase(TestCase):
 
     def test_scrape(self):
         with requests_mock.Mocker() as m:
-            m.get("/n/the-frozen-player-returns", text=self.novel_page)
-            m.get("/ajax/chapter-archive?novelId=the-frozen-player-returns", text=self.chlist_page)
+            m.get("/n/the-frozen-player-returns", text=NOVEL_PAGE)
+            m.get("/ajax/chapter-archive?novelId=the-frozen-player-returns", text=CHAPTER_LIST_PAGE)
             scraper = novelbin.NovelBinScraper()
             novel = scraper.scrape("https://novelbin.net/n/the-frozen-player-returns")
-            soup = scraper.get_soup(self.novel_page)
+            soup = scraper.get_soup(NOVEL_PAGE)
 
         expected_novel = Novel(
             url="https://novelbin.net/n/the-frozen-player-returns",
