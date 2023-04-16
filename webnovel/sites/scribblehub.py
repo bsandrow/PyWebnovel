@@ -5,6 +5,8 @@ import json
 import logging
 import re
 
+from bs4 import BeautifulSoup
+
 from webnovel.data import Chapter, Novel, NovelStatus
 from webnovel.html import DEFAULT_FILTERS, remove_element
 from webnovel.logs import LogTimer
@@ -114,7 +116,7 @@ class ScribbleHubScraper(NovelScraper):
                     "Readers": "Readers",
                 }.items():
                     if check in stat.text:
-                        novel.extras[key] = f"{stat.text} (as of {datetime.date.today():%Y-%b-%d})"
+                        novel.extras[key] = f"{stat.text.strip()} (as of {datetime.date.today():%Y-%b-%d})"
 
         return super().post_processing(page, url, novel)
 
@@ -130,3 +132,19 @@ class ScribbleHubChapterScraper(ChapterScraper):
         .wi_authornotes .wi_authornotes_body {padding-top: 10px;}
     """
     content_selector = Selector("#chp_raw")
+
+    def post_processing(self, chapter):
+        """Post-Processing to Transform Author's Notes Block."""
+        super().post_processing(chapter)
+
+        for authors_notes_block in chapter.html.select(".wi_authornotes"):
+            parent = authors_notes_block.parent
+            new_block = BeautifulSoup(
+                """
+                <div class="pywn_authors-notes">
+                    <b><i>Author's Note</i></b>
+                    <p>Author: X</p>
+                </div>
+                """
+                "html.parser",
+            )
