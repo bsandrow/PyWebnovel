@@ -183,4 +183,4 @@ class WuxiaRealmChapterScraper(ChapterScraper):
     site_name = SITE_NAME
     url_pattern = HTTPS_PREFIX + r"wuxiarealm.com/(?P<NovelID>[\w\d-]+)/(?P<ChapterID>[\w\d-]+)/"
     content_selector = Selector("#soop")
-    content_filters = ChapterScraper.content_filters + [RemoveChapterControls]
+    content_filters = ChapterScraper.content_filters + (RemoveChapterControls(),)
