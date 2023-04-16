@@ -4,12 +4,11 @@ import datetime
 import json
 import logging
 import re
-from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
 
-from webnovel.data import Chapter, Novel, NovelStatus
-from webnovel.html import DEFAULT_FILTERS, remove_element
+from webnovel.data import Chapter, NovelStatus
+from webnovel.html import remove_element
 from webnovel.logs import LogTimer
 from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraper, Selector
 
