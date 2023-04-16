@@ -16,6 +16,9 @@ NOVEL_PAGE = get_test_data("scribblehub/novel.html")
 ADMIN_AJAX_URL = "https://www.scribblehub.com/wp-admin/admin-ajax.php"
 ADMIN_AJAX_PAGE = get_test_data("scribblehub/admin-ajax.html")
 
+CHAPTER_URL = "https://www.scribblehub.com/read/123456-creepy-story-club/chapter/54321/"
+CHAPTER_PAGE = get_test_data("scribblehub/chapter.html")
+
 
 class ScribbleHubNovelTestCase(TestCase):
     def test_get_status_ongoing(self):
@@ -173,3 +176,96 @@ class ScribbleHubNovelTestCase(TestCase):
                 last_updated_on=datetime.datetime(2022, 11, 19, 18, 0),
             )
             self.assertEqual(actual, expected)
+
+
+class ScribbleHubChapterTestCase(TestCase):
+    maxDiff = None
+
+    def test_scrape(self):
+        with requests_mock.Mocker() as m:
+            m.get(CHAPTER_URL, text=CHAPTER_PAGE)
+            chapter = data.Chapter(url=CHAPTER_URL)
+            scraper = scribblehub.ScribbleHubChapterScraper()
+
+            self.assertEqual(
+                chapter.to_dict(),
+                {
+                    "url": CHAPTER_URL,
+                    "chapter_no": None,
+                    "slug": None,
+                    "html": None,
+                    "title": None,
+                    "pub_date": None,
+                },
+            )
+
+            scraper.process_chapter(chapter)
+
+            self.assertEqual(
+                chapter.to_dict(),
+                {
+                    "url": CHAPTER_URL,
+                    "chapter_no": None,
+                    "slug": None,
+                    "html": (
+                        '<div class="chp_raw" id="chp_raw">\n'
+                        "\n"
+                        "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do "
+                        "eiusmod tempor incididunt ut labore et dolore magna aliqua. Neque "
+                        "aliquam vestibulum morbi blandit cursus. Phasellus vestibulum lorem "
+                        "sed risus ultricies tristique nulla. Amet mattis vulputate enim "
+                        "nulla. Morbi tristique senectus et netus et malesuada fames ac "
+                        "turpis. Fames ac turpis egestas sed tempus. Eu sem integer vitae "
+                        "justo eget magna fermentum. Quisque non tellus orci ac. Ac felis "
+                        "donec et odio pellentesque diam volutpat commodo sed. Sed enim ut "
+                        "sem viverra. At in tellus integer feugiat scelerisque varius "
+                        "morbi.</p>\n"
+                        "<p>Rhoncus aenean vel elit scelerisque mauris. Ac feugiat sed lectus "
+                        "vestibulum mattis ullamcorper velit sed ullamcorper. Aliquet lectus "
+                        "proin nibh nisl condimentum id. Ipsum dolor sit amet consectetur "
+                        "adipiscing elit ut aliquam. Laoreet sit amet cursus sit amet. Enim "
+                        "ut tellus elementum sagittis vitae et. Velit aliquet sagittis id "
+                        "consectetur purus ut. Sit amet aliquam id diam maecenas ultricies mi "
+                        "eget mauris. Proin nibh nisl condimentum id venenatis a. Velit "
+                        "laoreet id donec ultrices tincidunt arcu non sodales. Lectus mauris "
+                        "ultrices eros in cursus turpis. Est ante in nibh mauris cursus "
+                        "mattis molestie. Nascetur ridiculus mus mauris vitae ultricies leo "
+                        "integer. Vestibulum rhoncus est pellentesque elit. Ac turpis egestas "
+                        "sed tempus urna. Sed viverra tellus in hac habitasse. Leo vel "
+                        "fringilla est ullamcorper eget nulla facilisi.</p>\n"
+                        '<div class="tbl_of">\n'
+                        '<div class="tbl_of">\n'
+                        "\n"
+                        "</div>\n"
+                        "</div>\n"
+                        "<p>Morbi tristique senectus et netus et malesuada fames ac. Nulla "
+                        "facilisi nullam vehicula ipsum a arcu. Aliquet risus feugiat in ante "
+                        "metus dictum at. Semper quis lectus nulla at volutpat diam ut. Quis "
+                        "blandit turpis cursus in hac habitasse platea. Leo a diam "
+                        "sollicitudin tempor. Erat imperdiet sed euismod nisi porta lorem "
+                        "mollis aliquam ut. Ac ut consequat semper viverra nam libero justo "
+                        "laoreet. Vestibulum lorem sed risus ultricies tristique nulla. Vel "
+                        "quam elementum pulvinar etiam.</p>\n"
+                        "<p>Nulla pellentesque dignissim enim sit amet. Amet consectetur "
+                        "adipiscing elit ut. Ut porttitor leo a diam sollicitudin tempor. "
+                        "Egestas sed sed risus pretium quam. Condimentum lacinia quis vel "
+                        "eros donec ac odio tempor. Auctor eu augue ut lectus arcu bibendum "
+                        "at varius vel. Egestas pretium aenean pharetra magna ac placerat "
+                        "vestibulum lectus. Ut porttitor leo a diam. Amet nisl suscipit "
+                        "adipiscing bibendum est ultricies integer quis. Porttitor lacus "
+                        "luctus accumsan tortor posuere. Velit sed ullamcorper morbi "
+                        "tincidunt ornare massa eget.</p>\n"
+                        "<p>Blandit cursus risus at ultrices. Amet aliquam id diam maecenas "
+                        "ultricies mi eget mauris. A lacus vestibulum sed arcu non odio "
+                        "euismod lacinia at. Feugiat pretium nibh ipsum consequat nisl vel "
+                        "pretium. Turpis egestas pretium aenean pharetra magna ac placerat. "
+                        "Ultrices mi tempus imperdiet nulla malesuada pellentesque. Libero "
+                        "justo laoreet sit amet cursus. Vulputate mi sit amet mauris commodo. "
+                        "Vitae purus faucibus ornare suspendisse sed. Lectus nulla at "
+                        "volutpat diam. Donec enim diam vulputate ut pharetra.</p>\n"
+                        "</div>"
+                    ),
+                    "title": None,
+                    "pub_date": None,
+                },
+            )

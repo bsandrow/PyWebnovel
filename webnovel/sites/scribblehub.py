@@ -138,6 +138,7 @@ class ScribbleHubChapterScraper(ChapterScraper):
         super().post_processing(chapter)
 
         for authors_notes_block in chapter.html.select(".wi_authornotes"):
+            remove_element(authors_notes_block)
             parent = authors_notes_block.parent
             new_block = BeautifulSoup(
                 """
@@ -145,6 +146,9 @@ class ScribbleHubChapterScraper(ChapterScraper):
                     <b><i>Author's Note</i></b>
                     <p>Author: X</p>
                 </div>
-                """
+                """,
                 "html.parser",
             )
+
+        while table := chapter.html.find("table"):
+            remove_element(table)
