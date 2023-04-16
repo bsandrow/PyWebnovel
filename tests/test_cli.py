@@ -6,7 +6,7 @@ from webnovel import cli
 
 
 class SetCoverTestCase(TestCase):
-    @mock.patch("webnovel.actions.set_cover_image_for_epub")
+    @mock.patch("webnovel.actions.App.set_cover_image_for_epub")
     def test_run(self, action_mock):
         runner = CliRunner()
         result = runner.invoke(cli.pywn, ["set-cover", "mybook.epub", "cover-image.tiff"])
@@ -15,7 +15,7 @@ class SetCoverTestCase(TestCase):
 
 
 class UpdateCommandTestCase(TestCase):
-    @mock.patch("webnovel.actions.update")
+    @mock.patch("webnovel.actions.App.update")
     def test_run(self, action_mock):
         runner = CliRunner()
         result = runner.invoke(cli.pywn, ["update", "mybook.epub"])
@@ -24,14 +24,14 @@ class UpdateCommandTestCase(TestCase):
 
 
 class RebuildCommandTestCase(TestCase):
-    @mock.patch("webnovel.actions.rebuild")
+    @mock.patch("webnovel.actions.App.rebuild")
     def test_run(self, action_mock):
         runner = CliRunner()
         result = runner.invoke(cli.pywn, ["rebuild", "mybook.epub"])
         self.assertEqual(result.exit_code, 0)
         action_mock.assert_called_once_with("mybook.epub", reload_chapters=tuple())
 
-    @mock.patch("webnovel.actions.rebuild")
+    @mock.patch("webnovel.actions.App.rebuild")
     def test_reload_chapters(self, action_mock):
         runner = CliRunner()
         result = runner.invoke(
@@ -42,7 +42,7 @@ class RebuildCommandTestCase(TestCase):
 
 
 class CreateCommandTestCase(TestCase):
-    @mock.patch("webnovel.actions.create_epub")
+    @mock.patch("webnovel.actions.App.create_epub")
     def test_minimum_call(self, action_mock):
         runner = CliRunner()
         result = runner.invoke(cli.pywn, ["create", "https://example.com/novel/1"])
@@ -51,7 +51,7 @@ class CreateCommandTestCase(TestCase):
             "https://example.com/novel/1", None, cover_image_url=None, chapter_limit=None
         )
 
-    @mock.patch("webnovel.actions.create_epub")
+    @mock.patch("webnovel.actions.App.create_epub")
     def test_handles_filename(self, action_mock):
         runner = CliRunner()
         result = runner.invoke(cli.pywn, ["create", "https://example.com/novel/1", "--filename=test.epub"])
@@ -60,7 +60,7 @@ class CreateCommandTestCase(TestCase):
             "https://example.com/novel/1", "test.epub", cover_image_url=None, chapter_limit=None
         )
 
-    @mock.patch("webnovel.actions.create_epub")
+    @mock.patch("webnovel.actions.App.create_epub")
     def test_handles_cover_image_url(self, action_mock):
         runner = CliRunner()
         result = runner.invoke(
@@ -75,7 +75,7 @@ class CreateCommandTestCase(TestCase):
             chapter_limit=None,
         )
 
-    @mock.patch("webnovel.actions.create_epub")
+    @mock.patch("webnovel.actions.App.create_epub")
     def test_handles_chapter_limit(self, action_mock):
         runner = CliRunner()
         result = runner.invoke(cli.pywn, ["create", "https://example.com/novel/1", "--chapter-limit=40"])

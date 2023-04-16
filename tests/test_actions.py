@@ -1,13 +1,8 @@
-from contextlib import contextmanager
 import os
 from pathlib import Path
-import tempfile
-from typing import Iterable, Optional
-from zipfile import ZipFile
 
 from bs4 import BeautifulSoup
 from freezegun import freeze_time
-import requests_mock
 
 from webnovel import actions, data, epub
 
@@ -165,7 +160,7 @@ class RebuildTestCase(TestCase):
         with self.assert_files_changed(
             self.epub, expected_changed_files={"OEBPS/content.opf", "OEBPS/Text/title_page.xhtml"}
         ):
-            actions.rebuild(self.epub)
+            actions.App().rebuild(self.epub)
 
     def test_reload_chapters(self):
         self.add_chapters_to_epub()
@@ -195,7 +190,7 @@ class RebuildTestCase(TestCase):
                 "pywebnovel.json",
             },
         ):
-            actions.rebuild(self.epub, reload_chapters=["chapter-1"])
+            actions.App().rebuild(self.epub, reload_chapters=["chapter-1"])
 
     def test_reload_chapters_handles_multiple_chapters(self):
         self.add_chapters_to_epub()
@@ -227,7 +222,7 @@ class RebuildTestCase(TestCase):
                 "pywebnovel.json",
             },
         ):
-            actions.rebuild(self.epub, reload_chapters=["chapter-1", "chapter-2", "chapter-14"])
+            actions.App().rebuild(self.epub, reload_chapters=["chapter-1", "chapter-2", "chapter-14"])
 
     def test_reload_chapters_ignores_bad_slug(self):
         self.add_chapters_to_epub()
@@ -259,7 +254,7 @@ class RebuildTestCase(TestCase):
                 "pywebnovel.json",
             },
         ):
-            actions.rebuild(self.epub, reload_chapters=["chapter-1", "chapter-2", "chapter-33", "chapter-14"])
+            actions.App().rebuild(self.epub, reload_chapters=["chapter-1", "chapter-2", "chapter-33", "chapter-14"])
 
 
 class SetCoverImageTestCase(TestCase):
@@ -316,8 +311,8 @@ class SetCoverImageTestCase(TestCase):
             },
             expected_new_files={"OEBPS/Images/0a45005663fb7dee888057d5faa903f8872b94a51767a1bfdab41c85ac3d2feb.png"},
         ):
-            actions.set_cover_image_for_epub(
-                epub_file=self.epub_w_cover, cover_image_path="https://example.com/imgs/cover-image.png"
+            actions.App().set_cover_image_for_epub(
+                filename=self.epub_w_cover, cover_image="https://example.com/imgs/cover-image.png"
             )
 
         #
@@ -358,8 +353,8 @@ class SetCoverImageTestCase(TestCase):
                 # "OEBPS/Text/title_page.xhtml",  # new timestamp for epub generation
             },
         ):
-            actions.set_cover_image_for_epub(
-                epub_file=self.epub_w_cover, cover_image_path=str(Path(__file__).parent / "data" / "test-image.png")
+            actions.App().set_cover_image_for_epub(
+                filename=self.epub_w_cover, cover_image=str(Path(__file__).parent / "data" / "test-image.png")
             )
 
     @freeze_time("2001-01-01 12:15")
@@ -412,10 +407,10 @@ class SetCoverImageTestCase(TestCase):
                 # "OEBPS/Text/title_page.xhtml",  # new timestamp for epub generation
             },
         ):
-            actions.set_cover_image_for_epub(
-                epub_file=self.epub_wo_cover, cover_image_path=str(Path(__file__).parent / "data" / "test-image.png")
+            actions.App().set_cover_image_for_epub(
+                filename=self.epub_wo_cover, cover_image=str(Path(__file__).parent / "data" / "test-image.png")
             )
 
     def test_set_cover_image_handles_bad_filename(self):
         with self.assertRaises(OSError):
-            actions.set_cover_image_for_epub(epub_file=self.epub_w_cover, cover_image_path="does-not-exist.png")
+            actions.App().set_cover_image_for_epub(filename=self.epub_w_cover, cover_image="does-not-exist.png")

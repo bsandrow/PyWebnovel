@@ -2,35 +2,8 @@
 
 import click
 
-from webnovel import actions, http, turn_on_logging
-
-
-class App:
-    """Central Application for PyWebnovel."""
-
-    debug: bool = False
-    format: str = "epub"
-    client: http.HttpClient
-
-    def __init__(self, debug: bool = False, format: str = "epub"):
-        self.debug = debug
-        self.format = format
-        self.client = http.get_client()
-
-    def __getattr__(self, name: str):
-        """Override attribute access to pass through to 'actions'."""
-        try:
-            return getattr(actions, name)
-        except AttributeError:
-            raise AttributeError(name)
-
-    def set_user_agent(self, user_agent_string: str) -> None:
-        """Set the User-Agent header on the session."""
-        self.client._session.headers["User-Agent"] = user_agent_string
-
-    def set_cookie(self, cookie_name: str, cookie_value: str) -> None:
-        """Set a cookie name/value pair on the current session."""
-        self.client._session.cookies.set(cookie_name, cookie_value)
+from webnovel import turn_on_logging
+from webnovel.actions import App
 
 
 class Namespace(dict):
@@ -98,7 +71,7 @@ def pywn(ctx, debug, user_agent, cookies, format):
 def create(app, novel_url, filename, chapter_limit, cover_image):
     """Create an ebook file from NOVEL_URL."""
     turn_on_logging()
-    actions.create_epub(
+    app.create_epub(
         novel_url,
         filename,
         cover_image_url=cover_image,
@@ -113,7 +86,7 @@ def create(app, novel_url, filename, chapter_limit, cover_image):
 def update(app, ebook, limit):
     """Update EBOOK with any new chapters that have been published."""
     turn_on_logging()
-    actions.update(ebook, limit)
+    app.update(ebook, limit)
 
 
 @pywn.command()
@@ -135,7 +108,7 @@ def rebuild(app, ebook, reload_chapters):
     from scratch which would include re-downloading all chapters, images, etc.
     """
     turn_on_logging()
-    actions.rebuild(ebook, reload_chapters=reload_chapters)
+    app.rebuild(ebook, reload_chapters=reload_chapters)
 
 
 @pywn.command()
@@ -149,4 +122,4 @@ def set_cover(app: App, ebook: str, cover_image: str) -> None:
     COVER_IMAGE can be a path to an image file or a URL.
     """
     turn_on_logging()
-    actions.set_cover_image_for_epub(ebook, cover_image)
+    app.set_cover_image_for_epub(ebook, cover_image)
