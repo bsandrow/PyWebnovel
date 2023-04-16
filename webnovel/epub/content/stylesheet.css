@@ -124,3 +124,31 @@ ol.none { list-style-type: none; margin: 0em; padding: 0em; }
 	text-indent: 0em;
 	line-height: 1.2em;
 }
+
+.pywn_chapter .pywn_authorsnotes {
+	margin-left: 40px;
+	margin-right: 40px;
+	background-color: #eee;
+	padding: 20px;
+	border-radius: 20px;
+	margin-bottom: 50px;
+}
+
+/* When Author's Notes is at the end of the chapter, we want the margin between
+ * the chapter contnet above and the Author's Notes
+ */
+.pywn_chapter .pywn_authorsnotes:last-child {
+	margin-top: 40px;
+}
+
+.pywn_chapter .pywn_authorsnotes .pywn_authorsnotes-title {
+    margin-top: 0px;
+    font-size: 120%;
+    margin-bottom: 20px;
+	font-weight: bold;
+}
+
+.pywn_chapter .pywn_authorsnotes .pywn_authorsnotes-body {
+	font-size: 18px;
+	line-height: 30px; /* 1.5 => 27px */
+}

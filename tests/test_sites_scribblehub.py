@@ -208,7 +208,19 @@ class ScribbleHubChapterTestCase(TestCase):
                     "chapter_no": None,
                     "slug": None,
                     "html": (
-                        '<div class="chp_raw" id="chp_raw">\n'
+                        '<div class="chp_raw" id="chp_raw"><div class="pywn_authorsnotes"> '
+                        '<div class="pywn_authorsnotes-title">-- Author\'s Note ---</div> '
+                        '<div class="pywn_authorsnotes-body"><div '
+                        'class="wi_authornotes_body">\n'
+                        "\n"
+                        "    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do "
+                        "eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim "
+                        "ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut "
+                        "aliquip ex ea commodo consequat. Duis aute irure dolor in "
+                        "reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla "
+                        "pariatur. Excepteur sint occaecat cupidatat non proident, sunt in "
+                        "culpa qui officia deserunt mollit anim id est "
+                        "laborum.</div></div></div>\n"
                         "\n"
                         "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do "
                         "eiusmod tempor incididunt ut labore et dolore magna aliqua. Neque "
@@ -234,9 +246,7 @@ class ScribbleHubChapterTestCase(TestCase):
                         "sed tempus urna. Sed viverra tellus in hac habitasse. Leo vel "
                         "fringilla est ullamcorper eget nulla facilisi.</p>\n"
                         '<div class="tbl_of">\n'
-                        '<div class="tbl_of">\n'
                         "\n"
-                        "</div>\n"
                         "</div>\n"
                         "<p>Morbi tristique senectus et netus et malesuada fames ac. Nulla "
                         "facilisi nullam vehicula ipsum a arcu. Aliquet risus feugiat in ante "

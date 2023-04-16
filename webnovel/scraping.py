@@ -2,7 +2,7 @@
 
 import logging
 import re
-from typing import Optional, Union
+from typing import Iterable, Optional, Union
 
 from apptk.html import Selector
 from bs4 import BeautifulSoup, Tag
@@ -187,8 +187,47 @@ class ChapterScraper(ScraperBase):
     """Base scraper for chapter information."""
 
     content_selector: Selector = None
+    authors_notes_selector: Selector = None
     content_filters: tuple[html.HtmlFilter] = html.DEFAULT_FILTERS
     extra_css: Optional[str] = None
+
+    # Check if this chapter scraper supports author's notes blocks
+    supports_authors_notes: bool = False
+
+    def get_authors_notes(self, page: BeautifulSoup) -> Iterable[Tag]:
+        """Return an iterable of the author's notes blocks."""
+        assert self.supports_authors_notes, "Does not support author's notes."
+        assert self.authors_notes_selector, "Does not have a authors_notes_selector defined."
+        return self.authors_notes_selector.parse(page, use_attribute=False)
+
+    def transform_authors_notes(self, authors_notes_block: Tag) -> None:
+        """
+        Process an author's notes block.
+
+        By default, this does nothing other than existing so that it can be
+        called in process_authors_notes and sub-classes can override what it
+        does to make changes to the Author's Notes block for display in the
+        ebook.
+
+        Note: This is _not_ meant to remove the block unless you are replacing
+              it with a different block. If the option include_authors_notes is
+              false, the calling method should automatically remove the block
+              with no need to do anything here of subclass this method.
+        """
+
+    def process_authors_notes(self, page: BeautifulSoup) -> None:
+        """
+        Iterate over author's notes blocks, either removing them or processing them.
+
+        Remove all of the Author's Notes blocks from the content, if
+        options.include_authors_notes is false, otherwise transform the Author's
+        Notes blocks for inclusion in the ebook.
+        """
+        for authors_notes_block in self.get_authors_notes(page):
+            if self.options.include_authors_notes:
+                self.transform_authors_notes(authors_notes_block)
+            else:
+                html.remove_element(authors_notes_block)
 
     @classmethod
     def get_chapter_slug(cls, url: str) -> Optional[str]:
@@ -208,9 +247,14 @@ class ChapterScraper(ScraperBase):
         """
         Post-processing of the chapter after html has been filled in.
 
-        By default, this will run the
+        The default behaviour is to run the default content filters for this
+        scraper and process Author's Notes blocks if this scraper is marked as
+        supporting them.
         """
         html.run_filters(chapter.html, filters=self.content_filters)
+
+        if self.supports_authors_notes:
+            self.process_authors_notes(chapter.html)
 
     def get_content(self, page: BeautifulSoup) -> Tag:
         """Extract the section of the HTML from page that contains the chapter's content."""

@@ -4,6 +4,7 @@ import datetime
 import json
 import logging
 import re
+from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
 
@@ -132,23 +133,36 @@ class ScribbleHubChapterScraper(ChapterScraper):
         .wi_authornotes .wi_authornotes_body {padding-top: 10px;}
     """
     content_selector = Selector("#chp_raw")
+    supports_authors_notes = True
+    authors_notes_selector = Selector(".wi_authornotes")
+
+    def transform_authors_notes(self, authors_notes_block) -> None:
+        """Format the Author's Notes section."""
+        # author = authors_notes_block.select_one(".an_username a").text
+        content = authors_notes_block.select_one(".wi_authornotes_body")
+
+        # If there is no content that we're going to display in the block, then
+        # there's no point to generating an empty block. An example of this
+        # would be an author's notes that only contains an image or a table even
+        # though we've turned of images or tables. The only content there would
+        # be to display in the original, is content that we've stripped due to
+        # ebook building options.
+        if not content.text.strip():
+            remove_element(authors_notes_block)
+            return
+
+        new_block = BeautifulSoup(
+            f'<div class="pywn_authorsnotes">'
+            f'   <div class="pywn_authorsnotes-title">-- Author\'s Note ---</div>'
+            f'   <div class="pywn_authorsnotes-body">{content}</div>'
+            f"</div>",
+            "html.parser",
+        ).find("div")
+        authors_notes_block.replace_with(new_block)
 
     def post_processing(self, chapter):
         """Post-Processing to Transform Author's Notes Block."""
-        super().post_processing(chapter)
-
-        for authors_notes_block in chapter.html.select(".wi_authornotes"):
-            remove_element(authors_notes_block)
-            parent = authors_notes_block.parent
-            new_block = BeautifulSoup(
-                """
-                <div class="pywn_authors-notes">
-                    <b><i>Author's Note</i></b>
-                    <p>Author: X</p>
-                </div>
-                """,
-                "html.parser",
-            )
-
         while table := chapter.html.find("table"):
             remove_element(table)
+
+        super().post_processing(chapter)
