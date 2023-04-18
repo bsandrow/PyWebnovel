@@ -1,9 +1,11 @@
 """General Utilities - written in support of the rest of the code."""
 
+import datetime
 import io
 import itertools
 import re
 import string
+from time import perf_counter
 from typing import IO, Container, Iterator, Sequence, Union
 
 BASE_DIGITS = string.digits + string.ascii_letters
@@ -168,3 +170,22 @@ def batcher_iter(seq: Sequence, batch_size: int = 100) -> Iterator[list]:
             yield batch
             batch = []
     yield batch
+
+
+class Timer:
+    """
+    A context-manager that records the time that the with block took to run.
+
+    Also stores the start time and stop time timestamps.
+    """
+
+    def __enter__(self):
+        """Start the timer."""
+        self.started_at = datetime.datetime.utcnow()
+        self.time = perf_counter()
+        return self
+
+    def __exit__(self, type, value, traceback):
+        """Stop the timer."""
+        self.ended_at = datetime.datetime.utcnow()
+        self.time = perf_counter() - self.time
