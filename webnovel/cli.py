@@ -71,7 +71,7 @@ def pywn(ctx, debug, user_agent, cookies, format):
 def create(app, novel_url, filename, chapter_limit, cover_image):
     """Create an ebook file from NOVEL_URL."""
     turn_on_logging()
-    app.create_epub(
+    app.create_ebook(
         novel_url,
         filename,
         cover_image_url=cover_image,

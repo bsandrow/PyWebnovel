@@ -56,7 +56,7 @@ class App:
         """Set a cookie name/value pair on the current session."""
         self.client._session.cookies.set(cookie_name, cookie_value)
 
-    def create_epub(
+    def create_ebook(
         self, novel_url: str, filename: str = None, cover_image_url: str = None, chapter_limit: int = None
     ) -> None:
         """

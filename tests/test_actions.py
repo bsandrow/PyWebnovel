@@ -89,7 +89,7 @@ class RebuildTestCase(TestCase):
 
     def setUp(self):
         super().setUp()
-        self.epub = self.create_epub(jpg=self.jpg)
+        self.epub = self.create_ebook(jpg=self.jpg)
 
     def tearDown(self):
         super().tearDown()
@@ -271,8 +271,8 @@ class SetCoverImageTestCase(TestCase):
     def setUp(self):
         super().setUp()
         self.requests_mock.get("/imgs/cover-image.png", content=self.png, headers={"content-type": "image/png"})
-        self.epub_wo_cover = self.create_epub()
-        self.epub_w_cover = self.create_epub(jpg=self.jpg)
+        self.epub_wo_cover = self.create_ebook()
+        self.epub_w_cover = self.create_ebook(jpg=self.jpg)
 
     def tearDown(self):
         super().tearDown()
