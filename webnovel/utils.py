@@ -4,7 +4,7 @@ import io
 import itertools
 import re
 import string
-from typing import IO, Container, Sequence, Union
+from typing import IO, Container, Iterator, Sequence, Union
 
 BASE_DIGITS = string.digits + string.ascii_letters
 
@@ -150,3 +150,21 @@ def int2base(x: int, base: int) -> str:
     digits.reverse()
 
     return "".join(digits)
+
+
+def batcher_iter(seq: Sequence, batch_size: int = 100) -> Iterator[list]:
+    """
+    Return a generator that follows a sequence returning batches of items from the sequence.
+
+    :param seq: A sequence to return batches from.
+    :param batch_size: (optional) The size that each batch should be. Defaults
+        to 100. The final batch will be less than than the batch_size unless the
+        length of the sequence is a multiple of batch_size.
+    """
+    batch = []
+    for item in seq:
+        batch.append(item)
+        if len(batch) >= batch_size:
+            yield batch
+            batch = []
+    yield batch
