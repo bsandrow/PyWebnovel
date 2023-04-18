@@ -92,7 +92,7 @@ class App:
             )
 
             if novel.cover_image:
-                novel.cover_image.load(client=http_client)
+                novel.cover_image.load(client=self.client)
                 epub_pkg.add_image(image=novel.cover_image, content=novel.cover_image.data, is_cover_image=True)
 
             assert novel.chapters
@@ -109,7 +109,7 @@ class App:
                 if ch_scraper_class in ch_scrapers:
                     ch_scraper = ch_scrapers[ch_scraper_class]
                 else:
-                    ch_scraper = ch_scrapers[ch_scraper_class] = ch_scraper_class(http_client=http_client)
+                    ch_scraper = ch_scrapers[ch_scraper_class] = ch_scraper_class(http_client=self.client)
 
                 ch_scraper.process_chapter(chapter)
 
