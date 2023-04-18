@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Iterable, Optional, Type
 
 from webnovel import epub, http, sites, utils
-from webnovel.data import Image
+from webnovel.data import Chapter, Image
 from webnovel.logs import LogTimer
 from webnovel.scraping import ScraperBase
 
@@ -60,7 +60,7 @@ class App:
         self, novel_url: str, filename: str = None, cover_image_url: str = None, chapter_limit: int = None
     ) -> None:
         """
-        Create an EPUB for the URL pointing at a specific webnovel.
+        Create an ebook for the URL pointing at a specific webnovel.
 
         :param novel_url: The URL of the webnovel to scrape.
         :param filename: (optional) The filename to use when saving the file.
@@ -81,7 +81,6 @@ class App:
             novel.cover_image = Image(url=cover_image_url)
 
         filename = utils.clean_filename(filename or f"{novel.title}.epub")
-        ch_scrapers = {}
 
         with timer("Generating %s", filename):
             epub_pkg = epub.EpubPackage(
@@ -95,36 +94,54 @@ class App:
                 novel.cover_image.load(client=self.client)
                 epub_pkg.add_image(image=novel.cover_image, content=novel.cover_image.data, is_cover_image=True)
 
-            assert novel.chapters
-
-            chapters = sorted(novel.chapters, key=lambda ch: int(ch.chapter_no))
-            if chapter_limit:
-                chapters = chapters[:chapter_limit]
-
-            start = datetime.datetime.utcnow()
-            for chapter in chapters:
-                logger.info("Processing chapter: %s", chapter.title)
-
-                ch_scraper_class = sites.find_chapter_scraper(chapter.url)
-                if ch_scraper_class in ch_scrapers:
-                    ch_scraper = ch_scrapers[ch_scraper_class]
-                else:
-                    ch_scraper = ch_scrapers[ch_scraper_class] = ch_scraper_class(http_client=self.client)
-
-                ch_scraper.process_chapter(chapter)
-
-                epub_pkg.add_chapter(chapter)
-            end = datetime.datetime.utcnow()
-
-            total_time = (end - start).total_seconds()
-            time_per_chapter = float(total_time) / float(len(chapters))
-            logger.info(
-                "Averaged %.2f second(s) per chapter or %.2f chapter(s) per second.",
-                time_per_chapter,
-                1.0 / time_per_chapter,
-            )
+            if novel.chapters:
+                chapters = sorted(novel.chapters, key=lambda ch: int(ch.chapter_no))
+                if chapter_limit:
+                    chapters = chapters[:chapter_limit]
+                self.add_chapters(ebook=epub_pkg, chapters=chapters)
+            else:
+                logger.warning("No chapters for novel.")
 
             epub_pkg.save()
+
+    def add_chapters(self, ebook: epub.EpubPackage, chapters: list[Chapter], batch_size: int = 50) -> None:
+        """
+        Add a list of chapters to an ebook.
+
+        Chapters are added in batches. At the end of each batch the ebook file
+        is saved. If there is a failure, then everything up (and including) the
+        last batch completed will be in the ebook.
+
+        :param ebook: The ebook to add the chapters to.
+        :param chapters: The list of chapters to add.
+        :param batch_size: The size of the batches to add the chapters in.
+        """
+        total_time = 0
+        scrapers = {}
+
+        def get_chapter_scraper(url):
+            chapter_scraper_class = sites.find_chapter_scraper(url)
+            if chapter_scraper_class not in scrapers:
+                scrapers[chapter_scraper_class] = chapter_scraper_class(http_client=self.client)
+            return scrapers[chapter_scraper_class]
+
+        for batch in utils.batcher_iter(chapters, batch_size=batch_size):
+            with utils.Timer() as timer:
+                for chapter in batch:
+                    logger.info("Processing chapter: %s", chapter.title)
+                    scraper = get_chapter_scraper(chapter.url)
+                    scraper.process_chapter(chapter)
+                    ebook.add_chapter(chapter)
+            total_time += timer.time
+            logger.debug("Saving ebook after chapter batch.")
+            ebook.save()
+
+        time_per_chapter = float(total_time) / float(len(chapters))
+        logger.info(
+            "Averaged %.2f second(s) per chapter or %.2f chapter(s) per second.",
+            time_per_chapter,
+            1.0 / time_per_chapter,
+        )
 
     def set_cover_image_for_epub(self, filename: str, cover_image: str) -> None:
         """
