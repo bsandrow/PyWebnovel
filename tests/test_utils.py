@@ -215,3 +215,24 @@ class TimerTestCase(TestCase):
                 self.assertIsNone(timer.time)
             self.assertEqual(timer.counter_end, 45.67)
             self.assertEqual(timer.time, 45.67 - 20.34)
+
+
+class BatcherIterTestCase(TestCase):
+    def test_empty_sequence(self):
+        batches = list(utils.batcher_iter([]))
+        self.assertEqual(batches, [])
+
+    def test_sequence_is_multiple_of_batch_size(self):
+        batches = list(utils.batcher_iter(range(10), batch_size=5))
+        expected = [[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]]
+        self.assertEqual(batches, expected)
+
+    def test_sequence_is_not_a_multiple_of_batch_size(self):
+        batches = list(utils.batcher_iter(range(10), batch_size=6))
+        expected = [[0, 1, 2, 3, 4, 5], [6, 7, 8, 9]]
+        self.assertEqual(batches, expected)
+
+    def test_handles_iterator(self):
+        batches = list(utils.batcher_iter(iter("abcdefghijk"), batch_size=4))
+        expected = [["a", "b", "c", "d"], ["e", "f", "g", "h"], ["i", "j", "k"]]
+        self.assertEqual(batches, expected)
