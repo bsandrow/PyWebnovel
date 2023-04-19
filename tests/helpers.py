@@ -50,7 +50,13 @@ class TestCase(TestCase_orig):
         shutil.rmtree(cls.TEST_DIR)
 
     @classmethod
-    def create_epub(cls, jpg: bytes = None, timestamp: str = "2001-01-01 12:15", chapters: list[data.Chapter] = None):
+    def create_epub(
+        cls,
+        jpg: bytes = None,
+        timestamp: str = "2001-01-01 12:15",
+        chapters: list[data.Chapter] = None,
+        novel_url: str = None,
+    ):
         """Create an epub file for testing purposes."""
         _, epubfile = tempfile.mkstemp(prefix=f"pywn_{cls.__name__}_", suffix=".epub", dir=cls.TEST_DIR)
         pkg = epub.EpubPackage(
@@ -61,7 +67,7 @@ class TestCase(TestCase_orig):
                 "include_images": True,
             },
             metadata={
-                "novel_url": "https://example.com/novel/creepy-story-club",
+                "novel_url": novel_url or "https://example.com/novel/creepy-story-club",
                 "site_id": "Example.com",
                 "novel_id": "creepy-story-club",
                 "title": "Creepy Story Club",
