@@ -1,6 +1,9 @@
 from collections import defaultdict
+import datetime
 from io import BytesIO, TextIOWrapper
-from unittest import TestCase
+from unittest import TestCase, mock
+
+from freezegun import freeze_time
 
 from webnovel import utils
 
@@ -184,3 +187,31 @@ class MergeDictsTestCase(TestCase):
         result = utils.merge_dicts({"a": 1}, {"b": 1}, factory=lambda: defaultdict(list))
         self.assertEqual(result, {"a": 1, "b": 1})
         self.assertIsInstance(result, defaultdict)
+
+
+class TimerTestCase(TestCase):
+    def test_start_and_stop_timestamps(self):
+        with freeze_time("2012-01-14 05:47:04"):
+            with utils.Timer() as timer:
+                pass
+        self.assertEqual(timer.started_at, datetime.datetime(2012, 1, 14, 5, 47, 4))
+        self.assertEqual(timer.ended_at, datetime.datetime(2012, 1, 14, 5, 47, 4))
+
+    def test_start_and_stop_timestamps(self):
+        t1 = freeze_time("2012-01-14 05:47:04")
+        t2 = freeze_time("2012-01-14 06:01:34")
+        t1.start()
+        with utils.Timer() as timer:
+            t1.stop()
+            t2.start()
+        t2.stop()
+        self.assertEqual(timer.started_at, datetime.datetime(2012, 1, 14, 5, 47, 4))
+        self.assertEqual(timer.ended_at, datetime.datetime(2012, 1, 14, 6, 1, 34))
+
+    def test_timer(self):
+        with mock.patch("webnovel.utils.perf_counter", side_effect=[20.34, 45.67]) as perf_counter_mock:
+            with utils.Timer() as timer:
+                self.assertEqual(timer.counter_start, 20.34)
+                self.assertIsNone(timer.time)
+            self.assertEqual(timer.counter_end, 45.67)
+            self.assertEqual(timer.time, 45.67 - 20.34)

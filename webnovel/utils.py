@@ -6,7 +6,7 @@ import itertools
 import re
 import string
 from time import perf_counter
-from typing import IO, Container, Iterator, Sequence, Union
+from typing import IO, Container, Iterator, Optional, Sequence, Union
 
 BASE_DIGITS = string.digits + string.ascii_letters
 
@@ -169,6 +169,8 @@ def batcher_iter(seq: Sequence, batch_size: int = 100) -> Iterator[list]:
         if len(batch) >= batch_size:
             yield batch
             batch = []
+    if len(batch) < 1:
+        return
     yield batch
 
 
@@ -179,13 +181,21 @@ class Timer:
     Also stores the start time and stop time timestamps.
     """
 
+    started_at: datetime.datetime
+    ended_at: datetime.datetime
+    counter_start: float
+    counter_end: float
+    time: Optional[float] = None
+
     def __enter__(self):
         """Start the timer."""
         self.started_at = datetime.datetime.utcnow()
-        self.time = perf_counter()
+        self.counter_start = perf_counter()
+        self.time = None
         return self
 
     def __exit__(self, type, value, traceback):
         """Stop the timer."""
         self.ended_at = datetime.datetime.utcnow()
-        self.time = perf_counter() - self.time
+        self.counter_end = perf_counter()
+        self.time = self.counter_end - self.counter_start
