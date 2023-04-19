@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 from typing import TYPE_CHECKING, Iterable, Optional, Type
 
-from webnovel import epub, http, sites, utils
+from webnovel import epub, errors, http, sites, utils
 from webnovel.data import Chapter, Image
 from webnovel.logs import LogTimer
 from webnovel.scraping import ScraperBase
@@ -127,13 +127,15 @@ class App:
 
         for batch in utils.batcher_iter(chapters, batch_size=batch_size):
             with utils.Timer() as timer:
+                logger.info(
+                    "Processing chapters '%s' to '%s'. [%d chapter(s)]", batch[0].title, batch[-1].title, len(batch)
+                )
                 for chapter in batch:
-                    logger.info("Processing chapter: %s", chapter.title)
                     scraper = get_chapter_scraper(chapter.url)
                     scraper.process_chapter(chapter)
                     ebook.add_chapter(chapter)
             total_time += timer.time
-            logger.debug("Saving ebook after chapter batch.")
+            logger.debug("Saving chapters to ebook.")
             ebook.save()
 
         time_per_chapter = float(total_time) / float(len(chapters))
@@ -212,7 +214,7 @@ class App:
 
         epub_pkg.save()
 
-    def update(self, ebook: str) -> None:
+    def update(self, ebook: str, limit: Optional[int] = None) -> int:
         """Update ebook."""
         logger.info("Updating package: %s", ebook)
         pkg = epub.EpubPackage.load(ebook)
@@ -223,7 +225,7 @@ class App:
 
         scraper_class = sites.find_scraper(novel_url)
         if not scraper_class:
-            raise ValueError(f"Unable to find novel scraper for URL: {novel_url}")
+            raise errors.NoMatchingNovelScraper(novel_url)
 
         scraper = scraper_class(http_client=self.client)
         novel = scraper.scrape(novel_url)
@@ -247,9 +249,7 @@ class App:
         #
         orphaned_urls = chapter_urls_in_file - chapter_urls_fetched
         if orphaned_urls:
-            raise ValueError(
-                f"Found chapter urls in file that are missing from the fetched chapter list: {orphaned_urls}"
-            )
+            raise errors.OrphanedUrlsError(orphaned_urls)
 
         #
         # Create a list of the missing chapters. If there are no missing chapters,
@@ -258,7 +258,7 @@ class App:
         missing_chapters = [chapter for chapter in novel.chapters if chapter.url not in chapter_urls_in_file]
         if len(missing_chapters) < 1:
             logger.info("No new chapters found.")
-            return
+            return 0
 
         #
         # Check that there are not out-of-order chapters popping up. We only want to
@@ -266,15 +266,15 @@ class App:
         # chapters, sequentially.  Supporting filling in chapter gaps would have to
         # be for a future update (if support is ever added).
         #
-        max_chapter_no = max(ch.chapter_no for ch in pkg.chapters.values())
-        non_sequential_chapters = [ch.title or ch.url for ch in novel.chapters if ch.chapter_no < max_chapter_no]
+        existing_chapter_nos = set(ch.chapter_no for ch in pkg.chapters.values())
+        max_chapter_no = max(existing_chapter_nos)
+        non_sequential_chapters = [
+            ch.url
+            for ch in novel.chapters
+            if ch.chapter_no not in existing_chapter_nos and ch.chapter_no < max_chapter_no
+        ]
         if non_sequential_chapters:
-            raise ValueError(
-                f"Found missing chapters ({non_sequential_chapters}) that don't come after the most "
-                f"recent chapters in the ebook. PyWebnovel currently does not support filling in gaps "
-                f"between chapters or handling the author going back to add a chapter in "
-                f"the middle of previous chapters. (Note: this may change in the future though)"
-            )
+            raise errors.NonsequentialChaptersError(non_sequential_chapters)
 
         # TODO make sure that the chapter_no values match up. Need to standardize
         #      handling of chapter_no across all scrapers to make sure this doesn't
@@ -284,5 +284,11 @@ class App:
 
         # TODO updated "last_updated_on" value
 
-        chapter_slug_map = {c.slug: c for c in pkg.chapters.values()}
-        raise NotImplementedError
+        if limit and len(missing_chapters) > limit:
+            missing_chapters = missing_chapters[:limit]
+
+        self.add_chapters(ebook=pkg, chapters=missing_chapters, batch_size=20)
+        pkg.save()
+
+        # chapter_slug_map = {c.slug: c for c in pkg.chapters.values()}
+        # raise NotImplementedError

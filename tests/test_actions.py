@@ -1,10 +1,11 @@
 import os
 from pathlib import Path
+from unittest import mock
 
 from bs4 import BeautifulSoup
 from freezegun import freeze_time
 
-from webnovel import actions, data, epub
+from webnovel import actions, data, epub, errors
 
 from .helpers import TestCase, get_test_data
 
@@ -89,7 +90,7 @@ class RebuildTestCase(TestCase):
 
     def setUp(self):
         super().setUp()
-        self.epub = self.create_ebook(jpg=self.jpg)
+        self.epub = self.create_epub(jpg=self.jpg)
 
     def tearDown(self):
         super().tearDown()
@@ -271,8 +272,8 @@ class SetCoverImageTestCase(TestCase):
     def setUp(self):
         super().setUp()
         self.requests_mock.get("/imgs/cover-image.png", content=self.png, headers={"content-type": "image/png"})
-        self.epub_wo_cover = self.create_ebook()
-        self.epub_w_cover = self.create_ebook(jpg=self.jpg)
+        self.epub_wo_cover = self.create_epub()
+        self.epub_w_cover = self.create_epub(jpg=self.jpg)
 
     def tearDown(self):
         super().tearDown()
@@ -414,3 +415,94 @@ class SetCoverImageTestCase(TestCase):
     def test_set_cover_image_handles_bad_filename(self):
         with self.assertRaises(OSError):
             actions.App().set_cover_image_for_epub(filename=self.epub_w_cover, cover_image="does-not-exist.png")
+
+
+class UpdateEbookTestCase(TestCase):
+    def test_handles_ebook_with_no_novel_url(self):
+        with mock.patch("webnovel.actions.epub.EpubPackage.load") as load_mock:
+            mock_pkg = load_mock.return_value = mock.MagicMock()
+            mock_pkg.metadata.novel_url = None
+            with self.assertRaises(ValueError):
+                actions.App().update("test", limit=10)
+
+    def test_handles_no_matching_scraper(self):
+        epub = self.create_epub()
+        with self.assertRaises(errors.NoMatchingNovelScraper):
+            actions.App().update(epub, limit=10)
+
+    def test_handles_orphaned_urls(self):
+        with (
+            mock.patch("webnovel.actions.epub.EpubPackage.load") as load_mock,
+            mock.patch("webnovel.sites.novelbin.NovelBinScraper.scrape") as scrape_mock,
+        ):
+            load_mock.return_value = epub = mock.MagicMock()
+            epub.metadata.novel_url = "https://novelbin.net/n/creepy-story-club-redux"
+            scrape_mock.return_value = novel_mock = mock.Mock()
+            novel_mock.chapters = [
+                mock.Mock(url="https://example.com/chapter/1"),
+                mock.Mock(url="https://example.com/chapter/3"),
+            ]
+            epub.chapters = {
+                "https://example.com/chapter/1": 1,
+                "https://example.com/chapter/2": 2,
+                "https://example.com/chapter/3": 3,
+            }
+            with self.assertRaises(errors.OrphanedUrlsError):
+                actions.App().update(epub, limit=10)
+
+    def test_handles_no_new_chapters(self):
+        with (
+            mock.patch("webnovel.actions.epub.EpubPackage.load") as load_mock,
+            mock.patch("webnovel.sites.novelbin.NovelBinScraper.scrape") as scrape_mock,
+        ):
+            load_mock.return_value = epub = mock.MagicMock()
+            epub.metadata.novel_url = "https://novelbin.net/n/creepy-story-club-redux"
+            scrape_mock.return_value = novel_mock = mock.Mock()
+            novel_mock.chapters = [
+                mock.Mock(url="https://example.com/chapter/1"),
+                mock.Mock(url="https://example.com/chapter/3"),
+            ]
+            epub.chapters = {"https://example.com/chapter/1": 1, "https://example.com/chapter/3": 3}
+            result = actions.App().update(epub, limit=10)
+            self.assertEqual(result, 0)
+
+    def test_handles_nonsequential_chapters(self):
+        with (
+            mock.patch("webnovel.actions.epub.EpubPackage.load") as load_mock,
+            mock.patch("webnovel.sites.novelbin.NovelBinScraper.scrape") as scrape_mock,
+        ):
+            load_mock.return_value = epub = mock.MagicMock()
+            epub.metadata.novel_url = "https://novelbin.net/n/creepy-story-club-redux"
+            scrape_mock.return_value = novel_mock = mock.Mock()
+            novel_mock.chapters = [
+                mock.Mock(chapter_no=0, url="https://example.com/chapter/1"),
+                mock.Mock(chapter_no=1, url="https://example.com/chapter/2"),
+                mock.Mock(chapter_no=2, url="https://example.com/chapter/3"),
+            ]
+            epub.chapters = {
+                "https://example.com/chapter/1": mock.Mock(chapter_no=0, url="https://example.com/chapter/1"),
+                # "https://example.com/chapter/2": mock.Mock(chapter_no=1, url="https://example.com/chapter/2"),
+                "https://example.com/chapter/3": mock.Mock(chapter_no=2, url="https://example.com/chapter/3"),
+            }
+            with self.assertRaises(errors.NonsequentialChaptersError):
+                result = actions.App().update(epub, limit=10)
+
+    def test_handles_limit(self):
+        with (
+            mock.patch("webnovel.actions.epub.EpubPackage.load") as load_mock,
+            mock.patch("webnovel.sites.novelbin.NovelBinScraper.scrape") as scrape_mock,
+        ):
+            load_mock.return_value = epub = mock.MagicMock()
+            epub.metadata.novel_url = "https://novelbin.net/n/creepy-story-club-redux"
+            scrape_mock.return_value = novel_mock = mock.Mock()
+            novel_mock.chapters = [mock.Mock(chapter_no=i, url=f"https://example.com/chapter/{i+1}") for i in range(10)]
+            epub.chapters = {
+                f"https://example.com/chapter/{i+1}": mock.Mock(chapter_no=i, url="https://example.com/chapter/{i+1}")
+                for i in range(3)
+            }
+            app = actions.App()
+            with mock.patch.object(app, "add_chapters") as add_ch_mock:
+                result = app.update(epub)
+
+            epub.save.assert_called_once_with()
+            add_ch_mock.assert_called_once_with(ebook=epub, chapters=novel_mock.chapters[3:], batch_size=20)
