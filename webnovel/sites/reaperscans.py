@@ -4,7 +4,7 @@ import logging
 import re
 
 from bs4 import Tag
-from pyrate_limiter import Duration, Limiter, RequestRate
+from pyrate_limiter import Limiter, RequestRate
 from requests import Response
 
 from webnovel import html, http
@@ -138,40 +138,38 @@ class ChapterListAPI(LiveWireAPI):
         return html
 
 
-class RemoveTrailingHorizontalBarsFilter(html.HtmlFilter):
-    """Remove the trailing '----' bars and 'blank' <p> elements at the end of the chapter."""
+@html.register_html_filter(name="remove_trailing_hrs")
+def trailing_hrs_filter(element: Tag) -> None:
+    """
+    Reverse iterate over the children removing all "blank" elements and "----" content elements from the end of the chapter.
 
-    def filter(self, element: Tag) -> None:
-        """
-        Reverse iterate over the children removing all "blank" elements and "----" content elements.
-
-        Break out of the loop the first time we find something different. Technically these sections should have some
-        text between the bars, but another filter should be removing those leaving just "empty" <p> elements and the
-        "manual" horizontal bars.
-        """
-        for child in reversed(tuple(element.children)):
-            child_text = child.text.strip()
-            if child_text == "" or re.match(r"^[-—–_—⸺﹘⸻]+$", child_text) is not None:
-                html.remove_element(child)
-                continue
-            else:
-                break
+    Break out of the loop the first time we find something different. Technically these sections should have some
+    text between the bars, but another filter should be removing those leaving just "empty" <p> elements and the
+    "manual" horizontal bars.
+    """
+    for child in reversed(tuple(element.children)):
+        child_text = child.text.strip()
+        if child_text == "" or re.match(r"^[-—–_—⸺﹘⸻]+$", child_text) is not None:
+            html.remove_element(child)
+            continue
+        else:
+            break
 
 
-class RemoveStartingBannerFilter(html.HtmlFilter):
+@html.register_html_filter(name="remove_reaperscans_banner")
+def banner_filter(element: Tag) -> None:
     """
     Remove the "REAPERSCANS" at the top of each chapter.
 
-    We don't need attribution at the top of each chapter. We'll put it in the front of the ebook.
+    Remove 'blank' elements and the REAPERSCANS banner. Bail the first time
+    we find something else.  We don't need attribution at the top of each
+    chapter. We'll put it in the front of the ebook.
     """
-
-    def filter(self, element: Tag) -> None:
-        """Remove 'blank' elements and the REAPERSCANS banner. Bail the first time we find something else."""
-        for child in element.find_all(recursive=False):
-            child_text = child.text.strip().lower()
-            if re.match(r"reaper\s*scans", child_text, re.IGNORECASE):
-                html.remove_element(child)
-                break
+    for child in element.find_all(recursive=False):
+        child_text = child.text.strip().lower()
+        if re.match(r"reaper\s*scans", child_text, re.IGNORECASE):
+            html.remove_element(child)
+            break
 
 
 class ReaperScansScraper(NovelScraper):
@@ -268,10 +266,7 @@ class ReaperScansChapterScraper(ChapterScraper):
     site_name = SITE_NAME
     url_pattern = HTTPS_PREFIX + r"reaperscans.com/novels/(?P<NovelID>[\w\d-]+)/chapters/(?P<ChapterID>[\d\w-]+)"
     content_selector = Selector("ARTICLE.prose")
-    content_filters = html.DEFAULT_FILTERS + (
-        # RemoveStartingBannerFilter(),
-        RemoveTrailingHorizontalBarsFilter(),
-    )
+    content_filters = html.DEFAULT_FILTERS + ["remove_trailing_hrs"]  # + ["remove_reaperscans_banner"]
 
     def get_limiter(self):
         """Return rate limiter for ReaperScans."""

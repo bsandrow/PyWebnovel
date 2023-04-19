@@ -198,7 +198,7 @@ class ChapterScraper(ScraperBase):
 
     content_selector: Selector = None
     authors_notes_selector: Selector = None
-    content_filters: tuple[html.HtmlFilter] = html.DEFAULT_FILTERS
+    content_filters: tuple[str] = html.DEFAULT_FILTERS
     extra_css: Optional[str] = None
 
     # Check if this chapter scraper supports author's notes blocks
@@ -261,10 +261,12 @@ class ChapterScraper(ScraperBase):
         scraper and process Author's Notes blocks if this scraper is marked as
         supporting them.
         """
-        html.run_filters(chapter.html, filters=self.content_filters)
-
+        content = BeautifulSoup(chapter.original_html, "html.parser")
+        html.run_filters(content, filters=self.content_filters)
         if self.supports_authors_notes:
-            self.process_authors_notes(chapter.html)
+            self.process_authors_notes(content)
+        chapter.html = str(content)
+        return content
 
     def get_content(self, page: BeautifulSoup) -> Tag:
         """Extract the section of the HTML from page that contains the chapter's content."""
@@ -278,5 +280,8 @@ class ChapterScraper(ScraperBase):
         a Chapter fetched via Chapter.url.
         """
         page = self.get_page(chapter.url)
-        chapter.html = self.get_content(page)
+        content = self.get_content(page)
+        chapter.original_html = str(content)
+        chapter.html = str(content)
+        chapter.filters = self.content_filters
         self.post_processing(chapter)

@@ -14,7 +14,7 @@ CHAPTER_PAGE = get_test_data("novelbin/chapter.html")
 CHAPTER_LIST_PAGE = get_test_data("novelbin/chapterlist.html")
 
 
-class RemoveStayTunedMessageTestCase(TestCase):
+class CheckBackSoonFilterTestCase(TestCase):
     html = (
         "<div>\n"
         "<p>dkfjgnslekdgbdsflgkjdfskg</p>\n"
@@ -25,7 +25,7 @@ class RemoveStayTunedMessageTestCase(TestCase):
 
     def test_removes_message(self):
         html = BeautifulSoup(self.html, "html.parser")
-        novelbin.RemoveStayTunedMessage().filter(html)
+        novelbin.check_back_soon_filter(html)
         self.assertEqual(str(html), ("<div>\n" "<p>dkfjgnslekdgbdsflgkjdfskg</p>\n\n" "</div>"))
 
 
@@ -39,9 +39,9 @@ class NovelBinChapterScraperTestCase(TestCase):
             chapter = Chapter(url=self.url, title="Chapter 405. Return of the Moon (4)", chapter_no=405)
             self.assertIsNone(chapter.html)
             scraper.process_chapter(chapter)
-            self.assertIsInstance(chapter.html, Tag)
+            self.assertIsInstance(chapter.html, str)
             self.assertIn("Chapter 405. Return of the Moon (4)", CHAPTER_PAGE)
-            self.assertNotIn("Chapter 405. Return of the Moon (4)", str(chapter.html))
+            self.assertNotIn("Chapter 405. Return of the Moon (4)", chapter.html)
 
     def test_chapter_scraper_without_title_in_content(self):
         with requests_mock.Mocker() as m:
@@ -50,7 +50,7 @@ class NovelBinChapterScraperTestCase(TestCase):
             chapter = Chapter(url=self.url, title="Chapter 405. Return of the Moon (4)", chapter_no=405)
             self.assertIsNone(chapter.html)
             scraper.process_chapter(chapter)
-            self.assertIsInstance(chapter.html, Tag)
+            self.assertIsInstance(chapter.html, str)
 
 
 class NovelBinScraperTestCase(TestCase):

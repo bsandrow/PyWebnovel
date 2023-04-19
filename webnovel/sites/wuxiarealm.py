@@ -5,7 +5,7 @@ import logging
 import re
 from typing import Union
 
-from bs4 import BeautifulSoup, Comment
+from bs4 import BeautifulSoup, Tag
 
 from webnovel import data, errors, html
 from webnovel.logs import LogTimer
@@ -161,20 +161,18 @@ class WuxiaRealmScraper(NovelScraper):
             novel.extras["Rating"] = f"{ratings_score} ({ratings_votes} vote(s))"
 
 
-class RemoveChapterControls(html.HtmlFilter):
+@html.register_html_filter(name="wuxiarealm.remove_chapter_controls")
+def chapter_controls_filter(html_tree: Tag) -> None:
     """Html Filter to Remove Chapter Controls Mixed with Chapter Content."""
-
-    def filter(self, html_tree):
-        """Filter the elements out of the provided tree."""
-        for selector in (
-            ".chapternav",
-            ".code-block-1",
-            ".code-block-2",
-            ".code-block-3",
-            "[title='Edited Translated']",
-        ):
-            for element in html_tree.select(selector):
-                html.remove_element(element)
+    for selector in (
+        ".chapternav",
+        ".code-block-1",
+        ".code-block-2",
+        ".code-block-3",
+        "[title='Edited Translated']",
+    ):
+        for element in html_tree.select(selector):
+            html.remove_element(element)
 
 
 class WuxiaRealmChapterScraper(ChapterScraper):
@@ -183,4 +181,4 @@ class WuxiaRealmChapterScraper(ChapterScraper):
     site_name = SITE_NAME
     url_pattern = HTTPS_PREFIX + r"wuxiarealm.com/(?P<NovelID>[\w\d-]+)/(?P<ChapterID>[\w\d-]+)/"
     content_selector = Selector("#soop")
-    content_filters = ChapterScraper.content_filters + (RemoveChapterControls(),)
+    content_filters = ChapterScraper.content_filters + ["wuxiarealm.remove_chapter_controls"]

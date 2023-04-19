@@ -8,7 +8,7 @@ import re
 from typing import Optional, Union
 
 from apptk.http import HttpClient
-from bs4 import BeautifulSoup, Tag
+from bs4 import Tag
 
 from .utils import filter_dict
 
@@ -166,7 +166,9 @@ class Chapter:
     title: Optional[str] = None
     chapter_no: Optional[str] = None
     slug: Optional[str] = None
-    html: Optional[Tag] = None
+    original_html: Optional[str] = None
+    html: Optional[str] = None
+    filters: Optional[list[str]] = None
     pub_date: Optional[datetime.date] = None
 
     def to_dict(self) -> dict:
@@ -176,6 +178,7 @@ class Chapter:
             "title": self.title,
             "chapter_no": self.chapter_no,
             "slug": self.slug,
+            "original_html": self.original_html,
             "html": str(self.html) if self.html else None,
             "pub_date": self.pub_date.strftime("%Y-%m-%d") if self.pub_date else None,
         }
@@ -184,7 +187,7 @@ class Chapter:
     def from_dict(self, data: dict) -> "Chapter":
         """Load a Chapter instance from a dict representation."""
         required_keys = {"url", "title", "chapter_no"}
-        valid_keys = {"url", "title", "chapter_no", "slug", "html", "pub_date"}
+        valid_keys = {"url", "title", "chapter_no", "slug", "html", "original_html", "pub_date", "filters"}
         actual_keys = set(data.keys())
 
         missing_required_keys = required_keys - actual_keys
@@ -200,7 +203,9 @@ class Chapter:
             title=data["title"],
             chapter_no=data["chapter_no"],
             slug=data.get("slug"),
-            html=BeautifulSoup(data["html"], "html.parser") if data.get("html") else None,
+            filters=data.get("filters"),
+            original_html=data.get("original_html"),
+            html=data.get("html"),
             pub_date=datetime.datetime.strptime(data["pub_date"], "%Y-%m-%d").date() if data.get("pub_date") else None,
         )
 

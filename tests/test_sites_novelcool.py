@@ -354,17 +354,16 @@ class NovelCoolChapterScraperTestCase(TestCase):
         chapter = Chapter(
             url="https://example.com",
             title="Chapter 32",
-            html=novelcool.NovelCoolChapterScraper().get_content(page),
+            original_html=str(novelcool.NovelCoolChapterScraper().get_content(page)),
         )
         novelcool.NovelCoolChapterScraper().post_processing(chapter)
         expected = (
             '<div class="overflow-hidden">\n\n'
-            "\n\n\n"
+            "\n\n"
             "<p>Chapter 32 — Lorem Ipsum Loren Ipsum! Lorem of the Ipsum</p>\n"
             "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>\n"
             "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>\n"
             "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>\n"
-            "\n\n"
             "</div>"
         )
         self.assertEqual(str(chapter.html), expected)

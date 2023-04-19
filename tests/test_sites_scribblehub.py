@@ -194,6 +194,7 @@ class ScribbleHubChapterTestCase(TestCase):
                     "chapter_no": None,
                     "slug": None,
                     "html": None,
+                    "original_html": None,
                     "title": None,
                     "pub_date": None,
                 },
@@ -221,7 +222,6 @@ class ScribbleHubChapterTestCase(TestCase):
                         "pariatur. Excepteur sint occaecat cupidatat non proident, sunt in "
                         "culpa qui officia deserunt mollit anim id est "
                         "laborum.</div></div></div>\n"
-                        "\n"
                         "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do "
                         "eiusmod tempor incididunt ut labore et dolore magna aliqua. Neque "
                         "aliquam vestibulum morbi blandit cursus. Phasellus vestibulum lorem "
@@ -246,7 +246,9 @@ class ScribbleHubChapterTestCase(TestCase):
                         "sed tempus urna. Sed viverra tellus in hac habitasse. Leo vel "
                         "fringilla est ullamcorper eget nulla facilisi.</p>\n"
                         '<div class="tbl_of">\n'
+                        '<div class="tbl_of">\n'
                         "\n"
+                        "</div>\n"
                         "</div>\n"
                         "<p>Morbi tristique senectus et netus et malesuada fames ac. Nulla "
                         "facilisi nullam vehicula ipsum a arcu. Aliquet risus feugiat in ante "
@@ -275,6 +277,7 @@ class ScribbleHubChapterTestCase(TestCase):
                         "volutpat diam. Donec enim diam vulputate ut pharetra.</p>\n"
                         "</div>"
                     ),
+                    "original_html": mock.ANY,
                     "title": None,
                     "pub_date": None,
                 },

@@ -78,16 +78,19 @@ class NovelCoolChapterScraper(ChapterScraper):
 
     def post_processing(self, chapter):
         """Extra NovelCool-specific processing."""
-        super().post_processing(chapter)
+        content = super().post_processing(chapter)
 
-        ch_title = chapter.html.select_one(".chapter-title")
+        ch_title = content.select_one(".chapter-title")
         if ch_title:
             remove_element(ch_title)
+
+        chapter.html = str(content)
 
     def get_content(self, page):
         """Extract the section of the HTML from page that contains the chapter's content."""
         content_element = None
 
+        # TODO Move these to HTML filters
         chapter_report = page.select_one(".chapter-section-report")
         if chapter_report:
             remove_element(chapter_report)

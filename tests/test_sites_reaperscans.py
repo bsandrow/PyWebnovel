@@ -187,7 +187,7 @@ class RemoveTrailingHorizontalBarsFilterTestCase(TestCase):
             """,
             "html.parser",
         )
-        reaperscans.RemoveTrailingHorizontalBarsFilter().filter(soup)
+        reaperscans.trailing_hrs_filter(soup)
         self.assertEqual(str(soup), "\n<p>-------------</p>\n<div> </div>\n<p>  -----</p>\n<p>- abcd</p>")
 
 
@@ -203,7 +203,7 @@ class RemoveStartingBannerFilterTestCase(TestCase):
             """,
             "html.parser",
         ).find("article")
-        reaperscans.RemoveStartingBannerFilter().filter(soup)
+        reaperscans.banner_filter(soup)
         self.assertEqual(
             str(soup),
             '<article>\n\n<p style="line-height: 2;">\u00A0</p>\n<p style="line-height: 2;"><strong>Scary Story Club</strong></p>\n</article>',
@@ -220,7 +220,7 @@ class RemoveStartingBannerFilterTestCase(TestCase):
             """,
             "html.parser",
         ).find("article")
-        reaperscans.RemoveStartingBannerFilter().filter(soup)
+        reaperscans.banner_filter(soup)
         self.assertEqual(
             str(soup),
             (

@@ -30,8 +30,8 @@ class ParseStyleTestCase(TestCase):
 
 class ElementBlacklistFilterTestCase(TestCase):
     def test_removes_specified_elements(self):
-        soup = BeautifulSoup(("<div>" "<style></style>" "<p>EXAMPLE</p>" "</div>"), "html.parser")
-        html.ElementBlacklistFilter(tag_name_blacklist=["style"]).filter(soup)
+        soup = BeautifulSoup(("<div>" "<script></script>" "<p>EXAMPLE</p>" "</div>"), "html.parser")
+        html.element_blacklist_filter(soup)
         self.assertEqual(str(soup), "<div><p>EXAMPLE</p></div>")
 
 
@@ -41,8 +41,8 @@ class EmptyContentFilterTestCase(TestCase):
             ("<div>" "<style></style>" "<p></p>" "<p>EXAMPLE<p> </p></p>" "<p></p>" "<div></div>" "</div>"),
             "html.parser",
         )
-        html.EmptyContentFilter(tag_names=["p"]).filter(soup)
-        self.assertEqual(str(soup), "<div><style></style><p>EXAMPLE</p><div></div></div>")
+        html.empty_content_filter(soup)
+        self.assertEqual(str(soup), "<div><style></style><p>EXAMPLE</p></div>")
 
 
 class DisplayNoneFilterTestCase(TestCase):
@@ -60,7 +60,7 @@ class DisplayNoneFilterTestCase(TestCase):
             ),
             "html.parser",
         )
-        html.DisplayNoneFilter().filter(soup)
+        html.hidden_elements_filter(soup)
         self.assertEqual(
             str(soup),
             (
@@ -77,15 +77,15 @@ class DisplayNoneFilterTestCase(TestCase):
 
 class StripeUselessAttributesTestCase(TestCase):
     def test_strips_anchor_attributes_correctly(self):
-        tag_names = tuple(html.StripUselessAttributes.TAG_SPECIFIC_WHITELIST.keys())
+        tag_names = tuple(html.TAG_SPECIFIC_WHITELIST.keys())
         single_element_tags = ["img"]
 
         for tag_name in tag_names:
-            for attr in html.StripUselessAttributes.TAG_SPECIFIC_WHITELIST[tag_name]:
+            for attr in html.TAG_SPECIFIC_WHITELIST[tag_name]:
                 with self.subTest(tag_name=tag_name, attr=attr):
                     if tag_name in single_element_tags:
                         soup = BeautifulSoup(f'<div><{tag_name} {attr}="a" test="a" data="a"/></div>', "html.parser")
-                        html.StripUselessAttributes().filter(soup)
+                        html.useless_attributes_filter(soup)
                         self.assertEqual(str(soup), f'<div><{tag_name} {attr}="a"/></div>')
 
                     else:
@@ -93,7 +93,7 @@ class StripeUselessAttributesTestCase(TestCase):
                             f'<div><{tag_name} {attr}="a" test="a" wire:id="45" data="a"></{tag_name}></div>',
                             "html.parser",
                         )
-                        html.StripUselessAttributes().filter(soup)
+                        html.useless_attributes_filter(soup)
                         self.assertEqual(str(soup), f'<div><{tag_name} {attr}="a"></{tag_name}></div>')
 
 
@@ -112,15 +112,15 @@ class StripCommentsTestCase(TestCase):
             ),
             "html.parser",
         )
-        html.StripComments().filter(soup)
+        html.remove_comments_filter(soup)
         self.assertEqual(str(soup), ("<div>" '<p style="display: none;"></p>' "<p></p>" "<div></div>" "</div>"))
 
 
 class RunFiltersTestCase(TestCase):
     def test_run_filters(self):
         filters = [
-            html.DisplayNoneFilter(),
-            html.StripComments(),
+            "remove_hidden_elements",
+            "remove_comments",
         ]
         soup = BeautifulSoup(
             (
@@ -171,5 +171,5 @@ class ContentWarningFilterTestCase(TestCase):
             ),
             "html.parser",
         )
-        html.ContentWarningFilter(html.CONTENT_WARNING_PATTERNS).filter(soup)
+        html.content_warnings_filter(soup)
         self.assertEqual(str(soup), ("<div>" "<p>This is content.</p>" "</div>"))

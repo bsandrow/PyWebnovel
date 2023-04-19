@@ -8,7 +8,6 @@ from typing import Optional
 from bs4 import BeautifulSoup
 
 from webnovel.data import Chapter, NovelStatus, Person
-from webnovel.html import DEFAULT_FILTERS, HtmlFilter, remove_element
 from webnovel.logs import LogTimer
 from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraper, Selector
 

@@ -161,7 +161,7 @@ class ScribbleHubChapterScraper(ChapterScraper):
 
     def post_processing(self, chapter):
         """Post-Processing to Transform Author's Notes Block."""
-        while table := chapter.html.find("table"):
+        content = super().post_processing(chapter)
+        while table := content.find("table"):
             remove_element(table)
-
-        super().post_processing(chapter)
+        chapter.html = str(content)

@@ -5,7 +5,7 @@ import re
 
 from webnovel import errors
 from webnovel.data import Chapter, NovelStatus
-from webnovel.html import DEFAULT_FILTERS, HtmlFilter, remove_element
+from webnovel.html import DEFAULT_FILTERS, register_html_filter, remove_element
 from webnovel.logs import LogTimer
 from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraper, Selector
 
@@ -14,7 +14,8 @@ logger = logging.getLogger(__name__)
 timer = LogTimer(logger)
 
 
-class RemoveStayTunedMessage(HtmlFilter):
+@register_html_filter(name="remove_check_back_soon_msg")
+def check_back_soon_filter(html):
     """
     Remove the 'Check back soon for more chapters' message.
 
@@ -25,11 +26,8 @@ class RemoveStayTunedMessage(HtmlFilter):
 
     Remove this, as it's not part of the chapter's content.
     """
-
-    def filter(self, html_tree):
-        """Filter out block containing the message."""
-        for element in html_tree.select(".schedule-text"):
-            remove_element(element)
+    for element in html.select(".schedule-text"):
+        remove_element(element)
 
 
 class NovelBinChapterScraper(ChapterScraper):
@@ -38,20 +36,19 @@ class NovelBinChapterScraper(ChapterScraper):
     site_name = SITE_NAME
     url_pattern = HTTPS_PREFIX + r"novel-?bin\.net/(?:n|novel-bin)/(?P<NovelID>[\w\d-]+)/(?P<ChapterID>[\w\d-]+)"
     content_selector = Selector("#chr-content")
-    content_filters = DEFAULT_FILTERS + (RemoveStayTunedMessage(),)
+    content_filters = DEFAULT_FILTERS + ["remove_check_back_soon_msg"]
 
     def post_processing(self, chapter: Chapter) -> None:
         """Do extra chapter title processing."""
-        super().post_processing(chapter)
+        html = super().post_processing(chapter)
 
-        target_html = chapter.html
-        direct_descendants = target_html.find_all(recursive=False)
+        direct_descendants = html.find_all(recursive=False)
 
         while len(direct_descendants) == 1:
-            target_html = direct_descendants[0]
-            direct_descendants = target_html.find_all(recursive=False)
+            html = direct_descendants[0]
+            direct_descendants = html.find_all(recursive=False)
 
-        title_header = target_html.find(["h4", "h3", "p"])
+        title_header = html.find(["h4", "h3", "p"])
         if title_header and (match := Chapter.is_title_ish(title_header.text)):
             chapter.title = Chapter.clean_title(match.group(0))
             remove_element(title_header)
@@ -59,6 +56,8 @@ class NovelBinChapterScraper(ChapterScraper):
         if chapter.title is not None:
             chapter.title = re.sub(r"Side Story  (\d+):", r"Side Story Chapter \1:", chapter.title, re.IGNORECASE)
             chapter.title = re.sub(r"(Chapter \d+)- ", r"\1: ", chapter.title, re.IGNORECASE)
+
+        chapter.html = str(html)
 
 
 class NovelBinScraper(NovelScraper):
