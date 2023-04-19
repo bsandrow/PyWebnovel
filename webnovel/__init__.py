@@ -12,7 +12,8 @@ def turn_on_logging():
     if not LOGGING_ON:
         logger = logging.getLogger(__name__)
         loghandler = logging.StreamHandler()
-        loghandler.setFormatter(logging.Formatter("PYWN: %(levelname)s: %(asctime)s: %(name)s: %(message)s"))
+        # loghandler.setFormatter(logging.Formatter("PYWN: %(levelname)s: %(asctime)s: %(name)s: %(message)s"))
+        loghandler.setFormatter(logging.Formatter("PYWN: %(asctime)s: %(message)s"))
         logger.addHandler(loghandler)
         loghandler.setLevel(logging.DEBUG)
         logger.setLevel(logging.DEBUG)
