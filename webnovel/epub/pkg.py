@@ -283,7 +283,8 @@ class EpubPackage:
         # If include_images is on, we need to find all images in chapter content, download them, add them to the epub package
         #
         if self.include_images:
-            img_tags = chapter.html.find_all("img") if chapter.html else []
+            content = chapter.html_tree
+            img_tags = content.find_all("img") if content else []
             for img_tag in img_tags:
                 img_url = urllib.parse.urljoin(base=chapter.url, url=img_tag.get("src").strip())
                 image = Image(url=img_url)
@@ -296,6 +297,9 @@ class EpubPackage:
 
                 # TODO store image URLs somehow to prevent multiple downloads of
                 #      the same image
+
+            if content and img_tags:
+                chapter.html = str(content)
 
         self.chapters[chapter.chapter_id] = chapter
         self.add_file(chapter_file)

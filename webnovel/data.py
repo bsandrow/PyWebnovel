@@ -210,6 +210,12 @@ class Chapter:
             pub_date=datetime.datetime.strptime(data["pub_date"], "%Y-%m-%d").date() if data.get("pub_date") else None,
         )
 
+    @property
+    def html_tree(self) -> BeautifulSoup:
+        """Return Chapter.html as BeautifulSoup."""
+        assert self.html is not None
+        return BeautifulSoup(self.html, "html.parser") if self.html else None
+
     def generate_html(self) -> Optional[Tag]:
         """
         Generate an HTML tree from original_html and apply the defined filters to it.
