@@ -329,8 +329,16 @@ class NavigationControlFileTestCase(TestCase):
             options={"include_title_page": False},
             metadata={"novel_url": ":URL:", "site_id": ":SITE_ID:", "novel_id": ":NOVEL_ID:", "title": ":TITLE:"},
         )
-        pkg.add_chapter(Chapter(url="http://example.come/chapter-2", chapter_no=2, title="Chapter 2. Example 2"))
-        pkg.add_chapter(Chapter(url="http://example.come/chapter-1", chapter_no=1, title="Chapter 1. Example 1"))
+        pkg.add_chapter(
+            Chapter(
+                url="http://example.come/chapter-2", chapter_no=2, html="<p>Content</p>", title="Chapter 2. Example 2"
+            )
+        )
+        pkg.add_chapter(
+            Chapter(
+                url="http://example.come/chapter-1", chapter_no=1, html="<p>Content</p>", title="Chapter 1. Example 1"
+            )
+        )
         actual = files.NavigationControlFile().generate(pkg)
         expected = (
             (
@@ -930,8 +938,16 @@ class NavXhtmlTestCase(TestCase):
             url="https://example.com/imgs/novel-cover.jpg", mimetype="image/jpg", did_load=True, data=b":IMGDATA:"
         )
         pkg.add_image(img, content=img.data, is_cover_image=True)
-        pkg.add_chapter(Chapter(url="http://example.come/chapter-2", chapter_no=2, title="Chapter 2. Example 2"))
-        pkg.add_chapter(Chapter(url="http://example.come/chapter-1", chapter_no=1, title="Chapter 1. Example 1"))
+        pkg.add_chapter(
+            Chapter(
+                url="http://example.come/chapter-2", chapter_no=2, html="<p>Content</p>", title="Chapter 2. Example 2"
+            )
+        )
+        pkg.add_chapter(
+            Chapter(
+                url="http://example.come/chapter-1", chapter_no=1, html="<p>Content</p>", title="Chapter 1. Example 1"
+            )
+        )
 
         actual = pkg.nav.generate(pkg)
         expected = (
@@ -993,8 +1009,16 @@ class TableOfContentsTestCase(TestCase):
             url="https://example.com/imgs/novel-cover.jpg", mimetype="image/jpg", did_load=True, data=b":IMGDATA:"
         )
         pkg.add_image(img, content=img.data, is_cover_image=True)
-        pkg.add_chapter(Chapter(url="http://example.come/chapter-2", chapter_no=2, title="Chapter 2. Example 2"))
-        pkg.add_chapter(Chapter(url="http://example.come/chapter-1", chapter_no=1, title="Chapter 1. Example 1"))
+        pkg.add_chapter(
+            Chapter(
+                url="http://example.come/chapter-2", chapter_no=2, html="<p>Content</p>", title="Chapter 2. Example 2"
+            )
+        )
+        pkg.add_chapter(
+            Chapter(
+                url="http://example.come/chapter-1", chapter_no=1, html="<p>Content</p>", title="Chapter 1. Example 1"
+            )
+        )
 
         actual = pkg.toc_page.generate(pkg)
         expected = (
@@ -1046,8 +1070,16 @@ class TableOfContentsTestCase(TestCase):
             url="https://example.com/imgs/novel-cover.jpg", mimetype="image/jpg", did_load=True, data=b":IMGDATA:"
         )
         pkg.add_image(img, content=img.data, is_cover_image=True)
-        pkg.add_chapter(Chapter(url="http://example.come/chapter-2", chapter_no=2, title="Chapter 2. Example 2"))
-        pkg.add_chapter(Chapter(url="http://example.come/chapter-1", chapter_no=1, title="Chapter 1. Example 1"))
+        pkg.add_chapter(
+            Chapter(
+                url="http://example.come/chapter-2", chapter_no=2, html="<p>Content</p>", title="Chapter 2. Example 2"
+            )
+        )
+        pkg.add_chapter(
+            Chapter(
+                url="http://example.come/chapter-1", chapter_no=1, html="<p>Content</p>", title="Chapter 1. Example 1"
+            )
+        )
 
         actual = pkg.toc_page.generate(pkg)
         expected = (
@@ -1095,8 +1127,22 @@ class PackageOPFTestCase(TestCase):
             url="https://example.com/imgs/novel-cover.jpg", mimetype="image/jpg", did_load=True, data=b":IMGDATA:"
         )
         pkg.add_image(img, content=img.data, is_cover_image=True)
-        pkg.add_chapter(Chapter(url="http://example.come/chapter-2", chapter_no=2, title="Chapter 2. Example 2"))
-        pkg.add_chapter(Chapter(url="http://example.come/chapter-1", chapter_no=1, title="Chapter 1. Example 1"))
+        pkg.add_chapter(
+            Chapter(
+                url="http://example.come/chapter-2",
+                chapter_no=2,
+                title="Chapter 2. Example 2",
+                html="<div><p>Content</p></div>",
+            )
+        )
+        pkg.add_chapter(
+            Chapter(
+                url="http://example.come/chapter-1",
+                chapter_no=1,
+                title="Chapter 1. Example 1",
+                html="<div><p>Content</p></div>",
+            )
+        )
 
         with freezegun.freeze_time("2011-09-08 05:56:00"):
             actual = pkg.opf.generate(pkg)
@@ -1163,8 +1209,22 @@ class PackageOPFTestCase(TestCase):
             url="https://example.com/imgs/novel-cover.jpg", mimetype="image/jpg", did_load=True, data=b":IMGDATA:"
         )
         pkg.add_image(img, content=img.data, is_cover_image=True)
-        pkg.add_chapter(Chapter(url="http://example.come/chapter-2", chapter_no=2, title="Chapter 2. Example 2"))
-        pkg.add_chapter(Chapter(url="http://example.come/chapter-1", chapter_no=1, title="Chapter 1. Example 1"))
+        pkg.add_chapter(
+            Chapter(
+                url="http://example.come/chapter-2",
+                chapter_no=2,
+                title="Chapter 2. Example 2",
+                html="<div><p>Content</p></div>",
+            )
+        )
+        pkg.add_chapter(
+            Chapter(
+                url="http://example.come/chapter-1",
+                chapter_no=1,
+                title="Chapter 1. Example 1",
+                html="<div><p>Content</p></div>",
+            )
+        )
 
         with freezegun.freeze_time("2011-09-08 05:56:00"):
             actual = pkg.opf.generate(pkg)
@@ -1232,8 +1292,22 @@ class PackageOPFTestCase(TestCase):
             url="https://example.com/imgs/novel-cover.jpg", mimetype="image/jpg", did_load=True, data=b":IMGDATA:"
         )
         pkg.add_image(img, content=img.data, is_cover_image=True)
-        pkg.add_chapter(Chapter(url="http://example.come/chapter-2", chapter_no=2, title="Chapter 2. Example 2"))
-        pkg.add_chapter(Chapter(url="http://example.come/chapter-1", chapter_no=1, title="Chapter 1. Example 1"))
+        pkg.add_chapter(
+            Chapter(
+                url="http://example.come/chapter-2",
+                chapter_no=2,
+                title="Chapter 2. Example 2",
+                html="<div><p>Content</p></div>",
+            )
+        )
+        pkg.add_chapter(
+            Chapter(
+                url="http://example.come/chapter-1",
+                chapter_no=1,
+                title="Chapter 1. Example 1",
+                html="<div><p>Content</p></div>",
+            )
+        )
 
         with freezegun.freeze_time("2011-09-08 05:56:00"):
             actual = pkg.opf.generate(pkg)
@@ -1295,8 +1369,22 @@ class PackageOPFTestCase(TestCase):
             url="https://example.com/imgs/novel-cover.jpg", mimetype="image/jpg", did_load=True, data=b":IMGDATA:"
         )
         pkg.add_image(img, content=img.data, is_cover_image=True)
-        pkg.add_chapter(Chapter(url="http://example.come/chapter-2", chapter_no=2, title="Chapter 2. Example 2"))
-        pkg.add_chapter(Chapter(url="http://example.come/chapter-1", chapter_no=1, title="Chapter 1. Example 1"))
+        pkg.add_chapter(
+            Chapter(
+                url="http://example.come/chapter-2",
+                chapter_no=2,
+                title="Chapter 2. Example 2",
+                html="<div><p>Content</p></div>",
+            )
+        )
+        pkg.add_chapter(
+            Chapter(
+                url="http://example.come/chapter-1",
+                chapter_no=1,
+                title="Chapter 1. Example 1",
+                html="<div><p>Content</p></div>",
+            )
+        )
 
         with freezegun.freeze_time("2011-09-08 05:56:00"):
             actual = pkg.opf.generate(pkg)
@@ -1367,8 +1455,22 @@ class PackageOPFTestCase(TestCase):
             url="https://example.com/imgs/novel-cover.jpg", mimetype="image/jpg", did_load=True, data=b":IMGDATA:"
         )
         pkg.add_image(img, content=img.data, is_cover_image=True)
-        pkg.add_chapter(Chapter(url="http://example.come/chapter-2", chapter_no=2, title="Chapter 2. Example 2"))
-        pkg.add_chapter(Chapter(url="http://example.come/chapter-1", chapter_no=1, title="Chapter 1. Example 1"))
+        pkg.add_chapter(
+            Chapter(
+                url="http://example.come/chapter-2",
+                chapter_no=2,
+                title="Chapter 2. Example 2",
+                html="<div><p>Content</p></div>",
+            )
+        )
+        pkg.add_chapter(
+            Chapter(
+                url="http://example.come/chapter-1",
+                chapter_no=1,
+                title="Chapter 1. Example 1",
+                html="<div><p>Content</p></div>",
+            )
+        )
 
         with freezegun.freeze_time("2011-09-08 05:56:00"):
             actual = pkg.opf.generate(pkg)
@@ -1437,8 +1539,22 @@ class PackageOPFTestCase(TestCase):
             url="https://example.com/imgs/novel-cover.jpg", mimetype="image/jpg", did_load=True, data=b":IMGDATA:"
         )
         pkg.add_image(img, content=img.data, is_cover_image=True)
-        pkg.add_chapter(Chapter(url="http://example.come/chapter-2", chapter_no=2, title="Chapter 2. Example 2"))
-        pkg.add_chapter(Chapter(url="http://example.come/chapter-1", chapter_no=1, title="Chapter 1. Example 1"))
+        pkg.add_chapter(
+            Chapter(
+                url="http://example.come/chapter-2",
+                chapter_no=2,
+                title="Chapter 2. Example 2",
+                html="<div><p>Content</p></div>",
+            )
+        )
+        pkg.add_chapter(
+            Chapter(
+                url="http://example.come/chapter-1",
+                chapter_no=1,
+                title="Chapter 1. Example 1",
+                html="<div><p>Content</p></div>",
+            )
+        )
 
         with freezegun.freeze_time("2011-09-08 05:56:00"):
             actual = pkg.opf.generate(pkg)
@@ -1539,8 +1655,22 @@ class PyWebNovelJSONTestCase(TestCase):
             url="https://example.com/imgs/novel-cover.jpg", mimetype="image/jpg", did_load=True, data=b":IMGDATA:"
         )
         pkg.add_image(img, content=img.data, is_cover_image=True)
-        pkg.add_chapter(Chapter(url="http://example.come/chapter-2", chapter_no=2, title="Chapter 2. Example 2"))
-        pkg.add_chapter(Chapter(url="http://example.come/chapter-1", chapter_no=1, title="Chapter 1. Example 1"))
+        pkg.add_chapter(
+            Chapter(
+                url="http://example.come/chapter-2",
+                chapter_no=2,
+                title="Chapter 2. Example 2",
+                html="<div><p>Content</p></div>",
+            )
+        )
+        pkg.add_chapter(
+            Chapter(
+                url="http://example.come/chapter-1",
+                chapter_no=1,
+                title="Chapter 1. Example 1",
+                html="<div><p>Content</p></div>",
+            )
+        )
 
         actual = pkg.app_json.generate(pkg)
         expected = (
@@ -1585,8 +1715,8 @@ class PyWebNovelJSONTestCase(TestCase):
             "}, "
             # -- chapters
             '"chapters": {'
-            '"http://example.come/chapter-2": {"url": "http://example.come/chapter-2", "title": "Chapter 2. Example 2", "chapter_no": 2, "slug": null, "original_html": null, "html": null, "filters": null, "pub_date": null}, '
-            '"http://example.come/chapter-1": {"url": "http://example.come/chapter-1", "title": "Chapter 1. Example 1", "chapter_no": 1, "slug": null, "original_html": null, "html": null, "filters": null, "pub_date": null}'
+            '"http://example.come/chapter-2": {"url": "http://example.come/chapter-2", "title": "Chapter 2. Example 2", "chapter_no": 2, "slug": null, "original_html": null, "html": "<div><p>Content</p></div>", "filters": null, "pub_date": null}, '
+            '"http://example.come/chapter-1": {"url": "http://example.come/chapter-1", "title": "Chapter 1. Example 1", "chapter_no": 1, "slug": null, "original_html": null, "html": "<div><p>Content</p></div>", "filters": null, "pub_date": null}'
             "}, "
             # -- extra css
             '"extra_css": null}'

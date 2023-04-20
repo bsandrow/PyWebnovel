@@ -295,11 +295,18 @@ class EpubPackage:
                     image_file = self.add_image(image=image, content=image.data)
                 img_tag["src"] = f"IMAGE:{file_id}"
 
-                # TODO store image URLs somehow to prevent multiple downloads of
-                #      the same image
+            # TODO Don't want to download images every time we rebuild from
+            #      original_html. Need to maybe build a mapping of image url ->
+            #      file_id on the chapter class or something? Since we're using
+            #      image content hash as the file_id we don't have to worry
+            #      about dupe files, just need to worry about too many
+            #      downloads, or not being able to correctly
 
             if content and img_tags:
                 chapter.html = str(content)
+
+            # TODO store image URLs somehow to prevent multiple downloads of
+            #      the same image
 
         self.chapters[chapter.chapter_id] = chapter
         self.add_file(chapter_file)

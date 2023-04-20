@@ -102,7 +102,7 @@ class RebuildTestCase(TestCase):
                 url="https://novelbin.net/n/creepy-story-club/chapter-1/",
                 slug="chapter-1",
                 chapter_no=1,
-                html=BeautifulSoup(
+                html=(
                     """
                     <div>
                     <p>Lorem ipsum dolor sit amet. Quo quas commodi ut quod vitae
@@ -111,15 +111,14 @@ class RebuildTestCase(TestCase):
                     est obcaecati molestias aut labore cupiditate eum blanditiis
                     doloremque. </p>
                     </div>
-                    """,
-                    "html.parser",
+                    """
                 ),
             ),
             data.Chapter(
                 url="https://novelbin.net/n/creepy-story-club/chapter-2/",
                 slug="chapter-2",
                 chapter_no=2,
-                html=BeautifulSoup(
+                html=(
                     """
                     <div>
                     <p>Lorem ipsum dolor sit amet. Quo quas commodi ut quod vitae
@@ -128,15 +127,14 @@ class RebuildTestCase(TestCase):
                     est obcaecati molestias aut labore cupiditate eum blanditiis
                     doloremque. </p>
                     </div>
-                    """,
-                    "html.parser",
+                    """
                 ),
             ),
             data.Chapter(
                 url="https://novelbin.net/n/creepy-story-club/chapter-14/",
                 slug="chapter-14",
                 chapter_no=14,
-                html=BeautifulSoup(
+                html=(
                     """
                     <div>
                     <p>Lorem ipsum dolor sit amet. Quo quas commodi ut quod vitae
@@ -145,8 +143,7 @@ class RebuildTestCase(TestCase):
                     est obcaecati molestias aut labore cupiditate eum blanditiis
                     doloremque. </p>
                     </div>
-                    """,
-                    "html.parser",
+                    """
                 ),
             ),
         ]
