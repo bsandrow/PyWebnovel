@@ -5,10 +5,9 @@ import hashlib
 from inspect import isclass
 from io import BytesIO
 import logging
-from pathlib import Path
 from typing import IO, Optional, Union
 import urllib.parse
-from zipfile import ZIP_STORED, ZipFile
+from zipfile import ZipFile
 
 from webnovel import http
 from webnovel.data import Chapter, Image, Novel
