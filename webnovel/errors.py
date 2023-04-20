@@ -1,5 +1,10 @@
 """PyWebnovel Error Classes."""
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from webnovel.data import Chapter
+
 
 class PyWebnovelError(Exception):
     """A Dummy "root" Exception for all PyWebnovel-specific errors to inherit from."""
@@ -43,3 +48,15 @@ class NonsequentialChaptersError(ValueError, PyWebnovelError):
             f"between chapters or handling the author going back to add a chapter in "
             f"the middle of previous chapters. (Note: this may change in the future though).\n\n"
         ) + "\n\t\t".join(self.urls)
+
+
+class ChapterContentNotFound(ParseError):
+    """An error caused by ChapterScraper being unable to find chapter content within the chapter HTML page."""
+
+    message: str
+
+    def __init__(self, message: str) -> None:
+        self.message = message
+
+    def __str__(self):
+        return f"Unable to extract chapter content: {self.message}"

@@ -3,7 +3,9 @@ from unittest import TestCase
 
 from bs4 import BeautifulSoup
 
+from webnovel import errors
 from webnovel.data import Chapter, Image, NovelStatus, Person
+from webnovel.html import remove_element
 from webnovel.sites import novelcool
 
 from .helpers import get_test_data
@@ -349,21 +351,33 @@ class NovelCoolChapterScraperTestCase(TestCase):
         expected = page.select_one(".overflow-hidden")
         self.assertEqual(actual, expected)
 
+    def test_get_content_with_no_start_end_marks(self):
+        page = BeautifulSoup(CHAPTER_PAGE, "html.parser")
+        remove_element(page.select_one(".chapter-start-mark"))
+        remove_element(page.select_one(".chapter-end-mark"))
+
+        with self.assertRaisesRegex(
+            errors.ChapterContentNotFound, r"Unable to find \.chapter-start-mark / \.chapter-end-mark"
+        ):
+            novelcool.NovelCoolChapterScraper().get_content(page)
+
     def test_get_content_with_post_processing(self):
         page = BeautifulSoup(CHAPTER_PAGE, "html.parser")
         chapter = Chapter(
             url="https://example.com",
             title="Chapter 32",
             original_html=str(novelcool.NovelCoolChapterScraper().get_content(page)),
+            filters=novelcool.NovelCoolChapterScraper.content_filters,
         )
         novelcool.NovelCoolChapterScraper().post_processing(chapter)
         expected = (
             '<div class="overflow-hidden">\n\n'
-            "\n\n"
+            "\n\n\n"
             "<p>Chapter 32 — Lorem Ipsum Loren Ipsum! Lorem of the Ipsum</p>\n"
             "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>\n"
             "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>\n"
             "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>\n"
+            "\n\n"
             "</div>"
         )
-        self.assertEqual(str(chapter.html), expected)
+        self.assertEqual(chapter.html, expected)

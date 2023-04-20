@@ -3,11 +3,39 @@
 import datetime
 import re
 
+from webnovel import errors
 from webnovel.data import Chapter, Image, NovelStatus, Person
-from webnovel.html import remove_element
+from webnovel.html import register_html_filter, remove_element
 from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraper, Selector
 
 SITE_NAME = "NovelCool.com"
+
+
+@register_html_filter(name="remove_title.novelcool")
+def title_filter(html) -> None:
+    """
+    Remove duplicated title.
+
+    NotelCool doesn't seem to have the same issue where the title embedded in
+    the content differs from the listing / heading title for chapters, so we
+    only need to remove it to prevent a duplicate title from showing up on the
+    page.
+    """
+    title = html.select_one(".chapter-title")
+    if title:
+        remove_element(title)
+
+
+@register_html_filter(name="remove_controls.novelcool")
+def control_filter(html) -> None:
+    """Remove page controls from the content."""
+    for element in (
+        html.select_one(".chapter-section-report"),
+        html.select_one(".chapter-start-mark"),
+        html.select_one(".chapter-end-mark"),
+    ):
+        if element:
+            remove_element(element)
 
 
 class NovelCoolScraper(NovelScraper):
@@ -75,34 +103,11 @@ class NovelCoolChapterScraper(ChapterScraper):
 
     site_name = SITE_NAME
     url_pattern = re.compile(HTTPS_PREFIX + r"novelcool.com/chapter/(?P<ChapterID>[\w\d-]+)/\d+/")
-
-    def post_process_content(self, chapter, content):
-        """Remove chapter title."""
-        ch_title = content.select_one(".chapter-title")
-        if ch_title:
-            remove_element(ch_title)
+    content_filters = ["remove_controls.novelcool"] + ChapterScraper.content_filters + ["remove_title.novelcool"]
 
     def get_content(self, page):
         """Extract the section of the HTML from page that contains the chapter's content."""
-        content_element = None
-
-        # TODO Move these to HTML filters
-        chapter_report = page.select_one(".chapter-section-report")
-        if chapter_report:
-            remove_element(chapter_report)
-
-        chapter_start_mark = page.select_one(".chapter-start-mark")
-        if chapter_start_mark:
-            content_element = chapter_start_mark.parent
-            remove_element(chapter_start_mark)
-
-        chapter_end_mark = page.select_one(".chapter-end-mark")
-        if chapter_end_mark:
-            if not content_element:
-                content_element = chapter_end_mark.parent
-            remove_element(chapter_end_mark)
-
-        if content_element:
-            return content_element
-
-        raise ValueError("Unable to find .chapter-start-mark / .chapter-end-mark")
+        for element in [page.select_one(".chapter-start-mark"), page.select_one(".chapter-end-mark")]:
+            if element:
+                return element.parent
+        raise errors.ChapterContentNotFound("Unable to find .chapter-start-mark / .chapter-end-mark")
