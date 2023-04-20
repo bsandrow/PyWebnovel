@@ -38,17 +38,15 @@ class NovelBinChapterScraper(ChapterScraper):
     content_selector = Selector("#chr-content")
     content_filters = DEFAULT_FILTERS + ["remove_check_back_soon_msg"]
 
-    def post_processing(self, chapter: Chapter) -> None:
+    def post_process_content(self, chapter, content) -> None:
         """Do extra chapter title processing."""
-        html = super().post_processing(chapter)
-
-        direct_descendants = html.find_all(recursive=False)
+        direct_descendants = content.find_all(recursive=False)
 
         while len(direct_descendants) == 1:
-            html = direct_descendants[0]
-            direct_descendants = html.find_all(recursive=False)
+            content = direct_descendants[0]
+            direct_descendants = content.find_all(recursive=False)
 
-        title_header = html.find(["h4", "h3", "p"])
+        title_header = content.find(["h4", "h3", "p"])
         if title_header and (match := Chapter.is_title_ish(title_header.text)):
             chapter.title = Chapter.clean_title(match.group(0))
             remove_element(title_header)
@@ -56,8 +54,6 @@ class NovelBinChapterScraper(ChapterScraper):
         if chapter.title is not None:
             chapter.title = re.sub(r"Side Story  (\d+):", r"Side Story Chapter \1:", chapter.title, re.IGNORECASE)
             chapter.title = re.sub(r"(Chapter \d+)- ", r"\1: ", chapter.title, re.IGNORECASE)
-
-        chapter.html = str(html)
 
 
 class NovelBinScraper(NovelScraper):

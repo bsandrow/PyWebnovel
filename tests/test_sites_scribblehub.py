@@ -194,6 +194,7 @@ class ScribbleHubChapterTestCase(TestCase):
                     "chapter_no": None,
                     "slug": None,
                     "html": None,
+                    "filters": None,
                     "original_html": None,
                     "title": None,
                     "pub_date": None,
@@ -277,6 +278,14 @@ class ScribbleHubChapterTestCase(TestCase):
                         "volutpat diam. Donec enim diam vulputate ut pharetra.</p>\n"
                         "</div>"
                     ),
+                    "filters": [
+                        "remove_blacklisted_elements",
+                        "remove_blank_elements",
+                        "remove_hidden_elements",
+                        "remove_comments",
+                        "remove_content_warnings",
+                        "transform_authors_notes.scribblehub",
+                    ],
                     "original_html": mock.ANY,
                     "title": None,
                     "pub_date": None,

@@ -76,15 +76,11 @@ class NovelCoolChapterScraper(ChapterScraper):
     site_name = SITE_NAME
     url_pattern = re.compile(HTTPS_PREFIX + r"novelcool.com/chapter/(?P<ChapterID>[\w\d-]+)/\d+/")
 
-    def post_processing(self, chapter):
-        """Extra NovelCool-specific processing."""
-        content = super().post_processing(chapter)
-
+    def post_process_content(self, chapter, content):
+        """Remove chapter title."""
         ch_title = content.select_one(".chapter-title")
         if ch_title:
             remove_element(ch_title)
-
-        chapter.html = str(content)
 
     def get_content(self, page):
         """Extract the section of the HTML from page that contains the chapter's content."""

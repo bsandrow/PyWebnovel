@@ -5,12 +5,12 @@ import datetime
 from enum import Enum
 import imghdr
 import re
-from typing import Optional, Union
+from typing import Callable, Optional, Union
 
 from apptk.http import HttpClient
-from bs4 import Tag
+from bs4 import BeautifulSoup, Tag
 
-from .utils import filter_dict
+from webnovel import html, utils
 
 
 def check_if_jpeg(data: bytes) -> bool:
@@ -151,7 +151,7 @@ class Person:
     @classmethod
     def from_dict(cls, data: dict) -> "Person":
         """Load a Person instance from a dict."""
-        return cls(**filter_dict(data, ("name", "email", "url")))
+        return cls(**utils.filter_dict(data, ("name", "email", "url")))
 
     def to_dict(self) -> dict:
         """Convert to a dictionary."""
@@ -180,6 +180,7 @@ class Chapter:
             "slug": self.slug,
             "original_html": self.original_html,
             "html": str(self.html) if self.html else None,
+            "filters": self.filters,
             "pub_date": self.pub_date.strftime("%Y-%m-%d") if self.pub_date else None,
         }
 
@@ -208,6 +209,44 @@ class Chapter:
             html=data.get("html"),
             pub_date=datetime.datetime.strptime(data["pub_date"], "%Y-%m-%d").date() if data.get("pub_date") else None,
         )
+
+    def generate_html(self) -> Optional[Tag]:
+        """
+        Generate an HTML tree from original_html and apply the defined filters to it.
+
+        Returns either None (of there is no original_html value) or a Tag
+        instance. This allows futher processing to be done externally if
+        desired.
+        """
+        if self.original_html is None:
+            return None
+        content = BeautifulSoup(self.original_html, "html.parser")
+        filters = self.filters if self.filters is not None else html.DEFAULT_FILTERS
+        html.run_filters(content, filters)
+        return content
+
+    def populate_html(self, callback: Optional[Callable[["Chapter", Tag], None]] = None) -> None:
+        """
+        Populate the Chapter.html field.
+
+        Create the content for Chapter.html by calling Chapter.generate_html to
+        create an HTML tree (with the filters defined in Chapter.filters run on
+        it). A callback (that takes the chapter and the html tree) can also be
+        provided to additional processing.
+
+        Currently, this will be used to extract titles that are duplicated at
+        the top of the content and set them to Chapter.title for some scrapers.
+        (Some sites have more accurate / clean titles in the chapter page
+        content than in the heading at the top of the page.)
+
+        :param callback: A callback function that takes the Chapter instance and
+            the Tag instance as input allowing for external processing to happen.
+        """
+        content = self.generate_html()
+        if content is not None:
+            if callback:
+                callback(self, content)
+            self.html = str(content)
 
     @property
     def chapter_id(self):

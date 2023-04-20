@@ -7,14 +7,41 @@ import re
 
 from bs4 import BeautifulSoup
 
+from webnovel import html
 from webnovel.data import Chapter, NovelStatus
-from webnovel.html import remove_element
 from webnovel.logs import LogTimer
 from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraper, Selector
 
 SITE_NAME = "ScribbleHub.com"
 logger = logging.getLogger(__name__)
 timer = LogTimer(logger)
+
+
+@html.register_html_filter(name="transform_authors_notes.scribblehub")
+def authors_notes_filter(html_block: html.Tag) -> None:
+    """Transform the author's notes into something better for ebooks."""
+    for authors_notes_block in html_block.select(".wi_authornotes"):
+        # author = authors_notes_block.select_one(".an_username a").text
+        content = authors_notes_block.select_one(".wi_authornotes_body")
+
+        # If there is no content that we're going to display in the block, then
+        # there's no point to generating an empty block. An example of this
+        # would be an author's notes that only contains an image or a table even
+        # though we've turned of images or tables. The only content there would
+        # be to display in the original, is content that we've stripped due to
+        # ebook building options.
+        if not content.text.strip():
+            html.remove_element(authors_notes_block)
+            return
+
+        new_block = BeautifulSoup(
+            f'<div class="pywn_authorsnotes">'
+            f'   <div class="pywn_authorsnotes-title">-- Author\'s Note ---</div>'
+            f'   <div class="pywn_authorsnotes-body">{content}</div>'
+            f"</div>",
+            "html.parser",
+        ).find("div")
+        authors_notes_block.replace_with(new_block)
 
 
 class ScribbleHubScraper(NovelScraper):
@@ -132,36 +159,9 @@ class ScribbleHubChapterScraper(ChapterScraper):
         .wi_authornotes .wi_authornotes_body {padding-top: 10px;}
     """
     content_selector = Selector("#chp_raw")
-    supports_authors_notes = True
-    authors_notes_selector = Selector(".wi_authornotes")
+    author_notes_filter = "transform_authors_notes.scribblehub"
 
-    def transform_authors_notes(self, authors_notes_block) -> None:
-        """Format the Author's Notes section."""
-        # author = authors_notes_block.select_one(".an_username a").text
-        content = authors_notes_block.select_one(".wi_authornotes_body")
-
-        # If there is no content that we're going to display in the block, then
-        # there's no point to generating an empty block. An example of this
-        # would be an author's notes that only contains an image or a table even
-        # though we've turned of images or tables. The only content there would
-        # be to display in the original, is content that we've stripped due to
-        # ebook building options.
-        if not content.text.strip():
-            remove_element(authors_notes_block)
-            return
-
-        new_block = BeautifulSoup(
-            f'<div class="pywn_authorsnotes">'
-            f'   <div class="pywn_authorsnotes-title">-- Author\'s Note ---</div>'
-            f'   <div class="pywn_authorsnotes-body">{content}</div>'
-            f"</div>",
-            "html.parser",
-        ).find("div")
-        authors_notes_block.replace_with(new_block)
-
-    def post_processing(self, chapter):
-        """Post-Processing to Transform Author's Notes Block."""
-        content = super().post_processing(chapter)
+    def post_process_content(self, chapter, content):
+        """Post-Processing to remove tables (for now)."""
         while table := content.find("table"):
-            remove_element(table)
-        chapter.html = str(content)
+            html.remove_element(table)

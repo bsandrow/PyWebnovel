@@ -1585,8 +1585,8 @@ class PyWebNovelJSONTestCase(TestCase):
             "}, "
             # -- chapters
             '"chapters": {'
-            '"http://example.come/chapter-2": {"url": "http://example.come/chapter-2", "title": "Chapter 2. Example 2", "chapter_no": 2, "slug": null, "original_html": null, "html": null, "pub_date": null}, '
-            '"http://example.come/chapter-1": {"url": "http://example.come/chapter-1", "title": "Chapter 1. Example 1", "chapter_no": 1, "slug": null, "original_html": null, "html": null, "pub_date": null}'
+            '"http://example.come/chapter-2": {"url": "http://example.come/chapter-2", "title": "Chapter 2. Example 2", "chapter_no": 2, "slug": null, "original_html": null, "html": null, "filters": null, "pub_date": null}, '
+            '"http://example.come/chapter-1": {"url": "http://example.come/chapter-1", "title": "Chapter 1. Example 1", "chapter_no": 1, "slug": null, "original_html": null, "html": null, "filters": null, "pub_date": null}'
             "}, "
             # -- extra css
             '"extra_css": null}'

@@ -95,7 +95,7 @@ class WuxiaWorldSiteChapterScraper(ChapterScraper):
         "remove_site_ads.wuxiaworldsite",
     ]
 
-    def post_processing(self, chapter: Chapter) -> None:
+    def post_process_content(self, chapter, content):
         """
         Deal with the weird/inconsitent way that chapter titles are added to chapter content.
 
@@ -108,13 +108,9 @@ class WuxiaWorldSiteChapterScraper(ChapterScraper):
         prevents us from seeing the chapter title twice due to the way that we format the chapter
         xhtml files.
         """
-        content = super().post_processing(chapter)
-
         results = content.find_all(limit=1)
         candidate = results[0].text.strip() if results else ""
         if candidate and (match := Chapter.is_title_ish(candidate)):
             chapter.title = Chapter.clean_title(match.group(0))
             html.remove_element(results[0])
         chapter.title = chapter.title.replace(" - : ", ": ")
-
-        chapter.html = str(content)
