@@ -3,7 +3,7 @@
 import logging
 import re
 
-from webnovel import errors
+from webnovel import data, errors
 from webnovel.data import Chapter, NovelStatus
 from webnovel.html import DEFAULT_FILTERS, register_html_filter, remove_element
 from webnovel.logs import LogTimer
@@ -64,15 +64,22 @@ class NovelBinScraper(NovelScraper):
     title_selector = Selector(".col-novel-main > .col-info-desc > .desc > .title")
     status_map = {"ongoing": NovelStatus.ONGOING, "completed": NovelStatus.COMPLETED}
     genre_selector = Selector(".col-novel-main > .col-info-desc > .desc > .info-meta > li:nth-child(3) > a")
-    author_name_selector = Selector(".col-novel-main > .col-info-desc > .desc > .info-meta > li:nth-child(2) > a")
-    author_url_selector = Selector(
-        ".col-novel-main > .col-info-desc > .desc > .info-meta > li:nth-child(2) > a", attribute="href"
-    )
     summary_selector = Selector("div.tab-content div.desc-text")
     cover_image_url_selector = Selector("#novel div.book > img", attribute="src")
     chapter_list_api_url = "https://novelbin.net/ajax/chapter-archive?novelId={novel_id}"
 
     extra_css = ".desc-text { white-space: pre-line; }"
+
+    def get_author(self, page):
+        """Extract the author from the page content."""
+        metainfo = page.select("UL.info-meta")
+        for infoitem in metainfo("li"):
+            if "Author" in infoitem.text:
+                author_link = infoitem.find("a")
+                author_name = author_link.text.strip()
+                author_url = author_link.get("href")
+                return data.Person(name=author_name, url=author_url)
+        return None
 
     @classmethod
     def get_novel_id(cls, url: str) -> str:
