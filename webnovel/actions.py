@@ -293,3 +293,29 @@ class App:
 
         # chapter_slug_map = {c.slug: c for c in pkg.chapters.values()}
         # raise NotImplementedError
+
+    def info(self, ebook: str) -> None:
+        """
+        Return info on an ebook for display.
+
+        :param ebook: Path to the ebook to display information about.
+        """
+        pkg = epub.EpubPackage.load(ebook)
+
+        return {
+            "Title": pkg.metadata.title,
+            "Author": pkg.metadata.author.name if pkg.metadata.author else "",
+            "Status": pkg.metadata.status.value if pkg.metadata.status else "",
+            "Translator": pkg.metadata.translator.name if pkg.metadata.translator else "",
+            "Genre(s)": ", ".join(map(repr, pkg.metadata.genres)) if pkg.metadata.genres else "",
+            "Tag(s)": ", ".join(map(repr, pkg.metadata.tags)) if pkg.metadata.tags else "",
+            "--": "--",
+            "Novel URL": pkg.metadata.novel_url,
+            "Cover Image URL": pkg.metadata.cover_image_url,
+            "Site ID": pkg.metadata.site_id,
+            "Novel ID": pkg.metadata.novel_id,
+            "Source Published On": pkg.metadata.published_on.strftime("%Y-%m-%d") if pkg.metadata.published_on else "",
+            "Source Last Updated On": pkg.metadata.last_updated_on.strftime("%Y-%m-%d")
+            if pkg.metadata.last_updated_on
+            else "",
+        }

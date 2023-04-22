@@ -2,7 +2,7 @@
 
 import click
 
-from webnovel import turn_on_logging
+from webnovel import epub, turn_on_logging
 from webnovel.actions import App
 
 
@@ -123,3 +123,17 @@ def set_cover(app: App, ebook: str, cover_image: str) -> None:
     """
     turn_on_logging()
     app.set_cover_image_for_epub(ebook, cover_image)
+
+
+@pywn.command()
+@click.argument("ebook")
+@pass_app
+def info(app: App, ebook: str) -> None:
+    """Print out information about EBOOK."""
+    turn_on_logging()
+    info = app.info(ebook)
+    click.echo(f"\nInfo for {ebook}:\n")
+    max_key_size = max(len(key) for key in info)
+    for key, value in info.items():
+        click.echo(f" »» {key:{max_key_size + 1}s}: {value}")
+    click.echo()
