@@ -104,7 +104,7 @@ class App:
 
             epub_pkg.save()
 
-    def add_chapters(self, ebook: epub.EpubPackage, chapters: list[Chapter], batch_size: int = 50) -> None:
+    def add_chapters(self, ebook: epub.EpubPackage, chapters: list[Chapter], batch_size: int = 20) -> None:
         """
         Add a list of chapters to an ebook.
 
