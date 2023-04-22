@@ -713,7 +713,7 @@ class PackageOPF(SingleFileMixin, EpubInternalFile):
             create_element(dom, "dc:description", text=summary, parent=metadata)
 
         if pkg.metadata.genres:
-            for genre in pkg.metadata.genres:
+            for genre in pkg.metadata.genres + ["PyWebnovel", "Webnovel"]:
                 create_element(dom, "dc:subject", text=genre, parent=metadata)
 
         # TODO site
