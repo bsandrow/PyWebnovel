@@ -718,6 +718,16 @@ class PackageOPF(SingleFileMixin, EpubInternalFile):
 
         # TODO site
 
+        # TODO calibre-specific metadata:
+        #
+        #       <meta name="calibre:series" content="" />
+        #       <meta name="calibre:series_index" content="" />
+        #
+        #       EPUB3
+        #       <meta id="series" property="belongs-to-collection">Series Name</dc:title>
+        #       <meta refines="#series" property="collection-type">series</meta>
+        #       <meta refines="#series" property="group-position">1</meta>
+
         # Novel URL
         create_element(
             dom,
