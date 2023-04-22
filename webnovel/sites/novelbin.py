@@ -72,7 +72,7 @@ class NovelBinScraper(NovelScraper):
 
     def get_author(self, page):
         """Extract the author from the page content."""
-        metainfo = page.select("UL.info-meta")
+        metainfo = page.select_one("UL.info-meta")
         for infoitem in metainfo("li"):
             if "Author" in infoitem.text:
                 author_link = infoitem.find("a")
