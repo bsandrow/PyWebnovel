@@ -86,6 +86,9 @@ class ScribbleHubScraper(NovelScraper):
         )
 
         def parse_date(date_string):
+            if date_string and (match := re.search(r"(\d+) hours? ago", date_string.lower())):
+                return datetime.datetime.now() - datetime.timedelta(hours=int(match.group(1)))
+
             if date_string:
                 return datetime.datetime.strptime(date_string, "%b %d, %Y %I:%M %p")
             return None
