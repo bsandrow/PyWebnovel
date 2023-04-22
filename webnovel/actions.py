@@ -229,6 +229,7 @@ class App:
 
         scraper = scraper_class(http_client=self.client)
         novel = scraper.scrape(novel_url)
+        logger.info(f"Found %d Chapter(s).", len(novel.chapters))
 
         chapter_urls_in_file = set(pkg.chapters.keys())
         chapter_urls_fetched = {c.url for c in novel.chapters}
