@@ -29,7 +29,7 @@ def site_ads_filter(element: Tag) -> None:
 @html.register_html_filter(name="remove_style_elements.wuxiaworldsite")
 def style_element_filter(element: Tag) -> None:
     """Remove <style> elements from content."""
-    while element := html.find("style"):
+    while element := element.find("style"):
         element.decompose()
 
 
