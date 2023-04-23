@@ -25,7 +25,10 @@ def add_rate_limit(hostname: str, rate_per_second: int) -> None:
 def get_client(*args, **kwargs) -> HttpClient:
     """Return a HttpClient instance with rate limiter adapters attached."""
     kwargs.setdefault("use_cloudscraper", True)
+    user_agent = kwargs.pop("user_agent", None)
     client = HttpClient(*args, **kwargs)
+    if user_agent:
+        client._session.headers["User-Agent"] = user_agent
     # for key, adapter in ADAPTERS.items():
     #     client._session.mount(key, adapter)
     return client

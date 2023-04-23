@@ -8,8 +8,8 @@ from apptk.html import Selector
 from bs4 import BeautifulSoup, Tag
 from pyrate_limiter import Duration, Limiter, RequestRate
 
-from webnovel import html, http
-from webnovel.data import Chapter, Image, Novel, NovelStatus, ParsingOptions, Person
+from webnovel import conf, html, http
+from webnovel.data import Chapter, Image, Novel, NovelStatus, Person
 from webnovel.logs import LogTimer
 
 HTTPS_PREFIX = r"https?://(?:www\.)?"
@@ -26,19 +26,19 @@ class ScraperBase:
     site_name: str
     http_client: http.HttpClient
     limiter: Limiter
-    options: ParsingOptions
+    options: conf.ParsingOptions
 
     def __init__(
-        self, options: Optional[Union[dict, ParsingOptions]] = None, http_client: http.HttpClient = None
+        self, options: Optional[Union[dict, conf.ParsingOptions]] = None, http_client: http.HttpClient = None
     ) -> None:
         self.http_client = http_client or http.get_client()
         self.limiter = self.get_limiter()
         self.options = (
             options
-            if isinstance(options, ParsingOptions)
-            else ParsingOptions.from_dict(options)
+            if isinstance(options, conf.ParsingOptions)
+            else conf.ParsingOptions.from_dict(options)
             if isinstance(options, dict)
-            else ParsingOptions()
+            else conf.ParsingOptions()
         )
         assert self.site_name is not None
 

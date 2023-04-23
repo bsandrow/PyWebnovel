@@ -1,12 +1,13 @@
 """General Utilities - written in support of the rest of the code."""
 
+from dataclasses import fields, is_dataclass
 import datetime
 import io
 import itertools
 import re
 import string
 from time import perf_counter
-from typing import IO, Container, Iterator, Optional, Sequence, Union
+from typing import IO, ClassVar, Container, Iterator, Optional, Sequence, Union
 
 BASE_DIGITS = string.digits + string.ascii_letters
 
@@ -199,3 +200,52 @@ class Timer:
         self.ended_at = datetime.datetime.utcnow()
         self.counter_end = perf_counter()
         self.time = self.counter_end - self.counter_start
+
+
+class DataclassSerializationMixin:
+    """A Mixin to add to_dict/from_dict to dataclasses."""
+
+    # When initializing from a dictionary, ignore any fields that don't
+    # correspond with fields on the dataclass. If this is set to false, then the
+    # conversion will raise an exception.
+    ignore_unknown_fields: ClassVar[bool] = True
+
+    # A list of fields that are required during conversion from a dictionary. If
+    # any of these fields are not present in the dictionary, conversion will
+    # fail with an exception.
+    required_fields: ClassVar[Optional[list[str]]] = None
+
+    @classmethod
+    def from_dict(cls, data: dict):
+        """Intialize an instance from a dictionary."""
+        field_types_map = {field.name: field.type for field in fields(cls)}
+        valid_fields = set(field_types_map.keys())
+        input_fields = set(data.keys())
+        unknown_fields = input_fields - valid_fields
+
+        if unknown_fields and not cls.ignore_unknown_fields:
+            fields_str = ", ".join(map(repr, unknown_fields))
+            raise ValueError(
+                f"Cannot convert dict to {cls.__name__}: Following unknown fields encountered: {fields_str}"
+            )
+
+        if cls.required_fields:
+            missing_required_fields = set(cls.required_fields) - input_fields
+            if missing_required_fields:
+                fields_str = ", ".join(map(repr, missing_required_fields))
+                raise ValueError(f"Cannot convert dict to {cls.__name__}: Missing required fields: {fields_str}")
+
+        kwargs = {key: value for key, value in data.items() if key in field_types_map}
+        return cls(**kwargs)
+
+    def to_dict(self) -> dict:
+        """
+        Convert dataclass instance to a dictionary.
+
+        ..note::
+            This allows more flexibility than dataclasses.asdict which parses
+            through all values and uses copy.deepcopy(). This also allows for
+            some flexibility in converting certain datatypes into json-ified
+            types. For example, converting a datetime instance into a string.
+        """
+        return {field.name: getattr(self, field.name) for field in fields(self)}

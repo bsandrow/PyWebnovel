@@ -3,9 +3,9 @@
 import datetime
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING, Iterable, Optional, Type
+from typing import TYPE_CHECKING, Any, Iterable, Optional, Type
 
-from webnovel import epub, errors, http, sites, utils
+from webnovel import conf, epub, errors, http, sites, utils
 from webnovel.data import Chapter, Image
 from webnovel.logs import LogTimer
 from webnovel.scraping import ScraperBase
@@ -39,14 +39,15 @@ class ScraperCache:
 class App:
     """Central Application for PyWebnovel."""
 
-    debug: bool = False
-    format: str = "epub"
     client: http.HttpClient
 
-    def __init__(self, debug: bool = False, format: str = "epub"):
-        self.debug = debug
-        self.format = format
-        self.client = http.get_client()
+    def __init__(self, settings: conf.Settings = None):
+        self.settings = settings or conf.Settings()
+        self.client = http.get_client(user_agent=self.settings.user_agent)
+
+    def __getattr__(self, name: str) -> Any:
+        """Pull any attributes that don't exist on App from Settings."""
+        return getattr(self.settings, name)
 
     def set_user_agent(self, user_agent_string: str) -> None:
         """Set the User-Agent header on the session."""

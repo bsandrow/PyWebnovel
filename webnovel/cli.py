@@ -1,8 +1,10 @@
 """The command-line interface to PyWebnovel."""
 
+from pathlib import Path
+
 import click
 
-from webnovel import epub, turn_on_logging
+from webnovel import conf, epub, turn_on_logging
 from webnovel.actions import App
 
 
@@ -25,28 +27,42 @@ pass_app = click.make_pass_decorator(App)
 
 
 @click.group()
-@click.option("--debug/--no-debug", default=False, help="Enable/disable debugging output.")
+@click.option("--config-file", "config_path", default=None, help=f"Configuration file. (Default: {conf.CONFIG_FILE})")
+@click.option("--debug/--no-debug", default=None, help="Enable/disable debugging output.")
 @click.option("--user-agent", help="Set the User-Agent header for all requests.")
 @click.option("--cookie", "cookies", metavar="VAR=VALUE", multiple=True, help="Set a cookie value.")
 @click.option(
     "--format",
     metavar="FORMAT",
-    default="epub",
+    default=None,
     help="Specify the format of the ebook. Currently only 'epub' is supported.",
 )
 @click.pass_context
-def pywn(ctx, debug, user_agent, cookies, format):
+def pywn(ctx, config_path, debug, user_agent, cookies, format):
     """
     Create, edit and update ebooks of webnovels.
 
     NOTE: Only ebooks created by PyWebnovel can be managed in this way as
           application data is stored in a JSON file within the ebook itself.
     """
-    ctx.obj = app = App(debug=debug, format=format)
-    app.set_user_agent(user_agent)
-    for cookie in cookies:
-        name, _, value = cookie.partition("=")
-        app.set_cookie(name, value)
+    if config_path is not None and not Path(config_path).exists():
+        ctx.fail(f"File does not exist: {config_path}")
+
+    settings = conf.Settings.load(config_path)
+
+    if debug is not None:
+        settings.debug = debug
+
+    if format:
+        settings.format = format
+
+    if user_agent:
+        settings.user_agent = user_agent
+
+    ctx.obj = app = App(settings)
+    # for cookie in cookies:
+    #     name, _, value = cookie.partition("=")
+    #     app.set_cookie(name, value)
 
 
 @pywn.command()
