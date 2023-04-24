@@ -42,7 +42,14 @@ class App:
 
     def __init__(self, settings: conf.Settings = None):
         self.settings = settings or conf.Settings()
+        self.client = self.create_client()
+
+    def create_client(self) -> http.HttpClient:
+        """Create a HttpClient instance."""
         self.client = http.get_client(user_agent=self.settings.user_agent)
+        if self.settings.cookies:
+            for cname, cvalue in self.settings.cookies:
+                self.client._session.cookies.set(cname, cvalue)
 
     def __getattr__(self, name: str) -> Any:
         """Pull any attributes that don't exist on App from Settings."""

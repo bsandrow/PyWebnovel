@@ -59,10 +59,11 @@ def pywn(ctx, config_path, debug, user_agent, cookies, format):
     if user_agent:
         settings.user_agent = user_agent
 
+    for cookie in cookies:
+        name, _, value = cookie.partition("=")
+        settings.cookies[name] = value
+
     ctx.obj = app = App(settings)
-    # for cookie in cookies:
-    #     name, _, value = cookie.partition("=")
-    #     app.set_cookie(name, value)
 
 
 @pywn.command()

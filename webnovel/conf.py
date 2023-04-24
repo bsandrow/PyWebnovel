@@ -9,7 +9,6 @@ from webnovel import utils
 
 CONFIG_DIR = Path("~/.config/pywebnovel")
 CONFIG_FILE = CONFIG_DIR / "settings.ini"
-COOKIE_JAR = CONFIG_DIR / "cookie.jar"
 
 
 @dataclass
@@ -40,11 +39,6 @@ class Settings(utils.DataclassSerializationMixin):
     parsing_options: ParsingOptions = field(default_factory=ParsingOptions)
 
     #
-    # The location of the cookie jar to use with the requests.Session.
-    #
-    cookie_jar: Path = COOKIE_JAR
-
-    #
     # Debug mode
     #
     debug: bool = False
@@ -57,15 +51,18 @@ class Settings(utils.DataclassSerializationMixin):
     format: str = "epub"
 
     #
+    #
+    #
+    cookies: dict = field(default_factory=dict)
+
+    #
     # User-Agent string used for requests.Session
     #
     user_agent: Optional[str] = None
 
-    def __post_init__(self):
-        self.cookie_jar: Path = Path(self.cookie_jar)
-
     def __str__(self):
-        parts = [f"cookie_jar = {repr(str(self.cookie_jar))}"]
+        # TODO cookies
+        parts = [f"item = {repr(getattr(self, item))}" for item in ("format", "debug", "user_agent")]
         for name, value in self.parsing_options.to_dict().items():
             parts.append(f"parsing_options.{name} = {repr(value)}")
         return "\n".join(parts)
@@ -74,6 +71,7 @@ class Settings(utils.DataclassSerializationMixin):
     def load(cls, filename=None) -> "Settings":
         """Load config settings from a file."""
         kwargs = {}
+        cookies = {}
         parsing_options_kwargs = {}
         config = ConfigParser()
         filename = Path(filename) if filename else CONFIG_FILE
@@ -83,9 +81,14 @@ class Settings(utils.DataclassSerializationMixin):
                 config.read_string(fh.read())
 
             if "pywn" in config:
-                for fname in ("cookie_jar", "debug", "format"):
+                for fname in ("debug", "format"):
                     if fname in config["pywn"]:
                         kwargs[fname] = config["pywn"][fname]
+
+            if "pwyn.cookies" in config:
+                section = config["pywn.cookies"]
+                for cookie_name, cookie_value in section.items():
+                    cookies[cookie_name] = cookie_value
 
             if "pywn.parsing_options" in config:
                 section = config["pywn.parsing_options"]
@@ -95,5 +98,8 @@ class Settings(utils.DataclassSerializationMixin):
 
         if parsing_options_kwargs:
             kwargs["parsing_options"] = ParsingOptions(**parsing_options_kwargs)
+
+        if cookies:
+            kwargs["cookies"] = cookies
 
         return cls(**kwargs)
