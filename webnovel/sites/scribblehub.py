@@ -44,6 +44,26 @@ def authors_notes_filter(html_block: html.Tag) -> None:
         authors_notes_block.replace_with(new_block)
 
 
+@html.register_html_filter(name="transform_announcements.scribblehub")
+def announcements_filter(html_block: html.Tag) -> None:
+    """Reformat ScribbleHub "Announcement" blocks."""
+    for announcement_block in html_block.select(".wi_news"):
+        content = announcement_block.select_one(".wi_news_body")
+
+        if not content.text.strip():
+            html.remove_element(announcement_block)
+            return
+
+        new_block = BeautifulSoup(
+            f'<div class="pywn_announcement">'
+            f'   <div class="pywn_announcement-title">-⚠️- Announcement -⚠️-</div>'
+            f'   <div class="pywn_announcement-body">{content}</div>'
+            f"</div>",
+            "html.parser",
+        ).find("div")
+        announcement_block.replace_with(new_block)
+
+
 class ScribbleHubScraper(NovelScraper):
     """Scraper for ScribbleHub.com."""
 
@@ -163,6 +183,7 @@ class ScribbleHubChapterScraper(ChapterScraper):
     """
     content_selector = Selector("#chp_raw")
     author_notes_filter = "transform_authors_notes.scribblehub"
+    content_filters: list[str] = ChapterScraper.content_filters + ["transform_announcements.scribblehub"]
 
     def post_process_content(self, chapter, content):
         """Post-Processing to remove tables (for now)."""
