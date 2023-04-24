@@ -3,7 +3,6 @@
 from configparser import ConfigParser
 from dataclasses import dataclass, field, fields
 from pathlib import Path
-from typing import Optional
 
 from webnovel import utils
 
@@ -58,7 +57,7 @@ class Settings(utils.DataclassSerializationMixin):
     #
     # User-Agent string used for requests.Session
     #
-    user_agent: Optional[str] = None
+    user_agent: str | None = None
 
     def __str__(self):
         # TODO cookies

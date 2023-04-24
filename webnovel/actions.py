@@ -2,7 +2,7 @@
 
 import logging
 from pathlib import Path
-from typing import Any, Iterable, Optional, Type
+from typing import Any, Iterable, Type
 
 from webnovel import conf, epub, errors, http, sites, utils
 from webnovel.data import Chapter, Image
@@ -184,7 +184,7 @@ class App:
         epub_pkg.add_image(image=image, content=image.data, is_cover_image=True)
         epub_pkg.save()
 
-    def rebuild(self, epub_file: str, reload_chapters: Optional[Iterable[str]] = None) -> None:
+    def rebuild(self, epub_file: str, reload_chapters: Iterable[str] | None = None) -> None:
         """
         Force the Epub package to be rebuilt from the JSON file.
 
@@ -221,7 +221,7 @@ class App:
 
         epub_pkg.save()
 
-    def update(self, ebook: str, limit: Optional[int] = None) -> int:
+    def update(self, ebook: str, limit: int | None = None) -> int:
         """Update ebook."""
         logger.info("Updating package: %s", ebook)
         pkg = epub.EpubPackage.load(ebook)

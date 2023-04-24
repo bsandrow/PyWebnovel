@@ -8,7 +8,7 @@ from pathlib import Path
 import pkgutil
 import posixpath
 import sys
-from typing import TYPE_CHECKING, Iterable, Optional, Union
+from typing import TYPE_CHECKING, Iterable, Union
 from xml.dom.minidom import Document, Element, getDOMImplementation
 from zipfile import ZIP_DEFLATED, ZIP_STORED, ZipFile
 
@@ -78,7 +78,7 @@ class EpubInternalFile:
     file_id: str
     filename: str
     mimetype: str
-    title: Optional[str] = None
+    title: str | None = None
     compress_type: int = ZIP_STORED
 
     @property
@@ -163,8 +163,8 @@ class ImageFile(EpubInternalFile):
         self,
         file_id: str,
         mimetype: str,
-        extension: Optional[str] = None,
-        filename: Optional[str] = None,
+        extension: str | None = None,
+        filename: str | None = None,
         is_cover_image: bool = False,
     ) -> None:
         # TODO use imghdr to make mimetype optional
@@ -424,9 +424,7 @@ class ChapterFile(EpubInternalFile):
     mimetype: str = "application/xhtml+xml"
     title: str = None
 
-    def __init__(
-        self, chapter_id: str, file_id: str, filename: Optional[str] = None, title: Optional[str] = None
-    ) -> None:
+    def __init__(self, chapter_id: str, file_id: str, filename: str | None = None, title: str | None = None) -> None:
         self.chapter_id = chapter_id
         self.file_id = file_id
         self.filename = filename or f"OEBPS/Text/{self.file_id}.xhtml"
@@ -568,7 +566,7 @@ class PackageOPF(SingleFileMixin, EpubInternalFile):
     mimetype: str = ""
 
     @staticmethod
-    def generate_guide(dom: Document, pkg: "EpubPackage", path: str) -> Optional[Element]:
+    def generate_guide(dom: Document, pkg: "EpubPackage", path: str) -> Element | None:
         """
         Generate <guide> element for PackageOPF file.
 

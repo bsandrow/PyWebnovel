@@ -3,7 +3,7 @@
 from dataclasses import asdict, dataclass, fields
 import datetime
 from enum import Enum
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from bs4 import Tag
 
@@ -48,19 +48,19 @@ class EpubMetadata:
     novel_url: str
     novel_id: str
     site_id: str
-    title: Optional[str] = None
-    status: Optional[NovelStatus] = NovelStatus.UNKNOWN
-    summary: Optional[str] = None
+    title: str | None = None
+    status: NovelStatus | None = NovelStatus.UNKNOWN
+    summary: str | None = None
     summary_type: SummaryType = SummaryType.text
-    genres: Optional[list[str]] = None
-    tags: Optional[list[str]] = None
-    author: Optional[Person] = None
-    translator: Optional[Person] = None
-    cover_image_url: Optional[str] = None
-    cover_image_id: Optional[str] = None
-    published_on: Optional[datetime.date] = None
-    last_updated_on: Optional[datetime.date] = None
-    extras: Optional[dict] = None
+    genres: list[str] | None = None
+    tags: list[str] | None = None
+    author: Person | None = None
+    translator: Person | None = None
+    cover_image_url: str | None = None
+    cover_image_id: str | None = None
+    published_on: datetime.date | None = None
+    last_updated_on: datetime.date | None = None
+    extras: dict | None = None
 
     @classmethod
     def from_novel(cls, novel: Novel) -> "EpubMetadata":

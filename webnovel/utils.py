@@ -7,7 +7,7 @@ import itertools
 import re
 import string
 from time import perf_counter
-from typing import IO, ClassVar, Container, Iterator, Optional, Sequence, Union
+from typing import IO, ClassVar, Container, Iterator, Sequence, Union
 
 BASE_DIGITS = string.digits + string.ascii_letters
 
@@ -186,7 +186,7 @@ class Timer:
     ended_at: datetime.datetime
     counter_start: float
     counter_end: float
-    time: Optional[float] = None
+    time: float | None = None
 
     def __enter__(self):
         """Start the timer."""
@@ -213,7 +213,7 @@ class DataclassSerializationMixin:
     # A list of fields that are required during conversion from a dictionary. If
     # any of these fields are not present in the dictionary, conversion will
     # fail with an exception.
-    required_fields: ClassVar[Optional[list[str]]] = None
+    required_fields: ClassVar[list[str] | None] = None
 
     @classmethod
     def from_dict(cls, data: dict):

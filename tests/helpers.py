@@ -2,7 +2,7 @@ from contextlib import contextmanager
 import pathlib
 import shutil
 import tempfile
-from typing import Iterable, Optional, Union
+from typing import Iterable, Union
 from unittest import TestCase as TestCase_orig
 from zipfile import ZipFile
 
@@ -99,9 +99,9 @@ class TestCase(TestCase_orig):
         self,
         epub_file: str,
         expected_changed_files: Iterable,
-        expected_new_files: Optional[Iterable] = None,
-        expected_initial_files: Optional[Iterable] = None,
-        expected_final_files: Optional[Iterable] = None,
+        expected_new_files: Iterable | None = None,
+        expected_initial_files: Iterable | None = None,
+        expected_final_files: Iterable | None = None,
     ):
         """Assert Before/After Changes on the contents of an EPUB file."""
 

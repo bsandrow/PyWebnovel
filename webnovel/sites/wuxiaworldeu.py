@@ -3,7 +3,6 @@
 import json
 import logging
 import re
-from typing import Optional
 
 from bs4 import BeautifulSoup
 
@@ -23,7 +22,7 @@ class WuxiaWorldEuChapterScraper(ChapterScraper):
     url_pattern = HTTPS_PREFIX + r"wuxiaworld.eu/chapter/(?P<ChapterId>[\w\d-]+)"
 
     @staticmethod
-    def get_json_data(page: BeautifulSoup) -> Optional[dict]:
+    def get_json_data(page: BeautifulSoup) -> dict | None:
         """Extract that chapter json data from the page."""
         json_element = page.select_one("#__NEXT_DATA__")
         return json.loads(json_element.text.strip())

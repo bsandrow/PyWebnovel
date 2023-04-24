@@ -5,7 +5,7 @@ import hashlib
 from inspect import isclass
 from io import BytesIO
 import logging
-from typing import IO, Optional, Union
+from typing import IO, Union
 import urllib.parse
 from zipfile import ZipFile
 
@@ -43,21 +43,21 @@ class EpubPackage:
     file_map: dict[str, EpubInternalFile]
     image_map: dict[str, bytes]
     chapters: dict[str, Chapter]
-    extra_css: Optional[str] = None
+    extra_css: str | None = None
     pkg_opf_path: str = "OEBPS/content.opf"
-    cover_image_id: Optional[str] = None
+    cover_image_id: str | None = None
 
     def __init__(
         self,
         options: Union[EpubOptions, dict],
         metadata: Union[EpubMetadata, Novel, dict],
-        epub_uid: Optional[str] = None,
-        files: Optional[dict[str, EpubInternalFile]] = None,
-        file_or_io: Optional[Union[str, IO]] = None,
-        extra_css: Optional[str] = None,
-        chapters: Optional[dict[Chapter]] = None,
-        cover_image_id: Optional[str] = None,
-        http_client: Optional[http.HttpClient] = None,
+        epub_uid: str | None = None,
+        files: dict[str, EpubInternalFile] | None = None,
+        file_or_io: Union[str, IO] | None = None,
+        extra_css: str | None = None,
+        chapters: dict[Chapter] | None = None,
+        cover_image_id: str | None = None,
+        http_client: http.HttpClient | None = None,
     ) -> None:
         self.zipio = file_or_io
         self.http_client = http_client or http.get_client()
@@ -102,47 +102,47 @@ class EpubPackage:
             self.add_file(TableOfContentsPage())
 
     @property
-    def app_json(self) -> Optional[PyWebNovelJSON]:
+    def app_json(self) -> PyWebNovelJSON | None:
         """Return the PyWebNovelJSON file if one exists."""
         return self.file_map.get(PyWebNovelJSON.file_id)
 
     @property
-    def title_page(self) -> Optional[TitlePage]:
+    def title_page(self) -> TitlePage | None:
         """Return the TitlePage if one exists."""
         return self.file_map.get(TitlePage.file_id)
 
     @property
-    def toc_page(self) -> Optional[TableOfContentsPage]:
+    def toc_page(self) -> TableOfContentsPage | None:
         """Return the TableOfContentsPage if one exists."""
         return self.file_map.get(TableOfContentsPage.file_id)
 
     @property
-    def mimetype_file(self) -> Optional[MimetypeFile]:
+    def mimetype_file(self) -> MimetypeFile | None:
         """Return a MimetypeFile if one exists."""
         return self.file_map.get(MimetypeFile.file_id)
 
     @property
-    def container_xml(self) -> Optional[ContainerXML]:
+    def container_xml(self) -> ContainerXML | None:
         """Return a ContainerXML if one exists."""
         return self.file_map.get(ContainerXML.file_id)
 
     @property
-    def stylesheet(self) -> Optional[Stylesheet]:
+    def stylesheet(self) -> Stylesheet | None:
         """Return a Stylesheet if one exists."""
         return self.file_map.get(Stylesheet.file_id)
 
     @property
-    def ncx(self) -> Optional[NavigationControlFile]:
+    def ncx(self) -> NavigationControlFile | None:
         """Return the NavigationControlFile if one exists."""
         return self.file_map.get(NavigationControlFile.file_id)
 
     @property
-    def opf(self) -> Optional[PackageOPF]:
+    def opf(self) -> PackageOPF | None:
         """Return the PackageOPF file if one exists."""
         return self.file_map.get(PackageOPF.file_id)
 
     @property
-    def nav(self) -> Optional[NavXhtml]:
+    def nav(self) -> NavXhtml | None:
         """Return the Nav XHTML file if one exists."""
         return self.file_map.get(NavXhtml.file_id)
 
@@ -202,12 +202,12 @@ class EpubPackage:
             fh.write(bytesio.getvalue())
 
     @property
-    def cover_page(self) -> Optional[CoverPage]:
+    def cover_page(self) -> CoverPage | None:
         """Return the cover page if one exists."""
         return self.file_map.get(CoverPage.file_id)
 
     @property
-    def cover_image(self) -> Optional[ImageFile]:
+    def cover_image(self) -> ImageFile | None:
         """Return the ImageFile for the cover image, if there is one."""
         return self.file_map.get(self.metadata.cover_image_id) if self.metadata.cover_image_id else None
 

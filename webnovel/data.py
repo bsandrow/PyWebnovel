@@ -5,7 +5,7 @@ import datetime
 from enum import Enum
 import imghdr
 import re
-from typing import Callable, Optional, Union
+from typing import Callable, Union
 
 from apptk.http import HttpClient
 from bs4 import BeautifulSoup, Tag
@@ -62,8 +62,8 @@ class Image:
     """An (web-hosted) Image."""
 
     url: str
-    data: Optional[bytes] = None
-    mimetype: Optional[str] = None
+    data: bytes | None = None
+    mimetype: str | None = None
     did_load: bool = False  # True if data/mimetype were loaded from the URL.
 
     extension_map = {
@@ -145,8 +145,8 @@ class Person:
     """
 
     name: str
-    email: Optional[str] = None
-    url: Optional[str] = None
+    email: str | None = None
+    url: str | None = None
 
     @classmethod
     def from_dict(cls, data: dict) -> "Person":
@@ -163,13 +163,13 @@ class Chapter:
     """Representation of a chapter of a webnovel."""
 
     url: str
-    title: Optional[str] = None
-    chapter_no: Optional[str] = None
-    slug: Optional[str] = None
-    original_html: Optional[str] = None
-    html: Optional[str] = None
-    filters: Optional[list[str]] = None
-    pub_date: Optional[datetime.date] = None
+    title: str | None = None
+    chapter_no: str | None = None
+    slug: str | None = None
+    original_html: str | None = None
+    html: str | None = None
+    filters: list[str] | None = None
+    pub_date: datetime.date | None = None
 
     def to_dict(self) -> dict:
         """Return a dict representation of this chapter."""
@@ -216,7 +216,7 @@ class Chapter:
         assert self.html is not None
         return BeautifulSoup(self.html, "html.parser") if self.html else None
 
-    def generate_html(self) -> Optional[Tag]:
+    def generate_html(self) -> Tag | None:
         """
         Generate an HTML tree from original_html and apply the defined filters to it.
 
@@ -231,7 +231,7 @@ class Chapter:
         html.run_filters(content, filters)
         return content
 
-    def populate_html(self, callback: Optional[Callable[["Chapter", Tag], None]] = None) -> None:
+    def populate_html(self, callback: Callable[["Chapter", Tag], None] | None = None) -> None:
         """
         Populate the Chapter.html field.
 
@@ -351,17 +351,17 @@ class Novel:
 
     url: str
     novel_id: str
-    site_id: Optional[str] = None
-    title: Optional[str] = None
-    status: Optional[NovelStatus] = None
-    summary: Optional[Union[str, Tag]] = None
-    genres: Optional[list[str]] = None
-    tags: Optional[list[str]] = None
-    author: Optional[Person] = None
-    translator: Optional[Person] = None
-    chapters: Optional[list[Chapter]] = None
-    cover_image: Optional[Image] = None
-    extra_css: Optional[str] = None
-    extras: Optional[dict] = None
-    published_on: Optional[datetime.date] = None
-    last_updated_on: Optional[datetime.date] = None
+    site_id: str | None = None
+    title: str | None = None
+    status: NovelStatus | None = None
+    summary: Union[str, Tag] | None = None
+    genres: list[str] | None = None
+    tags: list[str] | None = None
+    author: Person | None = None
+    translator: Person | None = None
+    chapters: list[Chapter] | None = None
+    cover_image: Image | None = None
+    extra_css: str | None = None
+    extras: dict | None = None
+    published_on: datetime.date | None = None
+    last_updated_on: datetime.date | None = None

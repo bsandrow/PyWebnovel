@@ -2,7 +2,7 @@
 
 import logging
 import re
-from typing import Iterable, Optional, Union
+from typing import Union
 
 from apptk.html import Selector
 from bs4 import BeautifulSoup, Tag
@@ -29,7 +29,7 @@ class ScraperBase:
     options: conf.ParsingOptions
 
     def __init__(
-        self, options: Optional[Union[dict, conf.ParsingOptions]] = None, http_client: http.HttpClient = None
+        self, options: Union[dict, conf.ParsingOptions] | None = None, http_client: http.HttpClient = None
     ) -> None:
         self.http_client = http_client or http.get_client()
         self.limiter = self.get_limiter()
@@ -98,7 +98,7 @@ class NovelScraper(ScraperBase):
 
     # Additional CSS to add to the novel based on the site that this was scraped
     # from.
-    extra_css: Optional[str] = None
+    extra_css: str | None = None
 
     @classmethod
     def get_novel_id(cls, url) -> str:
@@ -143,7 +143,7 @@ class NovelScraper(ScraperBase):
         assert self.summary_selector is not None, "summary_selector is not defined. Define it or override get_summary."
         return self.summary_selector.parse_one(page, use_attribute=False)
 
-    def get_cover_image(self, page: BeautifulSoup) -> Optional[Image]:
+    def get_cover_image(self, page: BeautifulSoup) -> Image | None:
         """Extract an Image() for the cover image of the novel from the novel's page."""
         if self.cover_image_url_selector is not None:
             # a = self.cover_image_url_selector.parse_one(html=page)
@@ -198,12 +198,12 @@ class ChapterScraper(ScraperBase):
 
     content_selector: Selector = None
     content_filters: tuple[str] = html.DEFAULT_FILTERS
-    extra_css: Optional[str] = None
+    extra_css: str | None = None
     supports_author_notes: bool = False
     author_notes_filter: str = None
 
     @classmethod
-    def get_chapter_slug(cls, url: str) -> Optional[str]:
+    def get_chapter_slug(cls, url: str) -> str | None:
         """
         Extract the chapter's slug from the chapter url.
 
