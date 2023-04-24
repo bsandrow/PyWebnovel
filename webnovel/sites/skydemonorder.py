@@ -100,7 +100,18 @@ class SkyDemonOrderNovelScraper(scraping.NovelScraper):
 
     def get_chapters(self, page, url):
         """Return the list of chapters from the page."""
-        chapter_els = reversed(page.select("section > div > div > div.items-center > a"))
+        sections = page.select("section")
+        chapter_els = []
+
+        for section in sections:
+            h3 = section.find("h3")
+            # Note: novels with paid & free chapters will have the free chapters
+            #       listed as "Free Chapters", but for the completed novels that
+            #       section is just labelled "Chapters" since there are no paid
+            #       chapters.
+            if h3 and h3.text.strip() in ("Free Chapters", "Chapters"):
+                chapter_els = reversed(section.select("div > div> div.items-center > a"))
+
         return [
             data.Chapter(chapter_no=idx, url=chapter_el.get("href"), title=chapter_el.text.strip())
             for idx, chapter_el in enumerate(chapter_els)
