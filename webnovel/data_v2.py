@@ -1,9 +1,15 @@
 """New Data Model."""
 
 from collections import namedtuple
-from dataclasses import dataclass, field
+from dataclasses import InitVar, dataclass, field
 import datetime
 import enum
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from webnovel.data import Chapter
+    from webnovel.epub.files import EpubInternalFile
+
 
 ChangedValue = namedtuple("ChangedValue", ["field", "old", "new"])
 
@@ -110,7 +116,59 @@ class ChangeLogEntry:
         )
 
 
+class NovelMetadata:
+    """Novel metadata."""
+
+
+class PackageOptions:
+    """Options Related to the Generation of the Ebook format."""
+
+    # Control whether or not to add a Table of Contents page in the package.
+    include_toc_page: bool = True
+
+    # Control whether or not to add a title page to the ebook.
+    include_title_page: bool = True
+
+    # Control whether or not to embed images in the ebook.
+    include_images: bool = True
+
+    # Control which epub version to use when generating the ebook. In the
+    # future, if more formats are included, this will probably just be ignored
+    # by those formats
+    epub_version: str = "3.0"
+
+    # Additional CSS to add to the ebook. Note: This will only be respected for
+    # ebook formats that use HTML.
+    extra_css: str | None = None
+
+
 class EbookData:
     """New Data Model."""
 
+    ebook_uid: str
+    metadata: NovelMetadata
+    options: PackageOptions = field(default_factory=PackageOptions)
+    chapters: dict[str, "Chapter"] = field(default_factory=dict)
+    files: dict[str, "EpubInternalFile"] = field(default_factory=dict)
     changelog: ChangeLog = field(default_factory=ChangeLog)
+
+    # backwards compatibility
+    extra_css: InitVar[str | None]
+    epub_uid: InitVar[str | None]
+
+    def __post_init__(self, extra_css: str | None, epub_uid: str | None) -> None:
+        """Allow extra_css / epub_uid as init options stick them in their new locations."""
+        if self.ebook_uid is None and epub_uid is not None:
+            self.ebook_uid = epub_uid
+        if self.options.extra_css is None and extra_css is not None:
+            self.options.extra_css = extra_css
+
+    @property
+    def extra_css(self) -> str | None:
+        """Return extra_css from its new location for backwards-compatibility."""
+        return self.options.extra_css
+
+    @property
+    def epub_uid(self) -> str:
+        """Return ebook_uid as epub_uid for backwards-compatibility."""
+        return self.ebook_uid
