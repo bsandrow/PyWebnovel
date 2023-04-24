@@ -15,7 +15,7 @@ pywn = "webnovel.cli:pywn"
 # url = "https://devpi.example.com/example/example/+simple/"
 
 [tool.poetry.dependencies]
-python = "~3.9.10"
+python = "~3.10"
 requests = "^2.28.1"
 cloudscraper = "^1.2.66"
 beautifulsoup4 = "^4.11.1"
