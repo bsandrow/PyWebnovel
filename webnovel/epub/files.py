@@ -824,3 +824,23 @@ class PyWebNovelJSON(SingleFileMixin, EpubInternalFile):
         """Load a PyWebNovelJSON from a ZipFile instance."""
         raw_data = pkg.read(cls.filename)
         return json.loads(raw_data)
+
+
+class Changelog(EpubInternalFile):
+    """
+    A file that lists all of the changes to the ebook since (and including) creation.
+
+    The "true" log is stored in the application json file. This logfile will
+    always be regenerated from the true log.
+    """
+
+    file_id: str = "changelog"
+    filename: str = "OEBPS/Text/changelog.xhtml"
+    mimetype: str = "application/xhtml+xml"
+    title: str = "Changelog"
+
+    def generate(self, pkg):
+        """Generate the logfile."""
+        template_kwargs = {}
+        template = JINJA.get_template("changelog.xhtml")
+        return template.render(**template_kwargs).encode("utf-8")
