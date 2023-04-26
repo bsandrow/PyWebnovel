@@ -5,7 +5,7 @@ import re
 from bs4 import Tag
 
 from webnovel import html
-from webnovel.data import Chapter, NovelStatus
+from webnovel.data import Chapter, Image, NovelStatus
 from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraper, Selector
 
 SITE_NAME = "WuxiaWorld.site"
@@ -45,7 +45,21 @@ class WuxiaWorldDotSiteScraper(NovelScraper):
     author_name_selector = Selector("div.author-content > a")
     author_url_selector = Selector("div.author-content > a", attribute="href")
     genre_selector = Selector("div.genres-content > a")
-    cover_image_url_selector = Selector("div.summary_image img", attribute="data-src")
+
+    def get_cover_image(self, page) -> Image | None:
+        """
+        Extract the cover image.
+
+        Need to override the base class here to try data-src, and fallback to
+        src. The site made some changes, and it looks like it will be src
+        instead of data-src from now on, but this just makes the check more
+        resilient. The sites that use data-src just have some JavaScript that
+        sets src based on data-src, so they may have just removed that JS
+        library.
+        """
+        image_el = page.select_one("div.summary_image img")
+        image_url = (image_el.get("data-src") or image_el.get("src")) if image_el else None
+        return Image(url=image_url) if image_url else None
 
     def get_status(self, page):
         """Return the status of the novel."""
