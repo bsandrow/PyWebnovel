@@ -60,7 +60,7 @@ class NovelCoolScraper(NovelScraper):
     def get_status(self, page):
         """Return the novel status."""
         elem = page.select_one(".bk-cate-type1")
-        return self.status_map.get(elem.text.lower().strip(), NovelStatus.UNKNOWN)
+        return self.status_map.get(elem.text.lower().strip(), NovelStatus.UNKNOWN) if elem else NovelStatus.UNKNOWN
 
     def get_cover_image(self, page):
         """Return the cover image."""
