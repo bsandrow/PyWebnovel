@@ -7,7 +7,7 @@ import itertools
 import re
 import string
 from time import perf_counter
-from typing import IO, ClassVar, Container, Iterator, Sequence, Union
+from typing import IO, Any, Callable, ClassVar, Container, Iterator, Sequence, Union
 
 BASE_DIGITS = string.digits + string.ascii_letters
 
@@ -215,6 +215,13 @@ class DataclassSerializationMixin:
     # fail with an exception.
     required_fields: ClassVar[list[str] | None] = None
 
+    #
+    # A mapping of type to a callable that takes a single value an returns a
+    # value. This allows specific classes/types to be mapped to a function that
+    # converts it into what this dataclass needs it to be.
+    #
+    import_type_map: ClassVar[dict[type, Callable[[Any], Any]]] = {}
+
     @classmethod
     def from_dict(cls, data: dict):
         """Intialize an instance from a dictionary."""
@@ -235,7 +242,11 @@ class DataclassSerializationMixin:
                 fields_str = ", ".join(map(repr, missing_required_fields))
                 raise ValueError(f"Cannot convert dict to {cls.__name__}: Missing required fields: {fields_str}")
 
-        kwargs = {key: value for key, value in data.items() if key in field_types_map}
+        kwargs = {
+            key: (cls.import_type_map[field_type](value) if field_type in cls.import_type_map else value)
+            for key, value in data.items()
+            if (field_type := field_types_map.get(key))
+        }
         return cls(**kwargs)
 
     def to_dict(self) -> dict:
