@@ -79,10 +79,11 @@ class WuxiaWorldDotSiteScraper(NovelScraper):
             Chapter(
                 url=(url := chapter_li.select_one("a").get("href")),
                 title=(title := Chapter.clean_title(chapter_li.select_one("a").text)),
-                chapter_no=Chapter.extract_chapter_no(title),
+                chapter_no=idx,
+                # chapter_no=Chapter.extract_chapter_no(title),
                 slug=WuxiaWorldSiteChapterScraper.get_chapter_slug(url),
             )
-            for chapter_li in chapter_list_page.select("li.wp-manga-chapter")
+            for idx, chapter_li in enumerate(reversed(chapter_list_page.select("li.wp-manga-chapter")))
         ]
 
 
