@@ -34,7 +34,9 @@ class NovelBinChapterScraper(ChapterScraper):
     """Scraper for NovelBin.net chapter content."""
 
     site_name = SITE_NAME
-    url_pattern = HTTPS_PREFIX + r"novel-?bin\.net/(?:n|novel-bin)/(?P<NovelID>[\w\d-]+)/(?P<ChapterID>[\w\d-]+)"
+    url_pattern = (
+        HTTPS_PREFIX + r"novel-?bin\.(?:net|com)/(?:n|novel-bin)/(?P<NovelID>[\w\d-]+)/(?P<ChapterID>[\w\d-]+)"
+    )
     content_selector = Selector("#chr-content")
     content_filters = DEFAULT_FILTERS + ["remove_check_back_soon_msg"]
 
@@ -60,7 +62,7 @@ class NovelBinScraper(NovelScraper):
     """Scraper for NovelBin.net."""
 
     site_name = SITE_NAME
-    url_pattern = HTTPS_PREFIX + r"novel-?bin\.net/(?:n|novel-bin)/(?P<NovelID>[\w-]+)"
+    url_pattern = HTTPS_PREFIX + r"novel-?bin\.(?:net|com)/(?:n|novel-bin)/(?P<NovelID>[\w-]+)"
     title_selector = Selector(".col-novel-main > .col-info-desc > .desc > .title")
     status_map = {"ongoing": NovelStatus.ONGOING, "completed": NovelStatus.COMPLETED}
     genre_selector = Selector(".col-novel-main > .col-info-desc > .desc > .info-meta > li:nth-child(3) > a")
