@@ -308,8 +308,7 @@ class App:
         :param ebook: Path to the ebook to display information about.
         """
         pkg = epub.EpubPackage.load(ebook)
-
-        return {
+        retval = {
             "Title": pkg.metadata.title,
             "Author": pkg.metadata.author.name if pkg.metadata.author else "",
             "Status": pkg.metadata.status.value if pkg.metadata.status else "",
@@ -322,7 +321,8 @@ class App:
             "Site ID": pkg.metadata.site_id,
             "Novel ID": pkg.metadata.novel_id,
             "Source Published On": pkg.metadata.published_on.strftime("%Y-%m-%d") if pkg.metadata.published_on else "",
-            "Source Last Updated On": pkg.metadata.last_updated_on.strftime("%Y-%m-%d")
-            if pkg.metadata.last_updated_on
-            else "",
+            "Source Last Updated On": (
+                pkg.metadata.last_updated_on.strftime("%Y-%m-%d") if pkg.metadata.last_updated_on else ""
+            ),
         }
+        return retval
