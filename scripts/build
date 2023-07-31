@@ -1,0 +1,41 @@
+#!/bin/bash
+
+BUILDDIR="build"
+ENTRYPOINT="webnovel.cli:pywn"
+PKG="webnovel"
+NAME="pywn"
+PYTHON="/usr/bin/env python3"
+export PIP_REQUIRE_VIRTUALENV=
+
+function die() {
+    echo "$@" >&2
+    exit 1
+}
+
+function run() {
+    echo "»» $@"
+    "$@"
+}
+
+echo
+echo "==> Clearing build directory..."
+echo
+run rm -fr "${BUILDDIR}" "${NAME}" || die
+run mkdir -p "${BUILDDIR}" || die
+
+echo
+echo '==> Install pkgs'
+echo
+run pip install -t "${BUILDDIR}/" -r <(poetry export --format="requirements.txt" | egrep -v 'git\+https') || die
+
+echo
+echo '==> Install repos'
+echo
+run pip install -vvv --no-dependencies -t "${BUILDDIR}/" -r <(poetry export --format="requirements.txt" | egrep 'git\+https') || die
+
+echo
+echo '==> Install'
+echo
+run cp -r "${PKG}" "${BUILDDIR}"
+
+run python -mzipapp --python="${PYTHON}" --main="${ENTRYPOINT}" --compress --output="${NAME}" "${BUILDDIR}" || die
