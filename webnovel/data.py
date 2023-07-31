@@ -72,6 +72,8 @@ class Image:
         "image/jpeg": ".jpg",
         "image/webp": ".webp",
         "image/gif": ".gif",
+        "image/svg+xml": ".svg",
+        "image/svg": ".svg",
     }
 
     @staticmethod
@@ -117,7 +119,9 @@ class Image:
                 if image_type:
                     self.mimetype = "image/" + image_type
                 else:
-                    raise Exception("ERROR")
+                    raise Exception(
+                        f"Unknown image type: image_type={image_type!r} content_type={content_type!r} url={self.url!r}"
+                    )
             else:
                 self.mimetype, _, _ = content_type.lower().partition(";")
             self.did_load = True
