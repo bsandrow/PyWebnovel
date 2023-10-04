@@ -1,11 +1,44 @@
 """The command-line interface to PyWebnovel."""
 
+import logging
 from pathlib import Path
 
 import click
 
-from webnovel import conf, epub, turn_on_logging
+from webnovel import conf, epub
 from webnovel.actions import App
+
+
+class Handler(logging.StreamHandler):
+    """StreamHandler that adds short log-level prefixes to the formatted log records."""
+
+    PREFIX = {
+        logging.INFO: "[i]",
+        logging.DEBUG: "[d]",
+        logging.WARNING: "[w]",
+        logging.ERROR: "[!]",
+        logging.FATAL: "!!!",
+        logging.CRITICAL: "!!!",
+    }
+
+    def format(self, record) -> str:
+        """Prefix messages with a shortened form of the logging level."""
+        formatted_string = super().format(record)
+        prefix = self.PREFIX.get(record.levelno, "[-]")
+        return f"{prefix} {formatted_string}"
+
+
+def turn_on_logging(debug: bool = False):
+    """Enable the console logging config."""
+    logger = logging.getLogger("webnovel")
+    handler = Handler()
+    formatter = logging.Formatter("%(message)s")
+
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+    handler.setLevel(logging.DEBUG if debug else logging.INFO)
+    logger.setLevel(logging.DEBUG if debug else logging.INFO)
 
 
 class Namespace(dict):
@@ -63,6 +96,8 @@ def pywn(ctx, config_path, debug, user_agent, cookies, format):
         name, _, value = cookie.partition("=")
         settings.cookies[name] = value
 
+    turn_on_logging(debug)
+
     ctx.obj = app = App(settings)
 
 
@@ -87,7 +122,6 @@ def pywn(ctx, config_path, debug, user_agent, cookies, format):
 @pass_app
 def create(app, novel_url, filename, chapter_limit, cover_image):
     """Create an ebook file from NOVEL_URL."""
-    turn_on_logging()
     app.create_ebook(
         novel_url,
         filename,
@@ -102,7 +136,6 @@ def create(app, novel_url, filename, chapter_limit, cover_image):
 @pass_app
 def update(app, ebook, limit):
     """Update EBOOK with any new chapters that have been published."""
-    turn_on_logging()
     app.update(ebook, limit)
 
 
@@ -124,7 +157,6 @@ def rebuild(app, ebook, reload_chapters):
     and you want to update the ebook without building a completely new ebook
     from scratch which would include re-downloading all chapters, images, etc.
     """
-    turn_on_logging()
     app.rebuild(ebook, reload_chapters=reload_chapters)
 
 
@@ -138,7 +170,6 @@ def set_cover(app: App, ebook: str, cover_image: str) -> None:
 
     COVER_IMAGE can be a path to an image file or a URL.
     """
-    turn_on_logging()
     app.set_cover_image_for_epub(ebook, cover_image)
 
 
@@ -147,7 +178,6 @@ def set_cover(app: App, ebook: str, cover_image: str) -> None:
 @pass_app
 def info(app: App, ebook: str) -> None:
     """Print out information about EBOOK."""
-    turn_on_logging()
     info = app.info(ebook)
     click.echo(f"\nInfo for {ebook}:\n")
     max_key_size = max(len(key) for key in info)
