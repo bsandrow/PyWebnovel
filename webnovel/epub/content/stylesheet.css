@@ -1,6 +1,7 @@
 BODY { line-height: 1.8em; }
-P { text-indent: 0 !important; margin-bottom: 1.5em !important; }
+P { text-indent: 0; margin-bottom: 1.5em; }
 img { display: inline; }
+
 
 /****************
  |  Titlepage   |
@@ -153,6 +154,11 @@ ol.none { list-style-type: none; margin: 0em; padding: 0em; }
 	line-height: 30px; /* 1.5 => 27px */
 }
 
+.pywn_chapter p {
+	text-indent: 0;
+	margin-bottom: 1.5em;
+}
+
 
 /* Styling for <table>s
  *
@@ -168,6 +174,10 @@ ol.none { list-style-type: none; margin: 0em; padding: 0em; }
  .pywn_chapter td {
     border: 2px solid black !important;
 	border-collapse: collapse;
+}
+
+.pywn_chapter table p {
+	text-indent: 0;
 }
 
 .pywn_chapter td {

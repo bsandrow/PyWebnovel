@@ -5,7 +5,7 @@ import json
 import logging
 import re
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, NavigableString
 
 from webnovel import html
 from webnovel.data import Chapter, NovelStatus
@@ -185,12 +185,34 @@ class ScribbleHubChapterScraper(ChapterScraper):
         .wi_authornotes {border: 2px solid black; padding: 10px;}
         .wi_authornotes .p-avatar-wrap {float: left;}
         .wi_authornotes .wi_authornotes_body {padding-top: 10px;}
+        .pywn_chapter td { padding: 0px !important; }
+        .pywn_chapter td p { padding: 5px; }
     """
     content_selector = Selector("#chp_raw")
     author_notes_filter = "transform_authors_notes.scribblehub"
-    content_filters: list[str] = ChapterScraper.content_filters + ["transform_announcements.scribblehub"]
+    content_filters: list[str] = [
+        "remove_blacklisted_elements",
+        "remove_hidden_elements",
+        "remove_comments",
+        "remove_useless_attrs",
+        "remove_content_warnings",
+        "transform_announcements.scribblehub",
+    ]
 
     def post_process_content(self, chapter, content):
         """Post-Processing to remove tables (for now)."""
-        while table := content.find("table"):
-            html.remove_element(table)
+        for td in content.find_all("td"):
+            for p in td.find_all("p"):
+                is_after_string = all(
+                    isinstance(sibling, NavigableString) and len(sibling.strip()) > 0 for sibling in p.previous_siblings
+                )
+                if is_after_string:
+                    p.insert_before(content.new_tag("p"))
+
+        # Table Notes:
+        # -- center tables on page
+        # -- need padding around cell contents
+        # -- check table complexity before converting to image / prior to support replace with "COMING SOON TABLES!" stub
+        # -- look into cell alignment css. Is same for all tables? Author customize it?
+        # -- don't remove empty <p> from within tables.
+        # -- make font size inside tables smaller?
