@@ -3,6 +3,8 @@
 import logging
 import re
 
+from pyrate_limiter import Limiter, RequestRate
+
 from webnovel import data, errors
 from webnovel.data import Chapter, NovelStatus
 from webnovel.html import DEFAULT_FILTERS, register_html_filter, remove_element
@@ -12,6 +14,7 @@ from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraper, Select
 SITE_NAME = "NovelBin.net"
 logger = logging.getLogger(__name__)
 timer = LogTimer(logger)
+CHAPTER_LIMITER = Limiter(RequestRate(10, 60))  # 10 per minute
 
 
 @register_html_filter(name="remove_check_back_soon_msg")
@@ -39,6 +42,10 @@ class NovelBinChapterScraper(ChapterScraper):
     )
     content_selector = Selector("#chr-content")
     content_filters = DEFAULT_FILTERS + ["remove_check_back_soon_msg"]
+
+    def get_limiter(self):
+        """Return custom rate limiter."""
+        return CHAPTER_LIMITER
 
     def post_process_content(self, chapter, content) -> None:
         """Do extra chapter title processing."""
