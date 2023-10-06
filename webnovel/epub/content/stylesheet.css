@@ -147,6 +147,7 @@ ol.none { list-style-type: none; margin: 0em; padding: 0em; }
     font-size: 120%;
     margin-bottom: 20px;
 	font-weight: bold;
+	text-decoration: underline;
 }
 
 .pywn_chapter .pywn_authorsnotes .pywn_authorsnotes-body {
