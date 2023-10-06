@@ -5,6 +5,7 @@ import hashlib
 from inspect import isclass
 from io import BytesIO
 import logging
+from pathlib import Path
 from typing import IO, Union
 import urllib.parse
 from zipfile import ZipFile
@@ -81,6 +82,11 @@ class EpubPackage:
 
         if not self.file_map:
             self.initialize()
+
+    @property
+    def filename(self) -> str:
+        """Return the filepath of the package."""
+        return str(self.zipio) if isinstance(self.zipio, (str, Path)) else self.zipio.name
 
     @property
     def epub_version(self) -> str:

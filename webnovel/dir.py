@@ -141,3 +141,10 @@ class WebNovelDirectory:
             except HTTPError as error:
                 print(f"HTTP Error: {error.response.status_code} on URL {error.request.url!r}")
         self.status.last_run = datetime.datetime.now()
+
+    def add(self, url: str, app: "App") -> None:
+        """Add webnovel to directory."""
+        filename = app.create_ebook(novel_url=url)
+        webnovel = WebNovel(path=filename, last_updated=datetime.datetime.now())
+        self.status.webnovels.append(webnovel)
+        self.save()

@@ -65,7 +65,7 @@ class App:
 
     def create_ebook(
         self, novel_url: str, filename: str = None, cover_image_url: str = None, chapter_limit: int = None
-    ) -> None:
+    ) -> str:
         """
         Create an ebook for the URL pointing at a specific webnovel.
 
@@ -110,6 +110,7 @@ class App:
                 logger.warning("No chapters for novel.")
 
             epub_pkg.save()
+            return str(epub_pkg.filename)
 
     def add_chapters(self, ebook: epub.EpubPackage, chapters: list[Chapter], batch_size: int = 20) -> None:
         """
@@ -330,7 +331,7 @@ class App:
         }
         return retval
 
-    def dir(self, directory: str) -> None:
+    def dir_update(self, directory: str) -> None:
         """Run the WebNovelDirectory command."""
         directory = Path(directory)
         from webnovel.dir import WebNovelDirectory
@@ -351,4 +352,24 @@ class App:
         wn_dir.update(self)
 
         logger.info("Saving status...")
+        wn_dir.save()
+
+    def dir_add(self, directory: str, url: str) -> None:
+        """Add a webnovel to directory."""
+        directory = Path(directory)
+        from webnovel.dir import WebNovelDirectory
+
+        if directory.exists():
+            wn_dir = WebNovelDirectory.load(directory)
+        else:
+            wn_dir = WebNovelDirectory.create(directory)
+
+        logger.info("Webnovel directory loaded.")
+
+        if not wn_dir.validate():
+            logger.error("Webnovel directory not valid.")
+            return
+        logger.info("Webnovel directory validated.")
+
+        wn_dir.add(url, self)
         wn_dir.save()

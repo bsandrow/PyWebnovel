@@ -186,9 +186,26 @@ def info(app: App, ebook: str) -> None:
     click.echo()
 
 
-@pywn.command()
+@pywn.group()
 @click.argument("directory")
 @pass_app
 def dir(app: App, directory: str) -> None:
     """Command for managing directories of webnovels."""
     app.dir(directory)
+
+
+@dir.command(name="update")
+@click.argument("directory")
+@pass_app
+def dir_update(app, directory):
+    """Update webnovel directory."""
+    app.dir_update(directory)
+
+
+@dir.command(name="add")
+@click.argument("directory")
+@click.argument("url")
+@pass_app
+def dir_update(app: App, directory: str, url: str):
+    """Add a webnovel to directory."""
+    app.dir_add(directory, url)
