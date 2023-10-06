@@ -187,11 +187,9 @@ def info(app: App, ebook: str) -> None:
 
 
 @pywn.group()
-@click.argument("directory")
 @pass_app
-def dir(app: App, directory: str) -> None:
+def dir(app: App) -> None:
     """Command for managing directories of webnovels."""
-    app.dir(directory)
 
 
 @dir.command(name="update")
