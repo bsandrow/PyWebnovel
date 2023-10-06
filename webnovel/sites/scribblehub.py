@@ -189,7 +189,7 @@ class ScribbleHubChapterScraper(ChapterScraper):
         .pywn_chapter td p { padding: 5px; }
     """
     content_selector = Selector("#chp_raw")
-    author_notes_filter = "transform_authors_notes.scribblehub"
+    # author_notes_filter = "transform_authors_notes.scribblehub"
     content_filters: list[str] = [
         "remove_blacklisted_elements",
         "remove_hidden_elements",
@@ -197,6 +197,7 @@ class ScribbleHubChapterScraper(ChapterScraper):
         "remove_useless_attrs",
         "remove_content_warnings",
         "transform_announcements.scribblehub",
+        "transform_authors_notes.scribblehub",
     ]
 
     def post_process_content(self, chapter, content):
