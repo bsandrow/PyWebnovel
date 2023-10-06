@@ -2,13 +2,29 @@
 
 import re
 
-from bs4 import Tag
+from bs4 import BeautifulSoup, Tag
 
 from webnovel import html
 from webnovel.data import Chapter, Image, NovelStatus
 from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraper, Selector
 
 SITE_NAME = "WuxiaWorld.site"
+
+EMOJI_REPLACE_MAP = {
+    "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/60/apple/81/black-diamond-suit_2666.png": "♦️",
+    "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/apple/237/black-spade-suit_2660.png": "♠",
+    "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/apple/237/black-club-suit_2663.png": "♣",
+}
+
+
+@html.register_html_filter(name="replace_card_suit_image")
+def card_suit_image_replace(element: Tag) -> None:
+    """Replace some image links to emojis that are failing with the unicode emoji instead."""
+    for item in element.find_all("img"):
+        src = item.get("src")
+        replacement = EMOJI_REPLACE_MAP.get(src)
+        if src and replacement:
+            item.replace_with(BeautifulSoup(f"<span>{replacement}</span>", "html.parser").find("span"))
 
 
 @html.register_html_filter(name="remove_site_ads.wuxiaworldsite")
@@ -108,6 +124,7 @@ class WuxiaWorldSiteChapterScraper(ChapterScraper):
     content_filters = ChapterScraper.content_filters + [
         "remove_style_elements.wuxiaworldsite",
         "remove_site_ads.wuxiaworldsite",
+        "replace_card_suit_image",
     ]
 
     def post_process_content(self, chapter, content):
