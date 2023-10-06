@@ -30,13 +30,13 @@ def authors_notes_filter(html_block: html.Tag) -> None:
         # though we've turned of images or tables. The only content there would
         # be to display in the original, is content that we've stripped due to
         # ebook building options.
-        if not content.text.strip():
+        if content.text.strip() == "":
             html.remove_element(authors_notes_block)
             return
 
         new_block = BeautifulSoup(
             f'<div class="pywn_authorsnotes">'
-            f'   <div class="pywn_authorsnotes-title">-- Author\'s Note ---</div>'
+            f'   <div class="pywn_authorsnotes-title"> Author\'s Note </div>'
             f'   <div class="pywn_authorsnotes-body">{content}</div>'
             f"</div>",
             "html.parser",
@@ -189,16 +189,11 @@ class ScribbleHubChapterScraper(ChapterScraper):
         .pywn_chapter td p { padding: 5px; }
     """
     content_selector = Selector("#chp_raw")
-    # author_notes_filter = "transform_authors_notes.scribblehub"
-    content_filters: list[str] = [
-        "remove_blacklisted_elements",
-        "remove_hidden_elements",
-        "remove_comments",
-        "remove_useless_attrs",
-        "remove_content_warnings",
-        "transform_announcements.scribblehub",
-        "transform_authors_notes.scribblehub",
-    ]
+    author_notes_filter = "transform_authors_notes.scribblehub"
+
+    # Create a default filters list with "remove_blank_elements" excluded
+    DEFAULT_FILTERS: list[str] = list(set(html.DEFAULT_FILTERS) - {"remove_blank_elements"})
+    content_filters: list[str] = DEFAULT_FILTERS + ["transform_announcements.scribblehub"]
 
     def post_process_content(self, chapter, content):
         """Post-Processing to remove tables (for now)."""
