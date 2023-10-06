@@ -184,3 +184,11 @@ def info(app: App, ebook: str) -> None:
     for key, value in info.items():
         click.echo(f" »» {key:{max_key_size + 1}s}: {value}")
     click.echo()
+
+
+@pywn.command()
+@click.argument("directory")
+@pass_app
+def dir(app: App, directory: str) -> None:
+    """Command for managing directories of webnovels."""
+    app.dir(directory)

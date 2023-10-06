@@ -10,7 +10,7 @@ from webnovel.logs import LogTimer
 from webnovel.scraping import ScraperBase
 
 logger = logging.getLogger(__name__)
-timer = LogTimer(logger)
+timer = LogTimer(logger, log_level=logging.INFO)
 
 
 class ScraperCache:
@@ -257,6 +257,8 @@ class App:
         #
         orphaned_urls = chapter_urls_in_file - chapter_urls_fetched
         if orphaned_urls:
+            urls = "\n".join(c.url for c in novel.chapters)
+            print(f"\nURLS\n{urls}")
             raise errors.OrphanedUrlsError(orphaned_urls)
 
         #
@@ -274,15 +276,15 @@ class App:
         # chapters, sequentially.  Supporting filling in chapter gaps would have to
         # be for a future update (if support is ever added).
         #
-        existing_chapter_nos = set(ch.chapter_no for ch in pkg.chapters.values())
-        max_chapter_no = max(existing_chapter_nos)
-        non_sequential_chapters = [
-            ch.url
-            for ch in novel.chapters
-            if ch.chapter_no not in existing_chapter_nos and ch.chapter_no < max_chapter_no
-        ]
-        if non_sequential_chapters:
-            raise errors.NonsequentialChaptersError(non_sequential_chapters)
+        # existing_chapter_nos = set(ch.chapter_no for ch in pkg.chapters.values())
+        # max_chapter_no = max(existing_chapter_nos)
+        # non_sequential_chapters = [
+        #     ch.url
+        #     for ch in novel.chapters
+        #     if ch.chapter_no not in existing_chapter_nos and ch.chapter_no < max_chapter_no
+        # ]
+        # if non_sequential_chapters:
+        #     raise errors.NonsequentialChaptersError(non_sequential_chapters)
 
         # TODO make sure that the chapter_no values match up. Need to standardize
         #      handling of chapter_no across all scrapers to make sure this doesn't
@@ -297,6 +299,7 @@ class App:
 
         self.add_chapters(ebook=pkg, chapters=missing_chapters, batch_size=20)
         pkg.save()
+        return len(missing_chapters)
 
         # chapter_slug_map = {c.slug: c for c in pkg.chapters.values()}
         # raise NotImplementedError
@@ -326,3 +329,26 @@ class App:
             ),
         }
         return retval
+
+    def dir(self, directory: str) -> None:
+        """Run the WebNovelDirectory command."""
+        directory = Path(directory)
+        from webnovel.dir import WebNovelDirectory
+
+        if directory.exists():
+            wn_dir = WebNovelDirectory.load(directory)
+        else:
+            wn_dir = WebNovelDirectory.create(directory)
+
+        logger.info("Webnovel directory loaded.")
+
+        if not wn_dir.validate():
+            logger.error("Webnovel directory not valid.")
+            return
+        logger.info("Webnovel directory validated.")
+
+        logger.info("Updating webnovels...")
+        wn_dir.update(self)
+
+        logger.info("Saving status...")
+        wn_dir.save()

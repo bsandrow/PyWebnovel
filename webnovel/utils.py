@@ -4,6 +4,7 @@ from dataclasses import fields, is_dataclass
 import datetime
 import io
 import itertools
+from pathlib import Path
 import re
 import string
 from time import perf_counter
@@ -121,6 +122,8 @@ def normalize_io(file_or_io: Union[IO, str] = None, mode: str = "rb") -> IO:
         return io.BytesIO()
     if isinstance(file_or_io, str):
         return open(file_or_io, mode=mode)
+    if isinstance(file_or_io, Path):
+        return file_or_io.open(mode=mode)
     return file_or_io
 
 
