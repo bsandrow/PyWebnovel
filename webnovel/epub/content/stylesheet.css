@@ -183,3 +183,7 @@ ol.none { list-style-type: none; margin: 0em; padding: 0em; }
 .pywn_chapter td {
 	padding: 5px;
 }
+
+.pywn_chapter table {
+	font-size: 80%;
+}
