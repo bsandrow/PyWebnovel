@@ -10,7 +10,9 @@ from typing import IO, Union
 import urllib.parse
 from zipfile import ZipFile
 
-from webnovel import http
+from requests import HTTPError
+
+from webnovel import errors, http
 from webnovel.data import Chapter, Image, Novel
 from webnovel.epub.data import EpubMetadata, EpubOptions
 from webnovel.epub.files import (
@@ -294,7 +296,12 @@ class EpubPackage:
             for img_tag in img_tags:
                 img_url = urllib.parse.urljoin(base=chapter.url, url=img_tag.get("src").strip())
                 image = Image(url=img_url)
-                image.load(client=self.http_client)
+
+                try:
+                    image.load(client=self.http_client)
+                except HTTPError as error:
+                    raise errors.ImageFetchError(f"Failed to fetch image {img_url} (HTTP {error.response.status_code})")
+
                 file_id = hashlib.sha256(image.data).hexdigest()
                 image_file = self.file_map.get(file_id)
                 if not image_file:

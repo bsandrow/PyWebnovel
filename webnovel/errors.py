@@ -64,3 +64,7 @@ class ChapterContentNotFound(ParseError):
 
 class DirectoryDoesNotExistError(OSError, PyWebnovelError):
     """Cannot create a WebNovelDirectory from a non-existant directory."""
+
+
+class ImageFetchError(ValueError, PyWebnovelError):
+    """Error when an image fails to be fetched."""
