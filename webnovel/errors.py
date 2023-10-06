@@ -60,3 +60,7 @@ class ChapterContentNotFound(ParseError):
 
     def __str__(self):
         return f"Unable to extract chapter content: {self.message}"
+
+
+class DirectoryDoesNotExistError(OSError, PyWebnovelError):
+    """Cannot create a WebNovelDirectory from a non-existant directory."""
