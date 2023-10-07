@@ -5,7 +5,7 @@ import json
 import logging
 import re
 
-from bs4 import BeautifulSoup, NavigableString
+from bs4 import BeautifulSoup, NavigableString, Tag
 
 from webnovel import html
 from webnovel.data import Chapter, NovelStatus
@@ -15,6 +15,31 @@ from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraper, Select
 SITE_NAME = "ScribbleHub.com"
 logger = logging.getLogger(__name__)
 timer = LogTimer(logger)
+
+IMGUR_REPLACE_MAP = {
+    "https://imgur.com/a/vTB9v0N.png": "https://i.imgur.com/Ngn3XDw.png",
+    "https://imgur.com/a/Kfi2vTV": "https://i.imgur.com/cJ2MmA0.jpeg",
+}
+
+
+@html.register_html_filter(name="replace_bad_imgur_urls")
+def replace_bad_imgur_urls_filter(element: Tag) -> None:
+    """
+    Fix some bad imgur image links.
+
+    They are album image links with a file extension appended. They seem to only
+    have a single image in the album, so maybe this worked at one point in time,
+    but doesn't any longer?
+
+    Just use manual replacement for now to get things working, but in the future
+    make this automatic by going to the imgur page and finding the image url in
+    code.
+    """
+    for item in element.find_all("img"):
+        src = item.get("src")
+        replacement = IMGUR_REPLACE_MAP.get(src)
+        if src and replacement:
+            item["src"] = replacement
 
 
 @html.register_html_filter(name="transform_authors_notes.scribblehub")
@@ -193,7 +218,10 @@ class ScribbleHubChapterScraper(ChapterScraper):
 
     # Create a default filters list with "remove_blank_elements" excluded
     DEFAULT_FILTERS: list[str] = list(set(html.DEFAULT_FILTERS) - {"remove_blank_elements"})
-    content_filters: list[str] = DEFAULT_FILTERS + ["transform_announcements.scribblehub"]
+    content_filters: list[str] = DEFAULT_FILTERS + [
+        "transform_announcements.scribblehub",
+        "replace_bad_imgur_urls",
+    ]
 
     def post_process_content(self, chapter, content):
         """Post-Processing to remove tables (for now)."""
