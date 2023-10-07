@@ -165,14 +165,19 @@ ol.none { list-style-type: none; margin: 0em; padding: 0em; }
  *
  */
 
- .pywn_chapter table {
+IMG.pywn_converted-table {
+	display: block;
+}
+
+.pywn_chapter table,
+IMG.pywn_converted-table {
     margin-right: auto;
     margin-left: auto;
     margin-bottom: 1em;
- }
+}
 
- .pywn_chapter table,
- .pywn_chapter td {
+.pywn_chapter table,
+.pywn_chapter td {
     border: 2px solid black !important;
 	border-collapse: collapse;
 }
