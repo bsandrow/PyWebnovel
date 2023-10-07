@@ -272,6 +272,9 @@ class Chapter:
         if re.match(r"\d+", title):
             title = f"Chapter {title}"
 
+        # Change "Chapter 100  - The Black Dragon" => "Chapter 100 - The Black Dragon"
+        title = re.sub(r"(Chapter \d+)\s\s+-\s\s*", r"\1 - ", title)
+
         # Change "Chapter 100 - The Black Dragon" => "Chapter 100: The Black Dragon"
         # Change "Chapter 100. The Black Dragon" => "Chapter 100: The Black Dragon"
         # Change "Side Story 100 - The Black Dragon" => "Side Story 100: The Black Dragon"
@@ -280,7 +283,7 @@ class Chapter:
         )
 
         # Deal with "Chapter Ch 102"
-        title = re.sub(r"(Chapter)\s*Ch\s*(\d+(?:\.\d+)?)", "\1 \2", title, re.IGNORECASE)
+        title = re.sub(r"(Chapter)\s*Ch\s*(\d+(?:\.\d+)?)", r"\1 \2", title, re.IGNORECASE)
 
         # Deal with "Chapter 100The Black Dragon" => "Chapter 100: The Black Dragon"
         # TODO replace a-zA-Z with unicode character class using \p{L} (requires separate regex library)
@@ -302,13 +305,21 @@ class Chapter:
         # that _anything_ repeated with just ": " separating will get caught, so
         # "Side Story 1: Side Story 1" would also be caught.
         title = re.sub(r"^([^:]+): \1$", r"\1", title, re.IGNORECASE)
+        title = re.sub(r"^((?:Chapter|Side Story|SS|Side-Story) \d+): \1:?", r"\1:", title, re.IGNORECASE)
 
         # Change "Chapter 100: 100 The Black Dragon" => "Chapter 100: The Black Dragon"
         # -- it's possible for false matches here, but I'm deeming the likelihood low since
         #    it would have to be an exact match for the chapter number. E.g.:
         #       "Chapter 99: 99 Bottles of Beer on the Wall" =>
         #       "Chapter 99: Bottle of Beer on the Wall"
-        title = re.sub(r"Chapter (\d+): \1 *", r"Chapter \1: ", title, re.IGNORECASE)
+        title = re.sub(r"Chapter (\d+): +\1 *", r"Chapter \1: ", title, re.IGNORECASE)
+
+        # Change "Chapter 100:  The Black Dragon" => "Chapter 100: The Black Dragon"
+        title = re.sub(r"(Chapter \d+: )\s+", r"\1", title, re.IGNORECASE)
+
+        # Change "Chapter 100:   : The Black Dragon" => "Chapter 100: The Black Dragon"
+        # Change "Chapter 100:   :   : The Black Dragon" => "Chapter 100: The Black Dragon"
+        title = re.sub(r"(Chapter \d+):\s+(:\s+)+", r"\1: ", title, re.IGNORECASE)
 
         return title
 
