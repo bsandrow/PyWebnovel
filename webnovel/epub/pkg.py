@@ -10,9 +10,11 @@ from typing import IO, Union
 import urllib.parse
 from zipfile import ZipFile
 
+from bs4 import BeautifulSoup
+import imgkit
 from requests import HTTPError
 
-from webnovel import errors, http
+from webnovel import errors, html, http
 from webnovel.data import Chapter, Image, Novel
 from webnovel.epub.data import EpubMetadata, EpubOptions
 from webnovel.epub.files import (
@@ -35,6 +37,8 @@ from webnovel.epub.files import (
 from ..utils import filter_dict, normalize_io
 
 logger = logging.getLogger(__name__)
+
+MAX_TABLE_SIZE = 5
 
 
 class EpubPackage:
@@ -293,6 +297,11 @@ class EpubPackage:
         if self.include_images:
             content = chapter.html_tree
             img_tags = content.find_all("img") if content else []
+            tables = content.find_all("table") if content else []
+
+            #
+            # Handle Inline Images
+            #
             for img_tag in img_tags:
                 img_url = urllib.parse.urljoin(base=chapter.url, url=img_tag.get("src").strip())
                 image = Image(url=img_url)
@@ -307,6 +316,23 @@ class EpubPackage:
                 if not image_file:
                     image_file = self.add_image(image=image, content=image.data)
                 img_tag["src"] = f"IMAGE:{file_id}"
+
+            #
+            # Handle Large Tables
+            #
+            # If the table is larger than the max table size, we pass the table
+            # html to imgkit to generate a PNG out of it.  Then add the image to
+            # the images list, and replace the <table> tag with an <img> tag.
+            #
+            for table in tables:
+                table_size = html.calculate_table_size(table)
+                if table_size > MAX_TABLE_SIZE:
+                    img_data, mimetype, img_hash = html.convert_table_to_image(table)
+                    img = Image(url=f"null://{img_hash}", data=img_data, mime_type=mimetype, did_load=True)
+                    if img_hash not in self.file_map:
+                        self.add_image(image=img, content=img_data)
+                    img_tag = BeautifulSoup(f'<img src="IMG:{img_hash}" />').find("img")
+                    table.replace_with(img_tag)
 
             # TODO Don't want to download images every time we rebuild from
             #      original_html. Need to maybe build a mapping of image url ->

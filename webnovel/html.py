@@ -2,10 +2,12 @@
 
 from abc import ABCMeta, abstractmethod
 import functools
+import hashlib
 import re
 from typing import Union
 
 from bs4 import Comment, NavigableString, Tag
+import imgkit
 
 #
 # Default list of attributes to keep for all elements.
@@ -191,6 +193,43 @@ def parse_style(style_value: str) -> dict:
             name, _, value = item.partition(":")
             style_attrs[name.strip()] = value.strip()
     return style_attrs
+
+
+def calculate_table_size(table: Tag) -> int:
+    """
+    Return the total number of columns in an HTML <table> element.
+
+    :params table: A Tag instance for a <table>. Assumed to have <tr> and <td>
+        elements.
+    """
+    assert table.name == "table", "Cannot calculate the size of a non-<table> element."
+    table_size = 0
+    for row in table.find_all("tr"):
+        row_size = 0
+        for cell in row.find_all("td"):
+            row_size += int(cell.get("colspan", "1"))
+        table_size = max((table_size, row_size))
+    return table_size
+
+
+def convert_table_to_image(table: Tag, imgkit_options: dict = None) -> tuple[bytes, str, str]:
+    """
+    Generate an image of a <table> element.
+
+    Returns a tuple of (IMAGE_DATA, IMAGE_MIMETYPE, IMAGE_DATA_HASH)
+
+    :param table: a <table> element.
+    :param imgkit_options: A dict of options to pass to imgkit. If not passed,
+        then format defaults to png and width to 600.
+    """
+    assert table.name == "table", "Cannot calculate the size of a non-<table> element."
+    imgkit_options = imgkit_options or {}
+    imgkit_options.setdefault("format", "png")
+    imgkit_options.setdefault("width", "600")
+    mimetype = "image/" + imgkit_options["format"]
+    image_data = imgkit.from_string(str(table), False, imgkit_options)
+    image_hash = hashlib.sha256(image_data).hexdigest()
+    return (image_data, mimetype, image_hash)
 
 
 def remove_element(element: Union[Tag, NavigableString]) -> None:
