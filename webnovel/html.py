@@ -226,6 +226,7 @@ def convert_table_to_image(table: Tag, imgkit_options: dict = None) -> tuple[byt
     imgkit_options = imgkit_options or {}
     imgkit_options.setdefault("format", "png")
     imgkit_options.setdefault("width", "600")
+    imgkit_options.setdefault("log-level", "error")
     mimetype = "image/" + imgkit_options["format"]
     image_data = imgkit.from_string(str(table), False, imgkit_options)
     image_hash = hashlib.sha256(image_data).hexdigest()
