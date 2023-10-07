@@ -296,6 +296,7 @@ class EpubPackage:
         #
         if self.include_images:
             content = chapter.html_tree
+            was_modified = False
             img_tags = content.find_all("img") if content else []
             tables = content.find_all("table") if content else []
 
@@ -316,6 +317,7 @@ class EpubPackage:
                 if not image_file:
                     image_file = self.add_image(image=image, content=image.data)
                 img_tag["src"] = f"IMAGE:{file_id}"
+                was_modified = True
 
             #
             # Handle Large Tables
@@ -327,12 +329,16 @@ class EpubPackage:
             for table in tables:
                 table_size = html.calculate_table_size(table)
                 if table_size > MAX_TABLE_SIZE:
+                    logger.debug("Converting large table to image. [chapter=%s]", repr(chapter.title))
                     img_data, mimetype, img_hash = html.convert_table_to_image(table)
-                    img = Image(url=f"null://{img_hash}", data=img_data, mime_type=mimetype, did_load=True)
+                    img = Image(url=f"null://{img_hash}", data=img_data, mimetype=mimetype, did_load=True)
                     if img_hash not in self.file_map:
                         self.add_image(image=img, content=img_data)
-                    img_tag = BeautifulSoup(f'<img src="IMG:{img_hash}" />').find("img")
+                    img_tag = BeautifulSoup(
+                        f'<img class="pywn_converted-table" src="IMAGE:{img_hash}" />', "html.parser"
+                    ).find("img")
                     table.replace_with(img_tag)
+                    was_modified = True
 
             # TODO Don't want to download images every time we rebuild from
             #      original_html. Need to maybe build a mapping of image url ->
@@ -341,7 +347,7 @@ class EpubPackage:
             #      about dupe files, just need to worry about too many
             #      downloads, or not being able to correctly
 
-            if content and img_tags:
+            if content and was_modified:
                 chapter.html = str(content)
 
             # TODO store image URLs somehow to prevent multiple downloads of
