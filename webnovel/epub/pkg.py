@@ -60,7 +60,7 @@ class EpubPackage:
         metadata: Union[EpubMetadata, Novel, dict],
         epub_uid: str | None = None,
         files: dict[str, EpubInternalFile] | None = None,
-        file_or_io: Union[str, IO] | None = None,
+        file_or_io: Union[Path, str, IO] | None = None,
         extra_css: str | None = None,
         chapters: dict[Chapter] | None = None,
         cover_image_id: str | None = None,
