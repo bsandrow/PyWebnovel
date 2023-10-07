@@ -144,7 +144,7 @@ class WebNovelDirectory:
 
     def add(self, url: str, app: "App") -> None:
         """Add webnovel to directory."""
-        filename = app.create_ebook(novel_url=url)
+        filename = app.create_ebook(novel_url=url, directory=self.directory)
         webnovel = WebNovel(path=filename, last_updated=datetime.datetime.now())
         self.status.webnovels.append(webnovel)
         self.save()

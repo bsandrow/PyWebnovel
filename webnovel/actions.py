@@ -64,7 +64,12 @@ class App:
         self.client._session.cookies.set(cookie_name, cookie_value)
 
     def create_ebook(
-        self, novel_url: str, filename: str = None, cover_image_url: str = None, chapter_limit: int = None
+        self,
+        novel_url: str,
+        filename: str = None,
+        cover_image_url: str = None,
+        chapter_limit: int = None,
+        directory: str = ".",
     ) -> str:
         """
         Create an ebook for the URL pointing at a specific webnovel.
@@ -76,6 +81,8 @@ class App:
             instead of the default cover image scraped from the novel page.
         :param chapter_limit: (optional) Limit the number of chapters to scrape.
             Leaving this blank scrapes all chapters.
+        :param directory: (optional) The directory to create the ebook in.
+            Defaults to the current directory.
         """
         scraper_class = sites.find_scraper(novel_url)
         if scraper_class is None:
@@ -87,7 +94,8 @@ class App:
         if cover_image_url:
             novel.cover_image = Image(url=cover_image_url)
 
-        filename = utils.clean_filename(filename or f"{novel.title}.epub")
+        directory = Path(directory)
+        filename = directory / utils.clean_filename(filename or f"{novel.title}.epub")
 
         with timer("Generating %s", filename):
             epub_pkg = epub.EpubPackage(
@@ -224,7 +232,8 @@ class App:
 
     def update(self, ebook: str, limit: int | None = None) -> int:
         """Update ebook."""
-        logger.info("Updating package: %s", ebook)
+        ebook = Path(ebook)
+        logger.info("Updating %s (%s)", ebook.name, ebook.parent)
         pkg = epub.EpubPackage.load(ebook)
 
         novel_url = pkg.metadata.novel_url
