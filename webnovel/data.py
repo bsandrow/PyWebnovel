@@ -268,6 +268,9 @@ class Chapter:
         """Cleanup a Chapter title to normalize it a bit, detect common typos, etc."""
         title = title.strip()
 
+        # Change "Book 1, 161" -> "Book 1: Chapter 161"
+        title = re.sub(r"(Book \d+),\s*(\d+)", r"\1: Chapter \2", title, re.IGNORECASE)
+
         # Change "100 The Black Dragon" => "Chapter 100 The Black Dragon"
         if re.match(r"\d+", title):
             title = f"Chapter {title}"

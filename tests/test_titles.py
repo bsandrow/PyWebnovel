@@ -45,6 +45,15 @@ TEST_CASES = [
     ("Chapter 620:  : Gone?!", "Chapter 620: Gone?!"),
     ("Chapter 100:   : The Black Dragon", "Chapter 100: The Black Dragon"),
     ("Chapter 100:   :   : The Black Dragon", "Chapter 100: The Black Dragon"),
+    # --
+    ("Book 1, 5", "Book 1: Chapter 5"),
+    ("Book 1, 7A", "Book 1: Chapter 7A"),
+    ("Book 1, 7B", "Book 1: Chapter 7B"),
+    ("Book 1, 28B", "Book 1: Chapter 28B"),
+    ("Book 1, 80 + AUDIO!", "Book 1: Chapter 80 + AUDIO!"),
+    ("Book 6, 161 ", "Book 6: Chapter 161"),
+    ("Book 6,161 ", "Book 6: Chapter 161"),
+    ("Book 6,  161 ", "Book 6: Chapter 161"),
 ]
 
 
