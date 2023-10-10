@@ -13,7 +13,7 @@ files = [
 
 [[package]]
 name = "apptk"
-version = "1.3.1"
+version = "1.4.0"
 description = ""
 optional = false
 python-versions = "^3.9.10"
@@ -26,8 +26,8 @@ pytest = ">=3.4"
 [package.source]
 type = "git"
 url = "https://github.com/bsandrow/python-apptk.git"
-reference = "v1.3.1"
-resolved_reference = "cc84a412d320bacc772205e9d50c457a08c1917b"
+reference = "v1.4.0"
+resolved_reference = "3963fece0e197b1824aaa6f256535c137cf13286"
 
 [[package]]
 name = "astroid"
@@ -1156,4 +1156,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.10"
-content-hash = "feb9ce5af7ac5e38f10a0adafeb0867d0482a5d8fcb208d9bc98da4ad838d0c8"
+content-hash = "b32a97b7989d56498af68abfa93a57c918953d2d8f76f554a9de20f49d54e418"
