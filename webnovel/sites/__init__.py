@@ -4,6 +4,7 @@ import inspect
 
 from webnovel.scraping import ChapterScraperBase, NovelScraperBase
 from webnovel.sites import (
+    divinedaolibrary,
     novelbin,
     novelcool,
     novelnext,
@@ -16,6 +17,7 @@ from webnovel.sites import (
 )
 
 __all__ = [
+    "divinedaolibrary",
     "novelbin",
     "novelcool",
     "novelnext",
@@ -29,6 +31,7 @@ __all__ = [
 ]
 
 SITES = [
+    divinedaolibrary,
     novelbin,
     novelcool,
     novelnext,
