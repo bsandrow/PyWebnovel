@@ -82,7 +82,7 @@ class ScraperBase:
         return re.match(cls.url_pattern, url) is not None
 
 
-class NovelScraper(ScraperBase):
+class NovelScraperBase(ScraperBase):
     """Base Class for Webnovel Scrapers."""
 
     status_map: dict[str, NovelStatus] = None

@@ -9,7 +9,7 @@ from webnovel import data, errors
 from webnovel.data import Chapter, NovelStatus
 from webnovel.html import DEFAULT_FILTERS, register_html_filter, remove_element
 from webnovel.logs import LogTimer
-from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraper, Selector
+from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraperBase, Selector
 
 SITE_NAME = "NovelBin.net"
 logger = logging.getLogger(__name__)
@@ -71,7 +71,7 @@ class NovelBinChapterScraper(ChapterScraper):
             chapter.title = re.sub(r"(Chapter \d+)- ", r"\1: ", chapter.title, re.IGNORECASE)
 
 
-class NovelBinScraper(NovelScraper):
+class NovelBinScraper(NovelScraperBase):
     """Scraper for NovelBin.net."""
 
     site_name = SITE_NAME

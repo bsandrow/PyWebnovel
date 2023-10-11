@@ -5,7 +5,7 @@ from webnovel import data, scraping
 SITE_NAME = "ReadWN.com"
 
 
-class ReadWnNovelScraper(scraping.NovelScraper):
+class ReadWnNovelScraper(scraping.NovelScraperBase):
     """Scraper for ReadWN.com Novels."""
 
     site_name = SITE_NAME

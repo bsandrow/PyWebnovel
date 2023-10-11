@@ -6,7 +6,7 @@ import re
 from webnovel import errors
 from webnovel.data import Chapter, Image, NovelStatus, Person
 from webnovel.html import register_html_filter, remove_element
-from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraper, Selector
+from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraperBase, Selector
 
 SITE_NAME = "NovelCool.com"
 
@@ -38,7 +38,7 @@ def control_filter(html) -> None:
             remove_element(element)
 
 
-class NovelCoolScraper(NovelScraper):
+class NovelCoolScraper(NovelScraperBase):
     """Scraper for NovelCool.com novels."""
 
     site_name = SITE_NAME

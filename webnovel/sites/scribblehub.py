@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup, NavigableString, Tag
 from webnovel import html
 from webnovel.data import Chapter, NovelStatus
 from webnovel.logs import LogTimer
-from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraper, Selector
+from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraperBase, Selector
 
 SITE_NAME = "ScribbleHub.com"
 logger = logging.getLogger(__name__)
@@ -89,7 +89,7 @@ def announcements_filter(html_block: html.Tag) -> None:
         announcement_block.replace_with(new_block)
 
 
-class ScribbleHubScraper(NovelScraper):
+class ScribbleHubScraper(NovelScraperBase):
     """Scraper for ScribbleHub.com."""
 
     site_name = SITE_NAME

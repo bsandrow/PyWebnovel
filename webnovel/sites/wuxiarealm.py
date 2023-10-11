@@ -9,14 +9,14 @@ from bs4 import BeautifulSoup, Tag
 
 from webnovel import data, errors, html
 from webnovel.logs import LogTimer
-from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraper, Selector
+from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraperBase, Selector
 
 SITE_NAME = "WuxiaRealm.com"
 logger = logging.getLogger(__name__)
 timer = LogTimer(logger)
 
 
-class WuxiaRealmScraper(NovelScraper):
+class WuxiaRealmScraper(NovelScraperBase):
     """Novel Scraper for WuxiaRealm.com."""
 
     url_pattern = HTTPS_PREFIX + r"wuxiarealm\.com/novel/(?P<NovelID>[\w\d-]+)/"

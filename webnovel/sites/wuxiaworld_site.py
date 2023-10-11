@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup, Tag
 
 from webnovel import html
 from webnovel.data import Chapter, Image, NovelStatus
-from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraper, Selector
+from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraperBase, Selector
 
 SITE_NAME = "WuxiaWorld.site"
 
@@ -49,7 +49,7 @@ def style_element_filter(element: Tag) -> None:
         element.decompose()
 
 
-class WuxiaWorldDotSiteScraper(NovelScraper):
+class WuxiaWorldDotSiteScraper(NovelScraperBase):
     """Scraper for WuxiaWorld.site."""
 
     site_name = SITE_NAME

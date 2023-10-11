@@ -11,7 +11,7 @@ from webnovel import html, http
 from webnovel.data import Chapter, NovelStatus
 from webnovel.livewire import LiveWireAPI
 from webnovel.logs import LogTimer
-from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraper, Selector
+from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraperBase, Selector
 
 SITE_NAME = "ReaperScans.com"
 logger = logging.getLogger(__name__)
@@ -172,7 +172,7 @@ def banner_filter(element: Tag) -> None:
             break
 
 
-class ReaperScansScraper(NovelScraper):
+class ReaperScansScraper(NovelScraperBase):
     """Scraper for ReaperScans.com."""
 
     site_name = SITE_NAME

@@ -19,7 +19,7 @@ class SkyDemonOrderChapterScraper(scraping.ChapterScraper):
     content_selector = scraping.Selector("main .prose")
 
 
-class SkyDemonOrderNovelScraper(scraping.NovelScraper):
+class SkyDemonOrderNovelScraper(scraping.NovelScraperBase):
     """Novel Scraper for SkyDemonOrder.com Content."""
 
     site_name = SITE_NAME
