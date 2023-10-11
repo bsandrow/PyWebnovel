@@ -1,11 +1,13 @@
 """Define all of the basic datastructures we'll use to pass novels around."""
 
+import base64
 from dataclasses import dataclass
 import datetime
 from enum import Enum
 import imghdr
 import re
 from typing import Callable, Union
+import urllib.parse
 
 from apptk.http import HttpClient
 from bs4 import BeautifulSoup, Tag
@@ -104,6 +106,9 @@ class Image:
             Defaults to false.
         """
         if not self.did_load or force:
+            if self.url.startswith("data:"):
+                return self._process_data_url()
+
             if client is None:
                 from webnovel.http import get_client
 
@@ -127,6 +132,29 @@ class Image:
             self.did_load = True
             return True
         return False
+
+    def _process_data_url(self):
+        assert self.url.startswith("data:")
+
+        # heading => "data:image/png;base64" or "data:image/svg"
+        # desc => "image/png:base64" or "image/svg"
+        # media_type => "image/png" or "image/svg"
+        # encoding => "base64" or ""
+
+        heading, _, encoded_data = self.url.partition(",")
+        _, _, desc = heading.partition(":")
+        media_type, _, encoding = desc.partition(";")
+
+        if encoding == "base64":
+            data = base64.decodestring(encoded_data)
+        else:
+            data = urllib.parse.unquote_to_bytes(encoded_data)
+
+        self.did_load = True
+        self.mimetype = media_type
+        self.data = data
+
+        return True
 
 
 @dataclass
