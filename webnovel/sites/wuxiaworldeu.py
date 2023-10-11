@@ -8,14 +8,14 @@ from bs4 import BeautifulSoup
 
 from webnovel.data import Chapter, NovelStatus, Person
 from webnovel.logs import LogTimer
-from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraperBase, Selector
+from webnovel.scraping import HTTPS_PREFIX, ChapterScraperBase, NovelScraperBase, Selector
 
 SITE_NAME = "WuxiaWorld.eu"
 logger = logging.getLogger(__name__)
 timer = LogTimer(logger)
 
 
-class WuxiaWorldEuChapterScraper(ChapterScraper):
+class WuxiaWorldEuChapterScraper(ChapterScraperBase):
     """Scraper for WuxiaWorld.eu chapter content."""
 
     site_name = SITE_NAME

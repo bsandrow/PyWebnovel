@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup, Tag
 
 from webnovel import data, errors, html
 from webnovel.logs import LogTimer
-from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraperBase, Selector
+from webnovel.scraping import HTTPS_PREFIX, ChapterScraperBase, NovelScraperBase, Selector
 
 SITE_NAME = "WuxiaRealm.com"
 logger = logging.getLogger(__name__)
@@ -175,10 +175,10 @@ def chapter_controls_filter(html_tree: Tag) -> None:
             html.remove_element(element)
 
 
-class WuxiaRealmChapterScraper(ChapterScraper):
+class WuxiaRealmChapterScraper(ChapterScraperBase):
     """Chapter Scraper for WuxiaRealm.com."""
 
     site_name = SITE_NAME
     url_pattern = HTTPS_PREFIX + r"wuxiarealm.com/(?P<NovelID>[\w\d-]+)/(?P<ChapterID>[\w\d-]+)/"
     content_selector = Selector("#soop")
-    content_filters = ChapterScraper.content_filters + ["wuxiarealm.remove_chapter_controls"]
+    content_filters = ChapterScraperBase.content_filters + ["wuxiarealm.remove_chapter_controls"]

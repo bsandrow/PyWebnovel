@@ -2,7 +2,7 @@
 
 import inspect
 
-from webnovel.scraping import ChapterScraper, NovelScraperBase
+from webnovel.scraping import ChapterScraperBase, NovelScraperBase
 from webnovel.sites import (
     novelbin,
     novelcool,
@@ -47,11 +47,11 @@ NOVEL_SCRAPERS: list[type[NovelScraperBase]] = [
     if inspect.isclass(item) and issubclass(item, NovelScraperBase) and item != NovelScraperBase
 ]
 
-CHAPTER_SCRAPERS: list[type[ChapterScraper]] = [
+CHAPTER_SCRAPERS: list[type[ChapterScraperBase]] = [
     item
     for site in SITES
     for item in map(lambda x: getattr(site, x), dir(site))
-    if inspect.isclass(item) and issubclass(item, ChapterScraper) and item != ChapterScraper
+    if inspect.isclass(item) and issubclass(item, ChapterScraperBase) and item != ChapterScraperBase
 ]
 
 
@@ -62,7 +62,7 @@ def find_scraper(url: str) -> type[NovelScraperBase]:
             return scraper
 
 
-def find_chapter_scraper(url: str) -> type[ChapterScraper]:
+def find_chapter_scraper(url: str) -> type[ChapterScraperBase]:
     """Find a ChapterScraper class that matches the provided url."""
     for scraper in CHAPTER_SCRAPERS:
         if scraper.supports_url(url):

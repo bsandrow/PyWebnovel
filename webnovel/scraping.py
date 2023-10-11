@@ -193,7 +193,7 @@ class NovelScraperBase(ScraperBase):
         return novel
 
 
-class ChapterScraper(ScraperBase):
+class ChapterScraperBase(ScraperBase):
     """Base scraper for chapter information."""
 
     content_selector: Selector = None

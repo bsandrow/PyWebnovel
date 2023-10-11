@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup, NavigableString, Tag
 from webnovel import html
 from webnovel.data import Chapter, NovelStatus
 from webnovel.logs import LogTimer
-from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraperBase, Selector
+from webnovel.scraping import HTTPS_PREFIX, ChapterScraperBase, NovelScraperBase, Selector
 
 SITE_NAME = "ScribbleHub.com"
 logger = logging.getLogger(__name__)
@@ -201,7 +201,7 @@ class ScribbleHubScraper(NovelScraperBase):
         return super().post_processing(page, url, novel)
 
 
-class ScribbleHubChapterScraper(ChapterScraper):
+class ScribbleHubChapterScraper(ChapterScraperBase):
     """Scraper for ScribbleHub.com Chapters."""
 
     site_name = SITE_NAME

@@ -6,7 +6,7 @@ import re
 from webnovel import errors
 from webnovel.data import Chapter, Image, NovelStatus, Person
 from webnovel.html import register_html_filter, remove_element
-from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraperBase, Selector
+from webnovel.scraping import HTTPS_PREFIX, ChapterScraperBase, NovelScraperBase, Selector
 
 SITE_NAME = "NovelCool.com"
 
@@ -98,12 +98,12 @@ class NovelCoolScraper(NovelScraperBase):
         return chapters
 
 
-class NovelCoolChapterScraper(ChapterScraper):
+class NovelCoolChapterScraper(ChapterScraperBase):
     """Scraper for NovelCool.com chapters."""
 
     site_name = SITE_NAME
     url_pattern = re.compile(HTTPS_PREFIX + r"novelcool.com/chapter/(?P<ChapterID>[\w\d-]+)/\d+/")
-    content_filters = ["remove_controls.novelcool"] + ChapterScraper.content_filters + ["remove_title.novelcool"]
+    content_filters = ["remove_controls.novelcool"] + ChapterScraperBase.content_filters + ["remove_title.novelcool"]
 
     def get_content(self, page):
         """Extract the section of the HTML from page that contains the chapter's content."""

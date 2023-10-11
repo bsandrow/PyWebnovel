@@ -11,7 +11,7 @@ from webnovel import html, http
 from webnovel.data import Chapter, NovelStatus
 from webnovel.livewire import LiveWireAPI
 from webnovel.logs import LogTimer
-from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraperBase, Selector
+from webnovel.scraping import HTTPS_PREFIX, ChapterScraperBase, NovelScraperBase, Selector
 
 SITE_NAME = "ReaperScans.com"
 logger = logging.getLogger(__name__)
@@ -260,7 +260,7 @@ class ReaperScansScraper(NovelScraperBase):
         return sorted(chapters, key=lambda ch: ch.chapter_no)
 
 
-class ReaperScansChapterScraper(ChapterScraper):
+class ReaperScansChapterScraper(ChapterScraperBase):
     """Scraper for ReaperScans.com chapter content."""
 
     site_name = SITE_NAME

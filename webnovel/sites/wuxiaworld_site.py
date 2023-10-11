@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup, Tag
 
 from webnovel import html
 from webnovel.data import Chapter, Image, NovelStatus
-from webnovel.scraping import HTTPS_PREFIX, ChapterScraper, NovelScraperBase, Selector
+from webnovel.scraping import HTTPS_PREFIX, ChapterScraperBase, NovelScraperBase, Selector
 
 SITE_NAME = "WuxiaWorld.site"
 
@@ -103,7 +103,7 @@ class WuxiaWorldDotSiteScraper(NovelScraperBase):
         ]
 
 
-class WuxiaWorldSiteChapterScraper(ChapterScraper):
+class WuxiaWorldSiteChapterScraper(ChapterScraperBase):
     """Scraper for WuxiaWorld.site chapter content."""
 
     site_name = SITE_NAME
@@ -121,7 +121,7 @@ class WuxiaWorldSiteChapterScraper(ChapterScraper):
     #   - Didn't add <style> as a default blacklist filter, but there are <style> elements added in the middle of content
     #     for this site, and they are unnecessary. The added <style> elements are associated with the content that the
     #     SiteAdFilter is removing.
-    content_filters = ChapterScraper.content_filters + [
+    content_filters = ChapterScraperBase.content_filters + [
         "remove_style_elements.wuxiaworldsite",
         "remove_site_ads.wuxiaworldsite",
         "replace_card_suit_image",
