@@ -46,8 +46,13 @@ def replace_bad_imgur_urls_filter(element: Tag) -> None:
 def authors_notes_filter(html_block: html.Tag) -> None:
     """Transform the author's notes into something better for ebooks."""
     for authors_notes_block in html_block.select(".wi_authornotes"):
-        # author = authors_notes_block.select_one(".an_username a").text
+        author = authors_notes_block.select_one(".an_username a").text
+        author_href = authors_notes_block.select_one(".an_username a").get("href")
         content = authors_notes_block.select_one(".wi_authornotes_body")
+
+        # TODO complete this part
+        # author_avatar_block = authors_notes_block.select_one(".p-avatar-wrap img")
+        # author_pfp_url = author_avatar_block.get("src") if author_avatar_block else None
 
         # If there is no content that we're going to display in the block, then
         # there's no point to generating an empty block. An example of this
@@ -59,14 +64,14 @@ def authors_notes_filter(html_block: html.Tag) -> None:
             html.remove_element(authors_notes_block)
             return
 
-        new_block = BeautifulSoup(
-            f'<div class="pywn_authorsnotes">'
-            f'   <div class="pywn_authorsnotes-title"> Author\'s Note </div>'
-            f'   <div class="pywn_authorsnotes-body">{content}</div>'
-            f"</div>",
-            "html.parser",
-        ).find("div")
-        authors_notes_block.replace_with(new_block)
+        notes_start = '<div class="pywn_authorsnotes">'
+        notes_title = f'<div class="pywn_authorsnotes-title"><a href="{author_href}">{author}</a></div>'
+        notes_body = f'<div class="pywn_authorsnotes-body">{content}</div>'
+        notes_end = "</div>"
+        notes_parts = [notes_start, notes_title, notes_body, notes_end]
+        notes_html = "\n".join(notes_parts)
+        new_notes_block = BeautifulSoup(notes_html, "html.parser").find("div")
+        authors_notes_block.replace_with(new_notes_block)
 
 
 @html.register_html_filter(name="transform_announcements.scribblehub")
