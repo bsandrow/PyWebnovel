@@ -22,7 +22,7 @@ DOMAINS = [
     r"novel-?bin\.org",
 ]
 
-DOMAIN_RE = r"(?:www\.)(?:" + "|".join(DOMAINS) + r")"
+DOMAIN_RE = r"(?:" + "|".join(DOMAINS) + r")"
 
 
 @register_html_filter(name="remove_check_back_soon_msg")
