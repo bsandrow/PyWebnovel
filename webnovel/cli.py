@@ -202,8 +202,8 @@ def dir_update(app, directory):
 
 @dir.command(name="add")
 @click.argument("directory")
-@click.argument("url")
+@click.argument("epub_or_url")
 @pass_app
-def dir_update(app: App, directory: str, url: str):
+def dir_add(app: App, directory: str, epub_or_url: str):
     """Add a webnovel to directory."""
-    app.dir_add(directory, url)
+    app.dir_add(directory, epub_or_url)

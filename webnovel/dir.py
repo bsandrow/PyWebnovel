@@ -157,9 +157,15 @@ class WebNovelDirectory:
                 print(f"HTTP Error: {error.response.status_code} on URL {error.request.url!r}")
         self.status.last_run = datetime.datetime.now()
 
-    def add(self, url: str, app: "App") -> None:
+    def add(self, epub_or_url: str, app: "App") -> None:
         """Add webnovel to directory."""
-        filename = app.create_ebook(novel_url=url, directory=self.directory)
+        if epub_or_url.startswith("http"):
+            filename = app.create_ebook(novel_url=epub_or_url, directory=self.directory)
+        elif (path := Path(epub_or_url)) and path.exists():
+            filename = path
+        else:
+            raise Exception()  # TODO better error here
+
         webnovel = WebNovel(path=filename, last_updated=datetime.datetime.now())
         self.status.webnovels.append(webnovel)
         self.save()

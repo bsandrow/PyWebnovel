@@ -363,22 +363,22 @@ class App:
         logger.info("Saving status...")
         wn_dir.save()
 
-    def dir_add(self, directory: str, url: str) -> None:
+    def dir_add(self, directory: str, epub_or_url: str) -> None:
         """Add a webnovel to directory."""
         directory = Path(directory)
         from webnovel.dir import WebNovelDirectory
 
         if directory.exists():
-            wn_dir = WebNovelDirectory.load(directory)
+            webnovel_directory = WebNovelDirectory.load(directory)
         else:
-            wn_dir = WebNovelDirectory.create(directory)
+            webnovel_directory = WebNovelDirectory.create(directory)
 
         logger.info("Webnovel directory loaded.")
 
-        if not wn_dir.validate():
+        if not webnovel_directory.validate():
             logger.error("Webnovel directory not valid.")
             return
         logger.info("Webnovel directory validated.")
 
-        wn_dir.add(url, self)
-        wn_dir.save()
+        webnovel_directory.add(epub_or_url, self)
+        webnovel_directory.save()
