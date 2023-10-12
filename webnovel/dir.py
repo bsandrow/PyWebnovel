@@ -5,6 +5,7 @@ import datetime
 import enum
 from functools import cached_property
 import json
+import logging
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional, Union
 import zipfile
@@ -15,6 +16,9 @@ from webnovel.errors import DirectoryDoesNotExistError
 
 if TYPE_CHECKING:
     from webnovel.actions import App
+
+
+logger = logging.getLogger(__name__)
 
 
 class WebNovelStatus(enum.Enum):
@@ -160,7 +164,7 @@ class WebNovelDirectory:
     def add(self, epub_or_url: str, app: "App") -> None:
         """Add webnovel to directory."""
         if epub_or_url.startswith("http"):
-            filename = app.create_ebook(novel_url=epub_or_url, directory=self.directory)
+            filename = Path(app.create_ebook(novel_url=epub_or_url, directory=self.directory))
         elif (path := Path(epub_or_url)) and path.exists():
             filename = path
         else:
@@ -169,3 +173,4 @@ class WebNovelDirectory:
         webnovel = WebNovel(path=filename, last_updated=datetime.datetime.now())
         self.status.webnovels.append(webnovel)
         self.save()
+        logger.info("Webnovel %s added to directory.", filename.name)
