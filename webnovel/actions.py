@@ -230,10 +230,17 @@ class App:
 
         epub_pkg.save()
 
-    def update(self, ebook: str, limit: int | None = None) -> int:
+    def update(self, ebook: str, limit: int | None = None, ignore_path: str | Path | None = ".") -> int:
         """Update ebook."""
         ebook = Path(ebook)
-        logger.info("Updating %s (%s)", ebook.name, ebook.parent)
+        ignore_path = Path(ignore_path) if ignore_path else None
+
+        if ignore_path and ebook.parent == ignore_path:
+            logger.info("Updating %s", ebook.name)
+        else:
+            logger.info("Updating %s (%s)", ebook.name, ebook.parent)
+
+        ignore_path = Path(ignore_path) if ignore_path else None
         pkg = epub.EpubPackage.load(ebook)
 
         novel_url = pkg.metadata.novel_url

@@ -153,7 +153,7 @@ class WebNovelDirectory:
         """Run App.update on all of the webnovels in this directory."""
         for webnovel in self.status.webnovels:
             try:
-                chapters_added = app.update(ebook=webnovel.path)
+                chapters_added = app.update(ebook=webnovel.path, ignore_path=self.directory)
                 if chapters_added > 0:
                     webnovel.last_updated = datetime.datetime.now()
                 self.save()
