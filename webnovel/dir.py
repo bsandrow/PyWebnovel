@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, field
 import datetime
+import enum
 from functools import cached_property
 import json
 from pathlib import Path
@@ -16,22 +17,36 @@ if TYPE_CHECKING:
     from webnovel.actions import App
 
 
+class WebNovelStatus(enum.Enum):
+    """The status of a webnovel managed by the webnovel directory."""
+
+    ONGOING = "ongoing"
+    PAUSED = "paused"
+    COMPLETE = "complete"
+
+
 @dataclass
 class WebNovel:
     """A Webnovel ebook inside of the WebNovelDirectory."""
 
     path: Path
+    status: WebNovelStatus = WebNovelStatus.ONGOING
     last_updated: Optional[datetime.datetime] = None
 
     def to_json(self) -> dict:
         """Convert to dict."""
-        return {"path": str(self.path), "last_updated": self.last_updated.isoformat() if self.last_updated else None}
+        return {
+            "path": str(self.path),
+            "status": self.status.value,
+            "last_updated": self.last_updated.isoformat() if self.last_updated else None,
+        }
 
     @classmethod
     def from_json(cls: type["WebNovel"], data: dict) -> "WebNovel":
         """Convert from dict."""
         return cls(
             path=Path(data["path"]),
+            status=WebNovelStatus(data["status"]) if data.get("status") else WebNovelStatus.ONGOING,
             last_updated=datetime.datetime.fromisoformat(data["last_updated"]) if data.get("last_updated") else None,
         )
 
