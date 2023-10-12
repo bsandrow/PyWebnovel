@@ -152,6 +152,13 @@ class WebNovelDirectory:
     def update(self, app: "App") -> None:
         """Run App.update on all of the webnovels in this directory."""
         for webnovel in self.status.webnovels:
+            if webnovel.status == WebNovelStatus.COMPLETE:
+                continue
+
+            if webnovel.status == WebNovelStatus.PAUSED:
+                logger.info("Skipping paused webnovel: %s", webnovel.path.name)
+                continue
+
             try:
                 chapters_added = app.update(ebook=webnovel.path, ignore_path=self.directory)
                 if chapters_added > 0:
