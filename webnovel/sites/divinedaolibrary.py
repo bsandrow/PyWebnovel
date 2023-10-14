@@ -1,5 +1,6 @@
 """DivineDaoLibrary.com scrapers."""
 
+from dataclasses import dataclass
 import logging
 
 from bs4 import BeautifulSoup, Tag
@@ -10,6 +11,15 @@ from webnovel.data import Chapter, NovelStatus, Person
 SITE_NAME = "DivineDaoLibrary.com"
 logger = logging.getLogger(__name__)
 timer = logs.LogTimer(logger)
+
+
+@dataclass
+class Volume:
+    """A volume."""
+
+    name: str
+    insert_before: int | None = None
+    insert_after: int | None = None
 
 
 class NovelScraper(scraping.NovelScraperBase):
@@ -57,18 +67,18 @@ class NovelScraper(scraping.NovelScraperBase):
     def get_chapters(self, page, url: str) -> list:
         """Return the list of chapters scraped from the chapter list."""
         chapters = []
+        volumes = []
 
         for volume_element in page.select(".collapseomatic"):
-            # TODO incorporate the volumes somehow?
-            volume_name = volume_element.get("title").strip()
-            volume_id = volume_element.get("id")
+            volume = Volume(name=volume_element.get("title").strip(), insert_before=len(chapters))
+            volid = volume_element.get("id")
 
-            logger.debug("Processing Chapters for Volume '%s'", volume_name)
+            logger.debug("Processing Chapters for Volume '%s'", volume.name)
 
             # Note, we extract <a> instead of <li> here since there are chapter
             # entries with no links. I'm guessing these are placeholders for
             # chapters that have raws, but no translation yet.
-            volume_chapters = page.select(f"#target-{volume_id} > ul > li a")
+            volume_chapters = page.select(f"#target-{volid} > ul > li a")
 
             for idx, chapter_anchor in enumerate(volume_chapters, start=len(chapters)):
                 chapter = Chapter(
@@ -78,6 +88,9 @@ class NovelScraper(scraping.NovelScraperBase):
                     slug=ChapterScraper.get_chapter_slug(_url),
                 )
                 chapters.append(chapter)
+
+            if len(chapters) > volume.insert_before:
+                volumes.append(volume)
 
         return chapters
 
