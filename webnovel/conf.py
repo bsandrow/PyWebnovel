@@ -2,12 +2,40 @@
 
 from configparser import ConfigParser
 from dataclasses import dataclass, field, fields
+import os
 from pathlib import Path
 
 from webnovel import utils
 
+# from typing import Any, Callable
+
+
 CONFIG_DIR = Path("~/.config/pywebnovel")
 CONFIG_FILE = CONFIG_DIR / "settings.ini"
+
+
+# @dataclass
+# class EnvironmentVariable:
+#     name: str
+#     local: str
+#     type: Callable[[Any], Any] = str
+
+
+# DEFAULT_SETTINGS = {
+#     "DEBUG": False,
+#     "FORMAT": "epub",
+#     "WEBNOVEL_DIRECTORY": None,
+# }
+
+# ENV_VARS = [
+#     EnvironmentVariable("PYWEBNOVEL_DIR", "WEBNOVEL_DIRECTORY", Path),
+#     EnvironmentVariable("PYWEBNVEOL_FORMAT", "FORMAT"),
+#     EnvironmentVariable(
+#         name="PYWEBNOVEL_DEBUG",
+#         local="DEBUG",
+#         type=lambda x: x.strip().lower() not in ("0", "", "false", "no", "none", "null", "off"),
+#     )
+# ]
 
 
 @dataclass
@@ -22,6 +50,37 @@ class ParsingOptions(utils.DataclassSerializationMixin):
     # built-in html.parser. This is not meant to be exposed to users (e.g. via
     # the command-line)
     html_parser: str = "html.parser"
+
+
+# class EnvironmentVariableSettings(dict):
+#     """A dictionary populated from environment variables."""
+
+#     @classmethod
+#     def initialize(cls, env_vars: list[EnvironmentVariable]) -> "EnvironmentVariableSettings":
+#         """Initialize the dictionary from a list of EnvironmentVariable instances."""
+#         return cls(
+#             **{
+#                 environment_variable.local: environment_variable.type(data)
+#                 for environment_variable in env_vars
+#                 if environment_variable.name in os.environ and (data := os.environ[environment_variable.name])
+#             }
+#         )
+
+
+# class SettingsProxyObject:
+#     _settings_groups: list[dict] = None
+
+
+#     def __init__(self) -> None:
+#         self._settings_groups = [
+#             EnvironmentVariableSettings.initialize(ENV_VARS),
+#             DEFAULT_SETTINGS,
+#         ]
+
+#     def __getattr__(self, name: str) -> None:
+#         for settings_group in self._settings_groups:
+#             if name in settings_group:
+#                 return settings_group[name]
 
 
 @dataclass
