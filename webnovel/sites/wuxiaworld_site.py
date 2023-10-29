@@ -145,4 +145,4 @@ class WuxiaWorldSiteChapterScraper(ChapterScraperBase):
         if candidate and (match := Chapter.is_title_ish(candidate)):
             chapter.title = Chapter.clean_title(match.group(0))
             html.remove_element(results[0])
-        chapter.title = chapter.title.replace(" - : ", ": ")
+        chapter.title = chapter.title.replace(" - : ", ": ") if chapter.title else None
