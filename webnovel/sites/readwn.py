@@ -9,7 +9,7 @@ class ReadWnNovelScraper(scraping.NovelScraperBase):
     """Scraper for ReadWN.com Novels."""
 
     site_name = SITE_NAME
-    url_pattern = scraping.HTTPS_PREFIX + r"readwn.com/novel/(?P<NovelID>[\w\d-]+).html"
+    url_pattern = scraping.HTTPS_PREFIX + r"(?:readwn|wuxiap).com/novel/(?P<NovelID>[\w\d-]+).html"
     status_map = {"completed": data.NovelStatus.COMPLETED, "ongoing": data.NovelStatus.ONGOING}
 
     def get_author(self, page):
@@ -44,6 +44,6 @@ class ReadWnNovelScraper(scraping.NovelScraperBase):
 
         def get(page_no: int, novel_id: str) -> list:
             api_url = (
-                f"https://www.readwn.com/e/extend/fy.php?page={page_no}&wjm={novel_id}&X-Requested-With=XMLHttpRequest"
+                f"https://www.wuxiap.com/e/extend/fy.php?page={page_no}&wjm={novel_id}&X-Requested-With=XMLHttpRequest"
             )
             page = self.get_page(api_url)
