@@ -26,12 +26,12 @@ run mkdir -p "${BUILDDIR}" || die
 echo
 echo '==> Install pkgs'
 echo
-run pip install -t "${BUILDDIR}/" -r <(poetry export --format="requirements.txt" | egrep -v 'git\+https') || die
+run pip3 install -t "${BUILDDIR}/" -r <(poetry export --format="requirements.txt" | egrep -v 'git\+https') || die
 
 echo
 echo '==> Install repos'
 echo
-run pip install -vvv --no-dependencies -t "${BUILDDIR}/" -r <(poetry export --format="requirements.txt" | egrep 'git\+https') || die
+run pip3 install -vvv --no-dependencies -t "${BUILDDIR}/" -r <(poetry export --format="requirements.txt" | egrep 'git\+https') || die
 
 echo
 echo '==> Install'
