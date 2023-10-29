@@ -147,7 +147,7 @@ class WuxiaWorldSiteChapterScraper(ChapterScraperBase):
         prevents us from seeing the chapter title twice due to the way that we format the chapter
         xhtml files.
         """
-        results = content.find_all(limit=1)
+        results = content.find("div").find_all(limit=1)
         candidate = results[0].text.strip() if results else ""
         if candidate and (match := Chapter.is_title_ish(candidate)):
             chapter.title = Chapter.clean_title(match.group(0))
