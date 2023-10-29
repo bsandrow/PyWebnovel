@@ -13,7 +13,7 @@ from xml.dom.minidom import Document, Element, getDOMImplementation
 from zipfile import ZIP_DEFLATED, ZIP_STORED, ZipFile
 
 from bs4 import BeautifulSoup, Tag
-from jinja2 import Environment, PackageLoader, select_autoescape
+import jinja2
 
 from webnovel.data import Chapter, Image
 from webnovel.epub.data import SummaryType
@@ -24,8 +24,12 @@ if TYPE_CHECKING:
     from webnovel.epub.pkg import EpubPackage
 
 
-JINJA = Environment(
-    loader=PackageLoader("webnovel.epub", package_path="content/templates"), autoescape=select_autoescape()
+JINJA = jinja2.Environment(
+    # loader=jinja2.PackageLoader("webnovel.epub", package_path="content/templates"),
+    loader=jinja2.FunctionLoader(
+        lambda name: pkgutil.get_data("webnovel.epub", f"content/templates/{name}").decode("utf-8")
+    ),
+    autoescape=jinja2.select_autoescape(),
 )
 
 
