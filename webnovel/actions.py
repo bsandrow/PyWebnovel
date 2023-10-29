@@ -227,6 +227,14 @@ class App:
                         scraper.process_chapter(chapter)
                     else:
                         logger.warning("Unable to find scraper for url: %s", chapter.url)
+        else:
+            with timer("Rebuilding Chapters"):
+                for chapter in epub_pkg.chapters.values():
+                    scraper_cls = sites.find_chapter_scraper(chapter.url)
+                    if not scraper_cls:
+                        raise Exception(f"Unable to find scraper for {chapter.url}")
+                    scraper = scraper_cls(http_client=self.client)
+                    scraper.post_processing(chapter)
 
         epub_pkg.save()
 
