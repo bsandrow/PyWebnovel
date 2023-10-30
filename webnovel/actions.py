@@ -39,6 +39,7 @@ class App:
     """Central Application for PyWebnovel."""
 
     client: http.HttpClient
+    settings: conf.Settings
 
     def __init__(self, settings: conf.Settings = None):
         self.settings = settings or conf.Settings()
