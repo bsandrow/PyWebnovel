@@ -49,7 +49,7 @@ class App:
         """Create a HttpClient instance."""
         self.client = http.get_client(user_agent=self.settings.user_agent)
         if self.settings.cookies:
-            for cname, cvalue in self.settings.cookies:
+            for cname, cvalue in self.settings.cookies.items():
                 self.client._session.cookies.set(cname, cvalue)
 
     def __getattr__(self, name: str) -> Any:
