@@ -11,4 +11,4 @@ from ..base import pass_app
 @pass_app
 def update(app: App) -> None:
     """Update webnovel directory."""
-    app.dir_update(app.settings.webnovel_directory)
+    app.dir_update(app.settings.directory_options.directory)
