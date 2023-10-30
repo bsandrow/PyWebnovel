@@ -29,10 +29,18 @@ def pywn(ctx, config_path, debug, user_agent, cookies, format):
     NOTE: Only ebooks created by PyWebnovel can be managed in this way as
           application data is stored in a JSON file within the ebook itself.
     """
-    if config_path is not None and not Path(config_path).exists():
-        ctx.fail(f"File does not exist: {config_path}")
+    settings = conf.Settings()
+    config_file = Path(config_path or conf.CONFIG_FILE).expanduser()
+    user_set_config_file = bool(config_path)
 
-    settings = conf.Settings.load(config_path)
+    if user_set_config_file and not config_file.exists():
+        # Only take issue with the config file not existing when the user
+        # has set something, and it doesn't exist.  Just silently ignore it
+        # if the default doesn't exist.
+        ctx.fail(f"File does not exist: {config_file}")
+
+    if config_file.exists():
+        settings = conf.Settings.load(config_file)
 
     if debug is not None:
         settings.debug = debug
