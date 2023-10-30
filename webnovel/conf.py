@@ -118,6 +118,11 @@ class Settings(utils.DataclassSerializationMixin):
     #
     user_agent: str | None = None
 
+    #
+    # The default directory to use for webnovel directory operations.
+    #
+    webnovel_directory: str | Path | None = None
+
     def __str__(self):
         # TODO cookies
         parts = [f"item = {repr(getattr(self, item))}" for item in ("format", "debug", "user_agent")]

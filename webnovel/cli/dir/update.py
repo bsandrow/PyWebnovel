@@ -8,8 +8,7 @@ from ..base import pass_app
 
 
 @click.command()
-@click.argument("directory")
 @pass_app
-def update(app: App, directory: str) -> None:
+def update(app: App) -> None:
     """Update webnovel directory."""
-    app.dir_update(directory)
+    app.dir_update(app.settings.webnovel_directory)
