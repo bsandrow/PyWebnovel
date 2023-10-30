@@ -136,6 +136,8 @@ class Settings(utils.DataclassSerializationMixin):
         parts = [f"item = {repr(getattr(self, item))}" for item in ("format", "debug", "user_agent")]
         for name, value in self.parsing_options.to_dict().items():
             parts.append(f"parsing_options.{name} = {repr(value)}")
+        for name, value in self.directory_options.to_dict().items():
+            parts.append(f"directory.{name} = {repr(value)}")
         return "\n".join(parts)
 
     @classmethod
@@ -161,7 +163,10 @@ class Settings(utils.DataclassSerializationMixin):
                 section = config["pywn.directory"]
                 for field in fields(WebnovelDirectoryOptions):
                     if field.name in section:
-                        webnovel_directory_kwargs[field.name] = section[field.name]
+                        if field.name == "directory":
+                            webnovel_directory_kwargs[field.name] = Path(section[field.name]).expanduser()
+                        else:
+                            webnovel_directory_kwargs[field.name] = section[field.name]
 
             if "pywn.cookies" in config:
                 section = config["pywn.cookies"]
@@ -179,6 +184,7 @@ class Settings(utils.DataclassSerializationMixin):
 
         if webnovel_directory_kwargs:
             kwargs["directory_options"] = WebnovelDirectoryOptions(**webnovel_directory_kwargs)
+            # kwargs["directory_options"].directory = Path(kwargs["directory_options"].directory).expanduser()
 
         if cookies:
             kwargs["cookies"] = cookies
