@@ -1,5 +1,7 @@
 """Command group: dir."""
 
+import pathlib
+
 import click
 
 from webnovel.actions import App
@@ -13,7 +15,7 @@ from ..base import auto_add_commands, pass_app
 def dir(app: App, directory: str | None) -> None:
     """Command for managing directories of webnovels."""
     if directory:
-        app.settings.webnovel_directory = directory
+        app.settings.webnovel_directory = pathlib.Path(directory).expanduser()
 
 
 auto_add_commands(group=dir, package=__name__)
