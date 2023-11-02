@@ -60,6 +60,26 @@ class NovelScraper(NovelScraperBase):
     title_selector = Selector(".post-title h1")
     status_map = {"ongoing": NovelStatus.ONGOING, "completed": NovelStatus.COMPLETED}
     cover_image_url_selector = Selector(".summary_image img", attribute="src")
+    extra_css = """
+    ul.wp-biographia-list {
+        margin: 0 0 0 0;
+    }
+    ul.wp-biographia-list-icon li {
+        margin: 0 5px 0 0;
+    }
+    ul.wp-biographia-list-text li, ul.wp-biographia-list-icon li {
+        display: inline-block;
+        list-style-type: none;
+        background: none;
+        padding: 0 0 5px;
+    }
+    .wp-biographia-item-icon {
+        margin: 0 auto 20px;
+        height: 32px !important;
+        width: 32px !important;
+        max-width: 100%;
+    }
+    """
 
     def get_genres(self, page: BeautifulSoup) -> list[str]:
         """Extract genres listed for this novel."""
