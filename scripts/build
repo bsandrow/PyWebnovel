@@ -6,6 +6,7 @@ PKG="webnovel"
 NAME="pywn"
 PYTHON="/usr/bin/env python3"
 export PIP_REQUIRE_VIRTUALENV=
+UPDATE="$1"
 
 function die() {
     echo "$@" >&2
@@ -17,25 +18,33 @@ function run() {
     "$@"
 }
 
-echo
-echo "==> Clearing build directory..."
-echo
-run rm -fr "${BUILDDIR}" "${NAME}" || die
-run mkdir -p "${BUILDDIR}" || die
+if [[ -z "$UPDATE" ]]; then
+    echo
+    echo "==> Clearing build directory..."
+    echo
+    run rm -fr "${BUILDDIR}" "${NAME}" || die
+    run mkdir -p "${BUILDDIR}" || die
 
-echo
-echo '==> Install pkgs'
-echo
-run pip3 install -t "${BUILDDIR}/" -r <(poetry export --format="requirements.txt" | egrep -v 'git\+https') || die
+    echo
+    echo '==> Install pkgs'
+    echo
+    run pip3 install -t "${BUILDDIR}/" -r <(poetry export --format="requirements.txt" | egrep -v 'git\+https') || die
 
-echo
-echo '==> Install repos'
-echo
-run pip3 install -vvv --no-dependencies -t "${BUILDDIR}/" -r <(poetry export --format="requirements.txt" | egrep 'git\+https') || die
+    echo
+    echo '==> Install repos'
+    echo
+    run pip3 install -vvv --no-dependencies -t "${BUILDDIR}/" -r <(poetry export --format="requirements.txt" | egrep 'git\+https') || die
 
-echo
-echo '==> Install'
-echo
-run cp -r "${PKG}" "${BUILDDIR}"
+    echo
+    echo '==> Install'
+    echo
+    run cp -r "${PKG}" "${BUILDDIR}"
+else
+    echo
+    echo '==> Updating package in build dir'
+    echo
+    run rm -r "${BUILDDIR}/${PKG}"
+    run cp -r "${PKG}" "${BUILDDIR}"
+fi
 
 run python -mzipapp --python="${PYTHON}" --main="${ENTRYPOINT}" --compress --output="${NAME}" "${BUILDDIR}" || die
