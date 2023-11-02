@@ -1,20 +1,17 @@
 """Translatin Otaku scrapers."""
 
 import datetime
-import itertools
 import logging
 import re
-from typing import Union
 
 from bs4 import BeautifulSoup, Tag
 
-from webnovel import data, errors
 from webnovel.data import Chapter, NovelStatus
-from webnovel.html import DEFAULT_FILTERS, remove_element
+from webnovel.html import remove_element
 from webnovel.logs import LogTimer
 from webnovel.scraping import HTTPS_PREFIX, ChapterScraperBase, NovelScraperBase, Selector
 
-SITE_NAME = "Infamous-Scans.com"
+SITE_NAME = "TranslatinOtaku"
 logger = logging.getLogger(__name__)
 timer = LogTimer(logger)
 
