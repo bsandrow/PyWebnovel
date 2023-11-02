@@ -120,7 +120,7 @@ class WebNovelDirectory:
         """Save the status of the WebNovelDirectory."""
         with self.status_file.open("w") as fh:
             data = self.status.to_json()
-            fh.write(json.dumps(data))
+            fh.write(json.dumps(data, sort_keys=True, indent=2))
 
     @classmethod
     def load(cls, directory: Union[str, Path]) -> "WebNovelDirectory":
