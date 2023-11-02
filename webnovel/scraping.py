@@ -210,7 +210,7 @@ class ChapterScraperBase(ScraperBase):
         :param url: The URL of a chapter.
         """
         if not cls.supports_url(url):
-            raise ValueError("Not a valid chapter url for {cls.site_name}: {url}")
+            raise ValueError(f"Not a valid chapter url for {cls.site_name}: {url}")
 
         if match := re.match(cls.url_pattern, url):
             return match.group("ChapterID")
