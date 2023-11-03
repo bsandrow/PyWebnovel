@@ -1,5 +1,6 @@
 """Base Functionality for Scraping Webnovel Content."""
 
+import datetime
 import logging
 import re
 from typing import Union
@@ -45,6 +46,38 @@ class ScraperBase:
     def get_limiter(self):
         """Return the Limiter instance for this scraper."""
         return DEFAULT_LIMITER
+
+    @staticmethod
+    def _text(tag: Tag) -> str | None:
+        """Turn an element into text."""
+        return tag.text.strip() if tag else None
+
+    @staticmethod
+    def _date(date_string: str, date_format: str = "%B %d, %Y") -> datetime.datetime | None:
+        """Extract a datetime from the release date element."""
+        if match := re.search(r"(\d+) hours? ago", date_string):
+            return datetime.datetime.now() - datetime.timedelta(hours=int(match.group(1)))
+
+        if match := re.search(r"(\d+) minutes? ago", date_string):
+            return datetime.datetime.now() - datetime.timedelta(minutes=int(match.group(1)))
+
+        if match := re.search(r"(\d+) seconds? ago", date_string):
+            return datetime.datetime.now() - datetime.timedelta(seconds=int(match.group(1)))
+
+        if match := re.search(r"(\d+) days? ago", date_string):
+            return datetime.datetime.now() - datetime.timedelta(days=int(match.group(1)))
+
+        try:
+            return datetime.datetime.fromisoformat(date_string)
+        except ValueError:
+            pass
+
+        try:
+            return datetime.datetime.strptime(date_string, date_format)
+        except ValueError:
+            pass
+
+        return None
 
     def get_soup(self, content):
         """

@@ -1,6 +1,5 @@
 """LightNovelBastion scrapers."""
 
-import datetime
 import itertools
 import logging
 import re
@@ -118,26 +117,6 @@ class NovelScraper(NovelScraperBase):
         """Extract the novel's id from the url."""
         return match.group("NovelID") if (match := re.match(self.url_pattern, url)) else ""
 
-    @staticmethod
-    def _date(release_date_el: Tag) -> datetime.datetime | None:
-        """Extract a datetime from the release date element."""
-        if not release_date_el or not (date_string := release_date_el.text.strip()):
-            return None
-
-        if match := re.search(r"(\d+) hours? ago", date_string):
-            return datetime.datetime.now() - datetime.timedelta(hours=int(match.group(1)))
-
-        if match := re.search(r"(\d+) minutes? ago", date_string):
-            return datetime.datetime.now() - datetime.timedelta(minutes=int(match.group(1)))
-
-        if match := re.search(r"(\d+) seconds? ago", date_string):
-            return datetime.datetime.now() - datetime.timedelta(seconds=int(match.group(1)))
-
-        if match := re.search(r"(\d+) days? ago", date_string):
-            return datetime.datetime.now() - datetime.timedelta(days=int(match.group(1)))
-
-        return datetime.datetime.strptime(date_string, "%B %d, %Y")
-
     @timer("fetching chapters list")
     def get_chapters(self, page, url: str) -> list:
         """Return the list of Chapter instances."""
@@ -155,7 +134,7 @@ class NovelScraper(NovelScraperBase):
                     url=(url := chapter_li.select_one("A").get("href")),
                     title=Chapter.clean_title(chapter_li.select_one("A").text.strip()),
                     chapter_no=idx,
-                    pub_date=self._date(release_date_el=chapter_li.select_one(".chapter-release-date")),
+                    pub_date=self._date(self._text(chapter_li.select_one(".chapter-release-date"))),
                     slug=ChapterScraper.get_chapter_slug(url),
                 )
                 for idx, chapter_li in enumerate(
