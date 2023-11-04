@@ -24,7 +24,7 @@ class ChapterScraper(ChapterScraperBase):
     """Scraper for PandaTL chapter content."""
 
     site_name = SITE_NAME
-    url_pattern = HTTPS_PREFIX + r"https://pandatl.com/novel/(?P<NovelID>[\w\d-]+)/(?P<ChapterID>[\w\d-]+)/?"
+    url_pattern = HTTPS_PREFIX + r"pandatl.com/novel/(?P<NovelID>[\w\d-]+)/(?P<ChapterID>[\w\d-]+)/?"
     content_selector = Selector(".reading-content div.text-left")
 
 
@@ -33,7 +33,7 @@ class NovelScraper(NovelScraperBase):
 
     site_name = SITE_NAME
 
-    url_pattern = HTTPS_PREFIX + r"https://pandatl.com/novel/(?P<NovelID>[\w\d-]+)/?"
+    url_pattern = HTTPS_PREFIX + r"pandatl.com/novel/(?P<NovelID>[\w\d-]+)/?"
     title_selector = Selector(".post-title h1")
     status_map = {"ongoing": NovelStatus.ONGOING, "completed": NovelStatus.COMPLETED}
     cover_image_url_selector = Selector(".summary_image img", attribute="src")
