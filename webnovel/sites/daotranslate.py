@@ -26,7 +26,7 @@ class ChapterScraper(ChapterScraperBase):
     """Scraper for DaoTranslate chapter content."""
 
     site_name = SITE_NAME
-    url_pattern = HTTPS_PREFIX + r"daotranslate.com/(?P<ChapterID>[\w\d-]+/?"
+    url_pattern = HTTPS_PREFIX + r"daotranslate.com/(?P<ChapterID>[\w\d-]+)/?"
     content_selector = Selector("div.epcontent")
 
     def post_process_content(self, chapter, content):
@@ -39,7 +39,7 @@ class NovelScraper(NovelScraperBase):
     """Scraper for DaoTranslate."""
 
     site_name = SITE_NAME
-    url_pattern = HTTPS_PREFIX + r"daotranslate.com/series/(?P<NovelID>[\w\d-]+/?"
+    url_pattern = HTTPS_PREFIX + r"daotranslate.com/series/(?P<NovelID>[\w\d-]+)/?"
     title_selector = Selector(".infox h1.entry-title")
     status_map = {"ongoing": NovelStatus.ONGOING, "completed": NovelStatus.COMPLETED}
     cover_image_url_selector = Selector(".thumbook img", attribute="src")
