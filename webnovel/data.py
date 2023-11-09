@@ -146,7 +146,7 @@ class Image:
         media_type, _, encoding = desc.partition(";")
 
         if encoding == "base64":
-            data = base64.decodestring(encoded_data)
+            data = base64.decodebytes(encoded_data.encode("utf-8"))
         else:
             data = urllib.parse.unquote_to_bytes(encoded_data)
 
