@@ -3,7 +3,7 @@
 import logging
 import re
 
-from bs4 import Tag
+from bs4 import BeautifulSoup, Tag
 from pyrate_limiter import Limiter, RequestRate
 from requests import Response
 
@@ -177,30 +177,40 @@ class ReaperScansScraper(NovelScraperBase):
 
     site_name = SITE_NAME
     url_pattern = r"https?://(?:www\.)?reaperscans\.com/novels/(?P<NovelID>\d+-[\w-]+)"
-    title_selector = Selector("MAIN > DIV:nth-child(2) > DIV > DIV:first-child H1")
-    status_selector = Selector("MAIN > DIV:nth-child(2) > SECTION > DIV:first-child DL > DIV:nth-child(4) DD")
-    summary_selector = Selector("MAIN > DIV:nth-child(2) > SECTION > DIV:first-child > DIV > P")
-    chapter_selector = Selector(r"MAIN > DIV:nth-child(2) > DIV DIV[wire\:id]")
-    cover_image_url_selector = Selector("main > div:nth-child(2) > div img", attribute="src")
+    title_selector = Selector("main > div > div > div:nth-child(1) h1")
+    summary_selector = Selector("main > div > section > div:first-child > div > p")
+    chapter_selector = Selector(r"main div[wire\:id]")
+    cover_image_url_selector = Selector("main > div > div img", attribute="src")
     chapter_title_selector = Selector("ARTICLE > P:nth-child(7)")
-    # next_chapter_selector = Selector(
-    #     "MAIN > DIV:nth-child(2) > NAV:nth-child(2) > DIV:nth-child(3) > A:nth-child(2)", attribute="href"
-    # )
-    # first_chapter_link = Selector(
-    #     "MAIN > DIV:nth-child(2) > DIV > DIV:first-child > DIV A:first-child", attribute="href"
-    # )
     status_map = {
-        "Ongoing": NovelStatus.ONGOING,
-        # I haven't seen any with this on the site, so I'm only guessing that the status would be "Complete" when they
-        # finish the novel.
-        "Completed": NovelStatus.COMPLETED,
-        "Dropped": NovelStatus.DROPPED,
-        "On hold": NovelStatus.HIATUS,
+        "ongoing": NovelStatus.ONGOING,
+        # I haven't seen any with this on the site, so I'm only guessing that
+        # the status would be "Complete" when they finish the novel.
+        "completed": NovelStatus.COMPLETED,
+        "dropped": NovelStatus.DROPPED,
+        "on hold": NovelStatus.HIATUS,
     }
+
+    @staticmethod
+    def _get_section_value(page: BeautifulSoup, title: str) -> str | None:
+        """Find the <dt>/<dd> pairs by the text value of the <dt> element."""
+        section = page.select_one("main > div > section")
+        title_el = section.find("dt", text=re.compile(title))
+        if not title_el:
+            return None
+        value_el = title_el.parent.find("dd")
+        return value_el.text.strip() if value_el else None
 
     def get_limiter(self):
         """Return rate limiter for ReaperScans."""
         return LIMITER
+
+    def get_status(self, page: BeautifulSoup) -> NovelStatus:
+        """Get the release status."""
+        status_value = self._get_section_value(page, "Release Status")
+        if not status_value:
+            return NovelStatus.UNKNOWN
+        return self.status_map.get(status_value.lower())
 
     def get_genres(self, page):
         """Return empty list since ReaperScans doesn't have genres listed on the novel page."""
@@ -228,7 +238,7 @@ class ReaperScansScraper(NovelScraperBase):
         chapter_list = self.chapter_selector.parse_one(page, use_attribute=False)
         csrf_token = get_csrf_token(page)
         wire_id = get_wire_id(chapter_list)
-        print(f"wire_id={wire_id!r} . csrf_token={csrf_token!r}")
+        # print(f"wire_id={wire_id!r} . csrf_token={csrf_token!r}")
         api = ChapterListAPI(
             app_url="https://reaperscans.com/",
             wire_id=wire_id,
