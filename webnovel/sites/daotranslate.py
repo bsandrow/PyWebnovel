@@ -55,12 +55,7 @@ class NovelScraper(NovelScraperBase):
 
     def get_summary(self, page: BeautifulSoup) -> str | Tag:
         """Extract the Novel's summary."""
-        content = page.select_one(".summary__content")
-
-        for tag in content.select(".lnbad-tag"):
-            remove_element(tag)
-
-        return content
+        return page.select_one(".entry-content")
 
     def get_author(self, page):
         """Extract the author from the page content."""
