@@ -13,6 +13,19 @@ logger = logging.getLogger(__name__)
 timer = LogTimer(logger, log_level=logging.INFO)
 
 
+def create_client(settings: conf.Settings = None):
+    """
+    Create an HttpClient instance.
+
+    :params settings: A Settings instance to use when configuring the HttpClient.
+    """
+    settings = settings or conf.Settings()
+    client = http.get_client(user_agent=settings.user_agent)
+    if settings.cookies:
+        for cname, cvalue in settings.cookies.items():
+            client._session.cookies.set(cname, cvalue)
+
+
 class ScraperCache:
     """
     A cache for instances of NovelScraper and/or ChapterScraper.
@@ -43,14 +56,7 @@ class App:
 
     def __init__(self, settings: conf.Settings = None):
         self.settings = settings or conf.Settings()
-        self.client = self.create_client()
-
-    def create_client(self) -> http.HttpClient:
-        """Create a HttpClient instance."""
-        self.client = http.get_client(user_agent=self.settings.user_agent)
-        if self.settings.cookies:
-            for cname, cvalue in self.settings.cookies.items():
-                self.client._session.cookies.set(cname, cvalue)
+        self.client = create_client(self.settings)
 
     def __getattr__(self, name: str) -> Any:
         """Pull any attributes that don't exist on App from Settings."""
@@ -398,3 +404,55 @@ class App:
 
         webnovel_directory.add(epub_or_url, self)
         webnovel_directory.save()
+
+
+def set_cover_image_for_epub(filename: str, cover_image: str, settings: conf.Settings = None) -> None:
+    """
+    Set the cover image for an existing .epub file.
+
+    :param filename: Path to the ebook to modify.
+    :param cover_image: Local file path or HTTP URL to a cover image. This
+        cover image will override the current cover image of the ebook.
+    """
+    epub_pkg = epub.EpubPackage.load(filename)
+    client = create_client(settings)
+
+    if cover_image.lower().startswith("http:") or cover_image.lower().startswith("https:"):
+        logger.debug("Cover image path is URL. Downloading cover image from URL.")
+        image = Image(url=cover_image)
+        image.load(client=client)
+    else:
+        cover_image: Path = Path(cover_image)
+        if not cover_image.exists():
+            raise OSError(f"File does not exist: {cover_image}")
+
+        with cover_image.open("rb") as fh:
+            imgdata = fh.read()
+
+        image = Image(
+            url="",
+            data=imgdata,
+            mimetype=Image.get_mimetype_from_image_data(imgdata),
+            did_load=True,
+        )
+
+    epub_pkg.add_image(image=image, content=image.data, is_cover_image=True)
+    epub_pkg.save()
+
+
+def set_title_for_epub(filename: str, new_title: str) -> None:
+    """
+    Set the title of an .epub package.
+
+    :param filename: Path to the epub file.
+    :param new_title: The new value to set the title to.
+    """
+    epub_pkg = epub.EpubPackage.load(filename)
+    old_title = epub_pkg.metadata.title
+    epub_pkg.metadata.title = new_title
+    epub_pkg.update_change_log(
+        message=f"Changed title from '{old_title}' to '{new_title}'",
+        old_value=old_title,
+        new_value=new_title,
+    )
+    epub_pkg.save()
