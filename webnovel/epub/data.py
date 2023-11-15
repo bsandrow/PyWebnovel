@@ -1,9 +1,9 @@
 """Representations of scraper data to be stored within the EPUB file."""
 
-from dataclasses import asdict, dataclass, fields
+from dataclasses import asdict, dataclass, field, fields
 import datetime
 from enum import Enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from bs4 import Tag
 
@@ -42,6 +42,59 @@ class EpubOptions:
 
 
 @dataclass
+class ChangeLogEntry:
+    """An entry in the ChangeLog."""
+
+    message: str
+    created: datetime.datetime = field(default_factory=lambda: datetime.datetime.utcnow())
+    new_value: Any | None = None
+    old_value: Any | None = None
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "ChangeLogEntry":
+        """Load from dictionary."""
+        kwargs = {}
+        kwargs["new_value"] = data["new_value"] if "new_value" in data else None
+        kwargs["old_value"] = data["old_value"] if "old_value" in data else None
+        kwargs["message"] = data["message"]
+        kwargs["created"] = datetime.datetime.fromisoformat(data["created"])
+        return cls(**kwargs)
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary."""
+        return {
+            "message": self.message,
+            "created": self.created.isoformat(),
+            "new_value": self.new_value,
+            "old_value": self.old_value,
+        }
+
+
+@dataclass
+class ChangeLog:
+    """A ChangeLog that records changes to the epub file."""
+
+    entries: list[ChangeLogEntry] = field(default_factory=list)
+    last_updated: datetime.datetime | None = None
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "ChangeLog":
+        """Load from dictionary."""
+        entries = data.pop("entries")
+        last_updated = data.pop("last_updated", None)
+        if last_updated:
+            last_updated = datetime.datetime.fromisoformat(last_updated)
+        return cls(entries=entries, last_updated=last_updated)
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary."""
+        return {
+            "entries": [entry.to_dict() for entry in self.entries],
+            "last_updated": self.last_updated.isoformat() if self.last_updated else None,
+        }
+
+
+@dataclass
 class EpubMetadata:
     """Representation of the scraper.json file stored in .epub file."""
 
@@ -61,6 +114,7 @@ class EpubMetadata:
     published_on: datetime.date | None = None
     last_updated_on: datetime.date | None = None
     extras: dict | None = None
+    change_log: list[ChangeLog] | None = field(default_factory=ChangeLog)
 
     @classmethod
     def from_novel(cls, novel: Novel) -> "EpubMetadata":
@@ -98,6 +152,7 @@ class EpubMetadata:
         kwargs["last_updated_on"] = (
             datetime.datetime.strptime(kwargs["last_updated_on"], "%Y-%m-%d") if kwargs.get("last_updated_on") else None
         )
+        kwargs["change_log"] = ChangeLog.from_dict(data["change_log"]) if data.get("change_log") else None
         return EpubMetadata(**kwargs)
 
     def to_dict(self) -> dict:
@@ -110,4 +165,5 @@ class EpubMetadata:
         data["summary_type"] = self.summary_type.value
         data["published_on"] = self.published_on.strftime("%Y-%m-%d") if self.published_on else None
         data["last_updated_on"] = self.last_updated_on.strftime("%Y-%m-%d") if self.last_updated_on else None
+        data["change_log"] = self.change_log.to_dict() if self.change_log else None
         return data

@@ -6,7 +6,7 @@ from inspect import isclass
 from io import BytesIO
 import logging
 from pathlib import Path
-from typing import IO, Union
+from typing import IO, Any, Union
 import urllib.parse
 from zipfile import ZipFile
 
@@ -16,7 +16,7 @@ from requests import HTTPError
 
 from webnovel import errors, html, http
 from webnovel.data import Chapter, Image, Novel
-from webnovel.epub.data import EpubMetadata, EpubOptions
+from webnovel.epub.data import ChangeLog, ChangeLogEntry, EpubMetadata, EpubOptions
 from webnovel.epub.files import (
     ChapterFile,
     ContainerXML,
@@ -112,6 +112,15 @@ class EpubPackage:
             self.add_file(TitlePage())
         if self.include_toc_page:
             self.add_file(TableOfContentsPage())
+
+    def update_change_log(self, message: str, old_value: Any | None, new_value: Any | None) -> None:
+        """Add a new ChangeLog entry."""
+        change_log = self.metadata.change_log or ChangeLog()
+        change_log.entries = change_log.entries or []
+        entry = ChangeLogEntry(message=message, new_value=new_value, old_value=old_value)
+        change_log.entries.append(entry)
+        change_log.last_updated = entry.created
+        self.metadata.change_log = change_log
 
     @property
     def app_json(self) -> PyWebNovelJSON | None:
