@@ -263,3 +263,17 @@ class DataclassSerializationMixin:
             types. For example, converting a datetime instance into a string.
         """
         return {field.name: getattr(self, field.name) for field in fields(self)}
+
+
+class Namespace(dict):
+    """A simple wrapper around dict that allows accessing items as attributes."""
+
+    def __getattr__(self, name):
+        """Return items via __getitem__ if it's not a pre-existing attribute on self."""
+        if name in self:
+            return self[name]
+        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute {name!r}")
+
+    def __setattr__(self, name, value):
+        """Allow setting of attributes to be handled via __setitem__."""
+        self[name] = value
