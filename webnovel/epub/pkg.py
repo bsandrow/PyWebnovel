@@ -13,6 +13,7 @@ from zipfile import ZipFile
 from bs4 import BeautifulSoup
 import imgkit
 from requests import HTTPError
+from requests.exceptions import SSLError
 
 from webnovel import errors, html, http
 from webnovel.data import Chapter, Image, Novel
@@ -313,13 +314,28 @@ class EpubPackage:
             # Handle Inline Images
             #
             for img_tag in img_tags:
-                img_url = urllib.parse.urljoin(base=chapter.url, url=img_tag.get("src").strip())
+                # Sometimes the src= value is lazy-loaded via JavaScript from
+                # data-src= or data-lazy-src=. Specifically, data-lazy-src=
+                # seems to be used by Jetpack which I've found instances of
+                # having a good image url in data-lazy-src= and a bad one in
+                # src= (presumably to be replaced by JavaScript)
+                src_value = img_tag.get("data-lazy-src") or img_tag.get("data-src") or img_tag.get("src")
+                img_url = urllib.parse.urljoin(base=chapter.url, url=src_value.strip())
                 image = Image(url=img_url)
+                error_msg = f"{chapter.title}: Failed to fetch image {img_url}"
 
                 try:
                     image.load(client=self.http_client)
+
                 except HTTPError as error:
-                    raise errors.ImageFetchError(f"Failed to fetch image {img_url} (HTTP {error.response.status_code})")
+                    logger.error("%s (HTTP %s)", error_msg, error.response.status_code)
+                    continue
+                    # raise errors.ImageFetchError(f"{error_msg} (HTTP {error.response.status_code})")
+
+                except SSLError as error:
+                    logger.error("%s (SSL Error)", error_msg)
+                    continue
+                    # raise errors.ImageFetchError(f"{error_msg} (SSL Error)")
 
                 file_id = hashlib.sha256(image.data).hexdigest()
                 image_file = self.file_map.get(file_id)
