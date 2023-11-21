@@ -1,13 +1,15 @@
 """Functions to perform actions pulling multiple components together."""
 
 import logging
+import math
 from pathlib import Path
 from typing import Any, Iterable, Type
 
-from webnovel import conf, epub, errors, http, sites, utils
+from webnovel import conf, epub, errors, events, http, sites, utils
 from webnovel.data import Chapter, Image
 from webnovel.logs import LogTimer
 from webnovel.scraping import ScraperBase
+from webnovel.utils import merge_dicts
 
 logger = logging.getLogger(__name__)
 timer = LogTimer(logger, log_level=logging.INFO)
@@ -97,6 +99,9 @@ class App:
         scraper = scraper_class(http_client=self.client)
         novel = scraper.scrape(novel_url)
         logger.info(f"Found %d Chapter(s).", len(novel.chapters))
+        events.trigger(
+            events.Event.SCRAPE_TOTAL_CHAPTERS, context={"novel": novel, "total_chapters": len(novel.chapters)}
+        )
 
         if cover_image_url:
             novel.cover_image = Image(url=cover_image_url)
@@ -141,6 +146,8 @@ class App:
         """
         total_time = 0
         scrapers = {}
+        context = {"ebook": ebook, "chapters": chapters}
+        total_batches = math.ceil(len(chapters) / batch_size)
 
         def get_chapter_scraper(url):
             chapter_scraper_class = sites.find_chapter_scraper(url)
@@ -148,57 +155,26 @@ class App:
                 scrapers[chapter_scraper_class] = chapter_scraper_class(http_client=self.client)
             return scrapers[chapter_scraper_class]
 
-        for batch in utils.batcher_iter(chapters, batch_size=batch_size):
+        events.trigger(events.Event.FETCHING_CHAPTERS_START, context, logger)
+        for batch_no, batch in enumerate(utils.batcher_iter(chapters, batch_size=batch_size), start=1):
+            batch_ctx = merge_dicts(
+                context,
+                {"total_batches": total_batches, "batch_no": batch_no, "batch_size": len(batch), "batch": batch},
+            )
+
             with utils.Timer() as timer:
-                logger.info(
-                    "Processing chapters '%s' to '%s'. [%d chapter(s)]", batch[0].title, batch[-1].title, len(batch)
-                )
+                events.trigger(events.Event.PROCESS_CHAPTER_BATCH_START, batch_ctx, logger)
                 for chapter in batch:
                     scraper = get_chapter_scraper(chapter.url)
                     scraper.process_chapter(chapter)
                     ebook.add_chapter(chapter)
+                events.trigger(events.Event.PROCESS_CHAPTER_BATCH_END, batch_ctx, logger)
             total_time += timer.time
             logger.debug("Saving chapters to ebook.")
             ebook.save()
 
-        time_per_chapter = float(total_time) / float(len(chapters))
-        logger.info(
-            "Averaged %.2f second(s) per chapter or %.2f chapter(s) per second.",
-            time_per_chapter,
-            1.0 / time_per_chapter,
-        )
-
-    def set_cover_image_for_epub(self, filename: str, cover_image: str) -> None:
-        """
-        Set the cover image for an existing .epub file.
-
-        :param filename: Path to the ebook to modify.
-        :param cover_image: Local file path or HTTP URL to a cover image. This
-            cover image will override the current cover image of the ebook.
-        """
-        epub_pkg = epub.EpubPackage.load(filename)
-
-        if cover_image.lower().startswith("http:") or cover_image.lower().startswith("https:"):
-            logger.debug("Cover image path is URL. Downloading cover image from URL.")
-            image = Image(url=cover_image)
-            image.load(client=self.client)
-        else:
-            cover_image: Path = Path(cover_image)
-            if not cover_image.exists():
-                raise OSError(f"File does not exist: {cover_image}")
-
-            with cover_image.open("rb") as fh:
-                imgdata = fh.read()
-
-            image = Image(
-                url="",
-                data=imgdata,
-                mimetype=Image.get_mimetype_from_image_data(imgdata),
-                did_load=True,
-            )
-
-        epub_pkg.add_image(image=image, content=image.data, is_cover_image=True)
-        epub_pkg.save()
+        time_per_chapter = context["time_per_chapter"] = float(total_time) / float(len(chapters))
+        events.trigger(events.Event.FETCHING_CHAPTERS_END, context, logger)
 
     def rebuild(self, epub_file: str, reload_chapters: Iterable[str] | None = None) -> None:
         """
@@ -248,6 +224,7 @@ class App:
     def update(self, ebook: str, limit: int | None = None, ignore_path: str | Path | None = ".") -> int:
         """Update ebook."""
         ebook = Path(ebook)
+        context = {"path": ebook}
         ignore_path = Path(ignore_path) if ignore_path else None
 
         if ignore_path and ebook.parent == ignore_path:
@@ -256,7 +233,7 @@ class App:
             logger.info("Updating %s (%s)", ebook.name, ebook.parent)
 
         ignore_path = Path(ignore_path) if ignore_path else None
-        pkg = epub.EpubPackage.load(ebook)
+        pkg = context["pkg"] = epub.EpubPackage.load(ebook)
 
         novel_url = pkg.metadata.novel_url
         if not novel_url:
@@ -267,8 +244,9 @@ class App:
             raise errors.NoMatchingNovelScraper(novel_url)
 
         scraper = scraper_class(http_client=self.client)
-        novel = scraper.scrape(novel_url)
-        logger.info(f"Found %d Chapter(s).", len(novel.chapters))
+        novel = context["novel"] = scraper.scrape(novel_url)
+        context["total"] = len(novel.chapters)
+        events.trigger(event=events.Event.WEBNOVEL_UPDATE_CHAPTER_COUNT, context=context, logger=logger)
 
         chapter_urls_in_file = set(pkg.chapters.keys())
         chapter_urls_fetched = {c.url for c in novel.chapters}
@@ -299,7 +277,8 @@ class App:
         #
         missing_chapters = [chapter for chapter in novel.chapters if chapter.url not in chapter_urls_in_file]
         if len(missing_chapters) < 1:
-            logger.info("No new chapters found.")
+            context["new"] = 0
+            events.trigger(event=events.Event.WEBNOVEL_UPDATE_NO_NEW_CHAPTERS, context=context, logger=logger)
             return 0
 
         #
@@ -328,6 +307,9 @@ class App:
 
         if limit and len(missing_chapters) > limit:
             missing_chapters = missing_chapters[:limit]
+
+        context["new"] = len(missing_chapters)
+        events.trigger(event=events.Event.WEBNOVEL_UPDATE_NEW_CHAPTER_COUNT, context=context, logger=logger)
 
         self.add_chapters(ebook=pkg, chapters=missing_chapters, batch_size=20)
         pkg.save()
@@ -372,17 +354,13 @@ class App:
         else:
             wn_dir = WebNovelDirectory.create(directory)
 
-        logger.info("Webnovel directory loaded.")
+        logger.debug("Webnovel directory loaded.")
 
         if not wn_dir.validate():
             logger.error("Webnovel directory not valid.")
             return
-        logger.info("Webnovel directory validated.")
-
-        logger.info("Updating webnovels...")
+        logger.debug("Webnovel directory validated.")
         wn_dir.update(self)
-
-        logger.info("Saving status...")
         wn_dir.save()
 
     def dir_add(self, directory: str, epub_or_url: str) -> None:
@@ -395,12 +373,12 @@ class App:
         else:
             webnovel_directory = WebNovelDirectory.create(directory)
 
-        logger.info("Webnovel directory loaded.")
+        logger.debug("Webnovel directory loaded.")
 
         if not webnovel_directory.validate():
             logger.error("Webnovel directory not valid.")
             return
-        logger.info("Webnovel directory validated.")
+        logger.debug("Webnovel directory validated.")
 
         webnovel_directory.add(epub_or_url, self)
         webnovel_directory.save()

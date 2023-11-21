@@ -1,25 +1,64 @@
 """Event-handling for PyWebnovel."""
 
 import enum
+import logging
 from typing import Callable
 
 from webnovel.utils import Namespace
+
+logger = logging.getLogger(__name__)
 
 
 class Event(enum.Enum):
     """An enum of all PyWebnovel events."""
 
     UPDATING_EBOOK = "updating-ebook"
-    WEBNOVEL_DIR_LOADED = "webnovel-dir-loaded"
-    WEBNOVEL_DIR_VALIDATED = "webnovel-dir-validated"
     CREATE_EPUB_START = "create-epub-start"
     CREATE_EPUB_END = "create-epub-end"
     SET_COVER_IMAGE = "set-cover-image"
     SCRAPE_TOTAL_CHAPTERS = "scrape-total-chapters"
-    FETCHING_CHAPTERS_START = "fetching-chapters-start"
-    FETCHING_CHAPTERS_END = "fetching-chapters-end"
     PROCESS_CHAPTER_BATCH_START = "process-chapter-batch-start"
     PROCESS_CHAPTER_BATCH_END = "process-chapter-batch-end"
+
+    # ~ Generic Webnovel Events ~
+    FETCHING_CHAPTERS_START = "fetching-chapters-start"
+    FETCHING_CHAPTERS_END = "fetching-chapters-end"
+
+    # ~ Webnovel Update Events ~
+    WEBNOVEL_UPDATE_NO_NEW_CHAPTERS = "webnovel-update-no-new-chapters"
+    WEBNOVEL_UPDATE_CHAPTER_COUNT = "webnovel-update-chapter-count"
+    WEBNOVEL_UPDATE_NEW_CHAPTER_COUNT = "webnovel-update-new-chapter-count"
+
+    # ~ Webnovel Directory Events ~
+    WEBNOVEL_DIR_NOVEL_UPDATE_START = "webnovel-dir-novel-update-start"
+    WEBNOVEL_DIR_NOVEL_UPDATE_END = "webnovel-dir-novel-update-end"
+    WEBNOVEL_DIR_UPDATE_START = "webnovel-dir-update-start"
+    WEBNOVEL_DIR_UPDATE_END = "webnovel-dir-update-end"
+    WEBNOVEL_DIR_SAVE_START = "webnovel-dir-save-start"
+    WEBNOVEL_DIR_SAVE_END = "webnovel-dir-save-end"
+    WEBNOVEL_DIR_SKIP_PAUSED_NOVEL = "webnovel-dir-skip-paused-novel"
+    WEBNOVEL_DIR_SKIP_COMPLETE_NOVEL = "webnovel-dir-skip-complete-novel"
+
+
+LOGGING_MAP = {
+    Event.FETCHING_CHAPTERS_END: lambda ctx: (
+        "Averaged %.2f second(s) per chapter or %.2f chapter(s) per second.",
+        ctx.time_per_chapter,
+        1.0 / ctx.time_per_chapter,
+    ),
+    Event.WEBNOVEL_UPDATE_NO_NEW_CHAPTERS: lambda ctx: ("%s: No New Chapters Found.", ctx.path.name),
+    Event.WEBNOVEL_UPDATE_CHAPTER_COUNT: lambda ctx: ("%s: %d Chapter(s) Found.", ctx.path.name, ctx.total),
+    Event.WEBNOVEL_UPDATE_NEW_CHAPTER_COUNT: lambda ctx: ("%s: %d New Chapter(s) Found.", ctx.path.name, ctx.new),
+    Event.WEBNOVEL_DIR_SKIP_PAUSED_NOVEL: lambda ctx: ("Skipping paused webnovel: %s", ctx.novel.path.name),
+    Event.WEBNOVEL_DIR_SKIP_COMPLETE_NOVEL: lambda ctx: ("Skipping completed webnovel: %s", ctx.novel.path.name),
+    Event.WEBNOVEL_DIR_SAVE_START: lambda ctx: ("Saving webnovel directory status (%s).", ctx.dir.directory),
+    Event.PROCESS_CHAPTER_BATCH_START: lambda ctx: (
+        "Processing chapters '%s' to '%s'. [%d chapter(s)]",
+        ctx.batch[0].title,
+        ctx.batch[-1].title,
+        ctx.batch_size,
+    ),
+}
 
 
 class Context(Namespace):
@@ -52,10 +91,15 @@ class EventRegistry:
         """Register a callback to handle the specified event."""
         self._map[event].append(callback)
 
-    def trigger(self, event: Event, context: dict) -> None:
+    def trigger(self, event: Event, context: dict, logger: logging.Logger = logger) -> None:
         """Trigger the specified event, running all callbacks."""
         context = Context(context)
         context.event = event
+
+        if event in LOGGING_MAP:
+            args = LOGGING_MAP[event](context)
+            logger.debug(*args)
+
         for callback in self._map[event]:
             callback(context)
 
@@ -63,9 +107,9 @@ class EventRegistry:
 registry = EventRegistry()
 
 
-def trigger(event: Event, context: dict) -> None:
+def trigger(event: Event, context: dict, logger: logging.Logger = logger) -> None:
     """Call trigger on main registry."""
-    registry.trigger(event, context)
+    registry.trigger(event, context, logger)
 
 
 def register(event: Event, callback: Callable[[Context], None]) -> None:

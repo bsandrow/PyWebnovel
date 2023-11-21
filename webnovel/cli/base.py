@@ -6,6 +6,7 @@ from types import ModuleType
 from apptk.importing import import_all_from_submodules
 import click
 
+from webnovel import events
 from webnovel.actions import App
 from webnovel.utils import Namespace
 
@@ -48,5 +49,5 @@ def turn_on_logging(debug: bool = False):
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
-    handler.setLevel(logging.DEBUG if debug else logging.INFO)
-    logger.setLevel(logging.DEBUG if debug else logging.INFO)
+    handler.setLevel(logging.DEBUG if debug else logging.WARNING)
+    logger.setLevel(logging.DEBUG if debug else logging.WARNING)

@@ -12,6 +12,7 @@ import zipfile
 
 from requests import HTTPError
 
+from webnovel import events
 from webnovel.errors import DirectoryDoesNotExistError
 
 if TYPE_CHECKING:
@@ -118,9 +119,11 @@ class WebNovelDirectory:
 
     def save(self):
         """Save the status of the WebNovelDirectory."""
+        events.trigger(event=events.Event.WEBNOVEL_DIR_SAVE_START, context={"dir": self}, logger=logger)
         with self.status_file.open("w") as fh:
             data = self.status.to_json()
             fh.write(json.dumps(data, sort_keys=True, indent=2))
+        events.trigger(event=events.Event.WEBNOVEL_DIR_SAVE_END, context={"dir": self}, logger=logger)
 
     @classmethod
     def load(cls, directory: Union[str, Path]) -> "WebNovelDirectory":
@@ -151,22 +154,50 @@ class WebNovelDirectory:
 
     def update(self, app: "App") -> None:
         """Run App.update on all of the webnovels in this directory."""
-        for webnovel in self.status.webnovels:
-            if webnovel.status == WebNovelStatus.COMPLETE:
-                continue
+        events.trigger(event=events.Event.WEBNOVEL_DIR_UPDATE_START, context={"dir": self})
+        try:
+            for webnovel in self.status.webnovels:
+                if webnovel.status == WebNovelStatus.COMPLETE:
+                    events.trigger(
+                        event=events.Event.WEBNOVEL_DIR_SKIP_COMPLETE_NOVEL,
+                        context={"dir": self, "novel": webnovel},
+                        logger=logger,
+                    )
+                    continue
 
-            if webnovel.status == WebNovelStatus.PAUSED:
-                logger.info("Skipping paused webnovel: %s", webnovel.path.name)
-                continue
+                if webnovel.status == WebNovelStatus.PAUSED:
+                    events.trigger(
+                        event=events.Event.WEBNOVEL_DIR_SKIP_PAUSED_NOVEL,
+                        context={"dir": self, "novel": webnovel},
+                        logger=logger,
+                    )
+                    continue
 
-            try:
-                chapters_added = app.update(ebook=webnovel.path, ignore_path=self.directory)
-                if chapters_added > 0:
-                    webnovel.last_updated = datetime.datetime.now()
-                self.save()
-            except HTTPError as error:
-                print(f"HTTP Error: {error.response.status_code} on URL {error.request.url!r}")
-        self.status.last_run = datetime.datetime.now()
+                events.trigger(
+                    event=events.Event.WEBNOVEL_DIR_NOVEL_UPDATE_START,
+                    context={"dir": self, "novel": webnovel},
+                    logger=logger,
+                )
+
+                try:
+                    chapters_added = app.update(ebook=webnovel.path, ignore_path=self.directory)
+                    if chapters_added > 0:
+                        webnovel.last_updated = datetime.datetime.now()
+                    self.save()
+
+                except HTTPError as error:
+                    print(f"HTTP Error: {error.response.status_code} on URL {error.request.url!r}")
+
+                finally:
+                    events.trigger(
+                        event=events.Event.WEBNOVEL_DIR_NOVEL_UPDATE_END,
+                        context={"dir": self, "novel": webnovel},
+                        logger=logger,
+                    )
+
+            self.status.last_run = datetime.datetime.now()
+        finally:
+            events.trigger(event=events.Event.WEBNOVEL_DIR_UPDATE_END, context={"dir": self})
 
     def add(self, epub_or_url: str, app: "App") -> None:
         """Add webnovel to directory."""
