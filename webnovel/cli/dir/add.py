@@ -16,14 +16,14 @@ from ..base import pass_app
 def add(app: App, epub_or_url: str) -> None:
     """Add a webnovel to directory."""
     events.register(
-        event=events.Event.EBOOK_CREATE_START,
+        event=events.Event.WN_CREATE_START,
         callback=lambda ctx: click.echo(f"Creating ebook for: {ctx.novel_url}"),
     )
     events.register(
-        event=events.Event.EBOOK_CREATE_END,
+        event=events.Event.WN_CREATE_END,
         callback=lambda ctx: click.echo(f"Ebook created: {Path(ctx.ebook.filename).name}"),
     )
-    events.register(event=events.Event.PROCESS_CHAPTER_BATCH_START, callback=handle_chapter_batch)
+    events.register(event=events.Event.WN_CHAPTER_BATCH_START, callback=handle_chapter_batch)
     app.dir_add(app.settings.directory_options.directory, epub_or_url)
 
 

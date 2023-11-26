@@ -12,22 +12,20 @@ logger = logging.getLogger(__name__)
 class Event(enum.Enum):
     """An enum of all PyWebnovel events."""
 
-    EBOOK_CREATE_START = "ebook-create-start"
-    EBOOK_CREATE_END = "ebook-create-end"
-    SET_COVER_IMAGE = "set-cover-image"
     SCRAPE_TOTAL_CHAPTERS = "scrape-total-chapters"
-    PROCESS_CHAPTER_BATCH_START = "process-chapter-batch-start"
-    PROCESS_CHAPTER_BATCH_END = "process-chapter-batch-end"
 
     # ~ Generic Webnovel Events ~
-    FETCHING_CHAPTERS_START = "fetching-chapters-start"
-    FETCHING_CHAPTERS_END = "fetching-chapters-end"
-
-    # ~ Webnovel Update Events ~
-    WEBNOVEL_UPDATE_START = "webnovel-update-start"
-    WEBNOVEL_UPDATE_NO_NEW_CHAPTERS = "webnovel-update-no-new-chapters"
-    WEBNOVEL_UPDATE_CHAPTER_COUNT = "webnovel-update-chapter-count"
-    WEBNOVEL_UPDATE_NEW_CHAPTER_COUNT = "webnovel-update-new-chapter-count"
+    WN_CREATE_START = "wn-create-start"
+    WN_CREATE_END = "wn-create-end"
+    WN_UPDATE_START = "wn-update-start"
+    WN_UPDATE_NO_NEW_CHAPTERS = "wn-update-no-new-chapters"
+    WN_UPDATE_CHAPTER_COUNT = "wn-update-chapter-count"
+    WN_UPDATE_NEW_CHAPTER_COUNT = "wn-update-new-chapter-count"
+    WN_SET_COVER_IMAGE = "wn-set-cover-image"
+    WN_FETCH_CHAPTERS_START = "wn-fetch-chapters-start"
+    WN_FETCH_CHAPTERS_END = "wn-fetch-chapters-end"
+    WN_CHAPTER_BATCH_START = "wn-chapter-batch-start"
+    WN_CHAPTER_BATCH_END = "wn-chapter-batch-end"
 
     # ~ Webnovel Directory Events ~
     WEBNOVEL_DIR_WEBNOVEL_ADDED = "webnovel-dir-webnovel-added"
@@ -42,14 +40,14 @@ class Event(enum.Enum):
 
 
 LOGGING_MAP = {
-    Event.FETCHING_CHAPTERS_END: lambda ctx: (
+    Event.WN_FETCH_CHAPTERS_END: lambda ctx: (
         "Averaged %.2f second(s) per chapter or %.2f chapter(s) per second.",
         ctx.time_per_chapter,
         1.0 / ctx.time_per_chapter,
     ),
-    Event.WEBNOVEL_UPDATE_NO_NEW_CHAPTERS: lambda ctx: ("%s: No New Chapters Found.", ctx.path.name),
-    Event.WEBNOVEL_UPDATE_CHAPTER_COUNT: lambda ctx: ("%s: %d Chapter(s) Found.", ctx.path.name, ctx.total),
-    Event.WEBNOVEL_UPDATE_NEW_CHAPTER_COUNT: lambda ctx: ("%s: %d New Chapter(s) Found.", ctx.path.name, ctx.new),
+    Event.WN_UPDATE_NO_NEW_CHAPTERS: lambda ctx: ("%s: No New Chapters Found.", ctx.path.name),
+    Event.WN_UPDATE_CHAPTER_COUNT: lambda ctx: ("%s: %d Chapter(s) Found.", ctx.path.name, ctx.total),
+    Event.WN_UPDATE_NEW_CHAPTER_COUNT: lambda ctx: ("%s: %d New Chapter(s) Found.", ctx.path.name, ctx.new),
     Event.WEBNOVEL_DIR_SKIP_PAUSED_NOVEL: lambda ctx: ("Skipping paused webnovel: %s", ctx.novel.path.name),
     Event.WEBNOVEL_DIR_SKIP_COMPLETE_NOVEL: lambda ctx: ("Skipping completed webnovel: %s", ctx.novel.path.name),
     Event.WEBNOVEL_DIR_SAVE_START: lambda ctx: ("Saving webnovel directory status (%s).", ctx.dir.directory),
@@ -58,7 +56,7 @@ LOGGING_MAP = {
         ctx.path.name,
         ctx.dir.directory,
     ),
-    Event.PROCESS_CHAPTER_BATCH_START: lambda ctx: (
+    Event.WN_CHAPTER_BATCH_START: lambda ctx: (
         "Processing chapters '%s' to '%s'. [%d chapter(s)]",
         ctx.batch[0].title,
         ctx.batch[-1].title,

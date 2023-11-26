@@ -13,8 +13,8 @@ class EventRegistryTestCase(TestCase):
             pass
 
         registry = EventRegistry()
-        registry.register(Event.SET_COVER_IMAGE, callback)
-        self.assertEqual(registry._map[Event.SET_COVER_IMAGE], [callback])
+        registry.register(Event.WN_SET_COVER_IMAGE, callback)
+        self.assertEqual(registry._map[Event.WN_SET_COVER_IMAGE], [callback])
 
     def test_trigger(self):
         test_data = {}
@@ -24,10 +24,10 @@ class EventRegistryTestCase(TestCase):
             test_data["context"] = context
 
         registry = EventRegistry()
-        registry.register(Event.SET_COVER_IMAGE, callback)
-        registry.trigger(Event.SET_COVER_IMAGE, {"cover_image_url": ":URL:"})
+        registry.register(Event.WN_SET_COVER_IMAGE, callback)
+        registry.trigger(Event.WN_SET_COVER_IMAGE, {"cover_image_url": ":URL:"})
         expected_context = Context(cover_image_url=":URL:")
-        expected_context.event = Event.SET_COVER_IMAGE
+        expected_context.event = Event.WN_SET_COVER_IMAGE
         self.assertEqual(test_data, {"was_called": True, "context": expected_context})
 
     def test_clear(self):
@@ -35,7 +35,7 @@ class EventRegistryTestCase(TestCase):
             pass
 
         registry = EventRegistry()
-        registry.register(Event.SET_COVER_IMAGE, callback)
-        self.assertEqual(registry._map[Event.SET_COVER_IMAGE], [callback])
+        registry.register(Event.WN_SET_COVER_IMAGE, callback)
+        self.assertEqual(registry._map[Event.WN_SET_COVER_IMAGE], [callback])
         registry.clear()
-        self.assertEqual(registry._map[Event.SET_COVER_IMAGE], [])
+        self.assertEqual(registry._map[Event.WN_SET_COVER_IMAGE], [])

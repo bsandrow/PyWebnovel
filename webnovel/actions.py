@@ -111,7 +111,7 @@ class App:
         filename = directory / utils.clean_filename(filename or f"{novel.title}.epub")
 
         events.trigger(
-            event=events.Event.EBOOK_CREATE_START,
+            event=events.Event.WN_CREATE_START,
             context={
                 "path": filename,
                 "novel_url": novel_url,
@@ -145,7 +145,7 @@ class App:
             epub_pkg.save()
 
             events.trigger(
-                event=events.Event.EBOOK_CREATE_END,
+                event=events.Event.WN_CREATE_END,
                 context={
                     "path": filename,
                     "novel_url": novel_url,
@@ -181,7 +181,7 @@ class App:
                 scrapers[chapter_scraper_class] = chapter_scraper_class(http_client=self.client)
             return scrapers[chapter_scraper_class]
 
-        events.trigger(events.Event.FETCHING_CHAPTERS_START, context, logger)
+        events.trigger(events.Event.WN_FETCH_CHAPTERS_START, context, logger)
         for batch_no, batch in enumerate(utils.batcher_iter(chapters, batch_size=batch_size), start=1):
             batch_ctx = merge_dicts(
                 context,
@@ -189,18 +189,18 @@ class App:
             )
 
             with utils.Timer() as timer:
-                events.trigger(events.Event.PROCESS_CHAPTER_BATCH_START, batch_ctx, logger)
+                events.trigger(events.Event.WN_CHAPTER_BATCH_START, batch_ctx, logger)
                 for chapter in batch:
                     scraper = get_chapter_scraper(chapter.url)
                     scraper.process_chapter(chapter)
                     ebook.add_chapter(chapter)
-                events.trigger(events.Event.PROCESS_CHAPTER_BATCH_END, batch_ctx, logger)
+                events.trigger(events.Event.WN_CHAPTER_BATCH_END, batch_ctx, logger)
             total_time += timer.time
             logger.debug("Saving chapters to ebook.")
             ebook.save()
 
         time_per_chapter = context["time_per_chapter"] = float(total_time) / float(len(chapters))
-        events.trigger(events.Event.FETCHING_CHAPTERS_END, context, logger)
+        events.trigger(events.Event.WN_FETCH_CHAPTERS_END, context, logger)
 
     def rebuild(self, epub_file: str, reload_chapters: Iterable[str] | None = None) -> None:
         """
@@ -272,7 +272,7 @@ class App:
         scraper = scraper_class(http_client=self.client)
         novel = context["novel"] = scraper.scrape(novel_url)
         context["total"] = len(novel.chapters)
-        events.trigger(event=events.Event.WEBNOVEL_UPDATE_CHAPTER_COUNT, context=context, logger=logger)
+        events.trigger(event=events.Event.WN_UPDATE_CHAPTER_COUNT, context=context, logger=logger)
 
         chapter_urls_in_file = set(pkg.chapters.keys())
         chapter_urls_fetched = {c.url for c in novel.chapters}
@@ -304,7 +304,7 @@ class App:
         missing_chapters = [chapter for chapter in novel.chapters if chapter.url not in chapter_urls_in_file]
         if len(missing_chapters) < 1:
             context["new"] = 0
-            events.trigger(event=events.Event.WEBNOVEL_UPDATE_NO_NEW_CHAPTERS, context=context, logger=logger)
+            events.trigger(event=events.Event.WN_UPDATE_NO_NEW_CHAPTERS, context=context, logger=logger)
             return 0
 
         #
@@ -335,7 +335,7 @@ class App:
             missing_chapters = missing_chapters[:limit]
 
         context["new"] = len(missing_chapters)
-        events.trigger(event=events.Event.WEBNOVEL_UPDATE_NEW_CHAPTER_COUNT, context=context, logger=logger)
+        events.trigger(event=events.Event.WN_UPDATE_NEW_CHAPTER_COUNT, context=context, logger=logger)
 
         self.add_chapters(ebook=pkg, chapters=missing_chapters, batch_size=20)
         pkg.save()
