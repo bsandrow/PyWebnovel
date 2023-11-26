@@ -203,7 +203,7 @@ class SkyDemonOrderNovelScraper(scraping.NovelScraperBase):
             #
             if match := re.search(r"return data;\s*\}\)\((\{.*\}\})\)\s*\}", novel_data_raw):
                 novel_data_map = json.loads(match.group(1))
-                novel_data = [novel_data_map[str(key)] for key in reversed(int(k) for k in novel_data_map.keys())]
+                novel_data = [novel_data_map[str(key)] for key in reversed(list(map(int, novel_data_map.keys())))]
 
             if novel_data is None:
                 logger.warn('Unable to extra chapter data from x-data="%s"', novel_data_raw)
@@ -223,7 +223,7 @@ class SkyDemonOrderNovelScraper(scraping.NovelScraperBase):
             #   "has_images":false
             # }
             #
-            for idx, chapter in enumerate(reversed(novel_data)):
+            for idx, chapter in enumerate(novel_data):
                 logger.debug("Chapter [%d] Data: %s", idx, chapter)
                 url = urllib.parse.urljoin(base=url, url=f"/projects/{chapter['project']['slug']}/{chapter['slug']}")
                 title = chapter["full_title"]
