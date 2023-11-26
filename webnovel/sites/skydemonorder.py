@@ -1,8 +1,10 @@
 """SkyDemonOrder.com scrapers and utilities."""
 
 import datetime
+import json
 import logging
 import re
+import urllib.parse
 
 from webnovel import data, errors, html, logs, scraping
 
@@ -26,6 +28,57 @@ class SkyDemonOrderNovelScraper(scraping.NovelScraperBase):
     url_pattern = scraping.HTTPS_PREFIX + r"skydemonorder\.com/projects/(?P<NovelID>[\w\d-]+)"
     title_selector = scraping.Selector("header > div > h1")
     status_map = {"complete": data.NovelStatus.COMPLETED, "ongoing": data.NovelStatus.ONGOING}
+
+    extra_css = """\
+    :root {
+        --colors-primary-50: 255 255 255;
+        --colors-primary-100: 239 239 239;
+        --colors-primary-200: 208 208 208;
+        --colors-primary-300: 192 192 192;
+        --colors-primary-400: 115 115 115;
+        --colors-primary-500: 82 82 82;
+        --colors-primary-600: 55 55 55;
+        --colors-primary-700: 23 23 23;
+        --colors-primary-800: 15 15 15;
+        --colors-highlight: 246 82 82;
+        --colors-system: 236 0 155;
+        --colors-novel-system-box-bg-1: 76 155 214;
+        --colors-novel-system-box-bg-2: 217 246 252;
+        --colors-novel-system-box-shadow: 15 104 160;
+        --colors-novel-system-box-border: 15 104 160;
+        --colors-tag-ongoing: 34 84 61;
+        --colors-tag-complete: 44 82 130;
+        --colors-tag-dropped: 116 42 42;
+        --colors-tag-hiatus: 139 94 60;
+    }
+
+    .text-center {
+        text-align: center !important;
+    }
+
+    .novel-system-box {
+        --tw-border-opacity: 1;
+        --tw-text-opacity: 1;
+        background: linear-gradient(180deg,rgb(var(--colors-novel-system-box-bg-1)) 35%,rgb(var(--colors-novel-system-box-bg-2)) 214%);
+        border-color: rgb(var(--colors-system)/var(--tw-border-opacity));
+        border-width: 1px;
+        border: 1px solid rgb(var(--colors-novel-system-box-border));
+        color: rgb(var(--colors-system)/var(--tw-text-opacity));
+        color: #fffffd;
+        font-family: Rajdhani,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji;
+        font-family: Rajdhani,serif;
+        font-weight: 500;
+        margin: 0 auto;
+        padding: 1rem;
+        text-shadow: 1px 1px 2px rgb(var(--colors-novel-system-box-shadow)),0 0 1em rgb(var(--colors-novel-system-box-shadow)),0 0 .2em rgb(var(--colors-novel-system-box-shadow));
+        unicode-range: u+263c-2653;
+        width: -moz-fit-content;
+        width: fit-content;
+
+        /* new */
+        margin-bottom: 1em !important;
+    }
+    """
 
     def get_status(self, page) -> data.NovelStatus:
         """Extract the novel's status from the page."""
@@ -101,18 +154,80 @@ class SkyDemonOrderNovelScraper(scraping.NovelScraperBase):
     def get_chapters(self, page, url):
         """Return the list of chapters from the page."""
         sections = page.select("section")
-        chapter_els = []
+        chapters = []
 
         for section in sections:
-            h3 = section.find("h3")
             # Note: novels with paid & free chapters will have the free chapters
-            #       listed as "Free Chapters", but for the completed novels that
-            #       section is just labelled "Chapters" since there are no paid
-            #       chapters.
-            if h3 and h3.text.strip() in ("Free Chapters", "Chapters"):
-                chapter_els = reversed(section.select("div > div> div.items-center > a"))
+            #       listed as "Free Chapters", but for novels with no paid
+            #       chapters the section will just be labelled "Chapters". If
+            #       the section doesn't look like that, we skip it.
+            h3 = section.find("h3")
+            section_title = self._text(h3)
+            if not (match := re.match(f"(Free\s+)?(Chapters|Episodes)", section_title, re.I)):
+                continue
 
-        return [
-            data.Chapter(chapter_no=idx, url=chapter_el.get("href"), title=chapter_el.text.strip())
-            for idx, chapter_el in enumerate(chapter_els)
-        ]
+            novel_data = None
+            novel_data_raw = section.get("x-data")
+
+            #
+            # Handle Chapters as a List
+            #
+            # {
+            #   expanded: 1,
+            #   sortOrder: 'desc',
+            #   chapters: (function(data) {
+            #       if (!Array.isArray(data)) {
+            #           data = Object.values(data);
+            #       }
+            #       return data;
+            #   })([{"full_title":"Ep.19: Skill [...] "has_images":false}])
+            # }
+            #
+            if match := re.search(r"\}\)\((\[.*\}\])\)\s*\}", novel_data_raw):
+                novel_data_list = json.loads(match.group(1))
+                novel_data = reversed(novel_data_list)
+
+            #
+            # Handle Chapters as a mapping (list index to chapter data)
+            #
+            # {
+            #   expanded: 1,
+            #   sortOrder: 'desc',
+            #   chapters: (function(data) {
+            #           if (!Array.isArray(data)) {
+            #               data = Object.values(data);
+            #           }
+            #           return data;
+            #   })({"19":{"full_title": [...] "is_mature":false,"has_images":false}})
+            # }
+            #
+            if match := re.search(r"return data;\s*\}\)\((\{.*\}\})\)\s*\}", novel_data_raw):
+                novel_data_map = json.loads(match.group(1))
+                novel_data = [novel_data_map[str(key)] for key in reversed(int(k) for k in novel_data_map.keys())]
+
+            if novel_data is None:
+                logger.warn('Unable to extra chapter data from x-data="%s"', novel_data_raw)
+                return []
+
+            #
+            # {
+            #   "full_title": "Ep.1: The First Chapter",
+            #   "slug": "name-of-chapter-slug",
+            #   "project": {
+            #       "slug": "name-of-novel-slug","
+            #       "is_mature": false
+            #   },
+            #   "views":15182,
+            #   "posted_at": "2021-12-11",
+            #   "is_mature": false,
+            #   "has_images":false
+            # }
+            #
+            for idx, chapter in enumerate(reversed(novel_data)):
+                logger.debug("Chapter [%d] Data: %s", idx, chapter)
+                url = urllib.parse.urljoin(base=url, url=f"/projects/{chapter['project']['slug']}/{chapter['slug']}")
+                title = chapter["full_title"]
+                pub_date = self._date(chapter["posted_at"])
+                chapters.append(data.Chapter(chapter_no=idx, title=title, url=url, pub_date=pub_date))
+
+        return chapters
