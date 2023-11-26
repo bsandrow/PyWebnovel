@@ -4,6 +4,7 @@ import logging
 import math
 from pathlib import Path
 from typing import Any, Iterable, Type
+import urllib.parse
 
 from webnovel import conf, epub, errors, events, http, sites, utils
 from webnovel.data import Chapter, Image
@@ -109,6 +110,17 @@ class App:
         directory = Path(directory)
         filename = directory / utils.clean_filename(filename or f"{novel.title}.epub")
 
+        events.trigger(
+            event=events.Event.EBOOK_CREATE_START,
+            context={
+                "path": filename,
+                "novel_url": novel_url,
+                "cover_image_url": cover_image_url,
+                "scraper_class": scraper_class,
+            },
+            logger=logger,
+        )
+
         with timer("Generating %s", filename):
             epub_pkg = epub.EpubPackage(
                 file_or_io=filename,
@@ -118,6 +130,7 @@ class App:
             )
 
             if novel.cover_image:
+                novel.cover_image.url = urllib.parse.urljoin(base=novel_url, url=novel.cover_image.url)
                 novel.cover_image.load(client=self.client)
                 epub_pkg.add_image(image=novel.cover_image, content=novel.cover_image.data, is_cover_image=True)
 
@@ -130,6 +143,19 @@ class App:
                 logger.warning("No chapters for novel.")
 
             epub_pkg.save()
+
+            events.trigger(
+                event=events.Event.EBOOK_CREATE_END,
+                context={
+                    "path": filename,
+                    "novel_url": novel_url,
+                    "cover_image_url": cover_image_url,
+                    "scraper_class": scraper_class,
+                    "ebook": epub_pkg,
+                },
+                logger=logger,
+            )
+
             return str(epub_pkg.filename)
 
     def add_chapters(self, ebook: epub.EpubPackage, chapters: list[Chapter], batch_size: int = 20) -> None:

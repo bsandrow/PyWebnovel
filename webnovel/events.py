@@ -12,9 +12,9 @@ logger = logging.getLogger(__name__)
 class Event(enum.Enum):
     """An enum of all PyWebnovel events."""
 
-    UPDATING_EBOOK = "updating-ebook"
-    CREATE_EPUB_START = "create-epub-start"
-    CREATE_EPUB_END = "create-epub-end"
+    EBOOK_UPDATE_START = "ebook-update-start"
+    EBOOK_CREATE_START = "ebook-create-start"
+    EBOOK_CREATE_END = "ebook-create-end"
     SET_COVER_IMAGE = "set-cover-image"
     SCRAPE_TOTAL_CHAPTERS = "scrape-total-chapters"
     PROCESS_CHAPTER_BATCH_START = "process-chapter-batch-start"
@@ -30,6 +30,7 @@ class Event(enum.Enum):
     WEBNOVEL_UPDATE_NEW_CHAPTER_COUNT = "webnovel-update-new-chapter-count"
 
     # ~ Webnovel Directory Events ~
+    WEBNOVEL_DIR_WEBNOVEL_ADDED = "webnovel-dir-webnovel-added"
     WEBNOVEL_DIR_NOVEL_UPDATE_START = "webnovel-dir-novel-update-start"
     WEBNOVEL_DIR_NOVEL_UPDATE_END = "webnovel-dir-novel-update-end"
     WEBNOVEL_DIR_UPDATE_START = "webnovel-dir-update-start"
@@ -52,6 +53,11 @@ LOGGING_MAP = {
     Event.WEBNOVEL_DIR_SKIP_PAUSED_NOVEL: lambda ctx: ("Skipping paused webnovel: %s", ctx.novel.path.name),
     Event.WEBNOVEL_DIR_SKIP_COMPLETE_NOVEL: lambda ctx: ("Skipping completed webnovel: %s", ctx.novel.path.name),
     Event.WEBNOVEL_DIR_SAVE_START: lambda ctx: ("Saving webnovel directory status (%s).", ctx.dir.directory),
+    Event.WEBNOVEL_DIR_WEBNOVEL_ADDED: lambda ctx: (
+        "Webnovel %s added to directory (%s).",
+        ctx.path.name,
+        ctx.dir.directory,
+    ),
     Event.PROCESS_CHAPTER_BATCH_START: lambda ctx: (
         "Processing chapters '%s' to '%s'. [%d chapter(s)]",
         ctx.batch[0].title,

@@ -211,4 +211,8 @@ class WebNovelDirectory:
         webnovel = WebNovel(path=filename, last_updated=datetime.datetime.now())
         self.status.webnovels.append(webnovel)
         self.save()
-        logger.info("Webnovel %s added to directory.", filename.name)
+        events.trigger(
+            event=events.Event.WEBNOVEL_DIR_WEBNOVEL_ADDED,
+            context={"dir": self, "webnovel": webnovel, "path": filename},
+            logger=logger,
+        )
