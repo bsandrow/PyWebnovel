@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 class Event(enum.Enum):
     """An enum of all PyWebnovel events."""
 
-    EBOOK_UPDATE_START = "ebook-update-start"
     EBOOK_CREATE_START = "ebook-create-start"
     EBOOK_CREATE_END = "ebook-create-end"
     SET_COVER_IMAGE = "set-cover-image"
@@ -25,6 +24,7 @@ class Event(enum.Enum):
     FETCHING_CHAPTERS_END = "fetching-chapters-end"
 
     # ~ Webnovel Update Events ~
+    WEBNOVEL_UPDATE_START = "webnovel-update-start"
     WEBNOVEL_UPDATE_NO_NEW_CHAPTERS = "webnovel-update-no-new-chapters"
     WEBNOVEL_UPDATE_CHAPTER_COUNT = "webnovel-update-chapter-count"
     WEBNOVEL_UPDATE_NEW_CHAPTER_COUNT = "webnovel-update-new-chapter-count"
