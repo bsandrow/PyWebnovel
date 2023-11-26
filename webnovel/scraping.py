@@ -277,9 +277,27 @@ class ChapterScraperBase(ScraperBase):
         """
         page = self.get_page(chapter.url)
         content = self.get_content(page)
-        chapter.original_html = str(content)
-        chapter.html = str(content)
+        content_string = str(content)
+
+        if content is None or content_string.strip() == "":
+            logger.error(
+                "Unable to scrape any content from the chapter page (title=%r | url=%r | scraper=%r)",
+                chapter.url,
+                chapter.title,
+                self.__class__,
+            )
+
+        chapter.original_html = content_string
+        chapter.html = content_string
         chapter.filters = self.content_filters
         if self.author_notes_filter:
             chapter.filters += [self.author_notes_filter]
+
         self.post_processing(chapter)
+        if chapter.html is None or chapter.html.strip() == "":
+            logger.error(
+                "Chapter HTML content is empty after post-processing! (title=%r | url=%r | scraper=%r)",
+                chapter.url,
+                chapter.title,
+                self.__class__,
+            )
