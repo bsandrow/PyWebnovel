@@ -39,6 +39,6 @@ def update(app: App) -> None:
 
 def handle_chapter_batch(ctx: events.Context) -> None:
     """Handle the PROCESS_CHAPTER_BATCH_START event."""
-    suffix = " [batch: {ctx.batch_no}/{ctx.total_batches}]" if ctx.total_batches > 1 else ""
+    suffix = f" [batch: {ctx.batch_no}/{ctx.total_batches}]" if ctx.total_batches > 1 else ""
     is_last_batch = ctx.batch_no != ctx.total_batches
     click.secho(f" » Scraping {ctx.batch_size} chapter(s)" + suffix, fg="magenta", nl=is_last_batch)
