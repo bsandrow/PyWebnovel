@@ -39,7 +39,7 @@ class NovelScraper(NovelScraperBase):
     """Scraper for HelScans."""
 
     site_name = SITE_NAME
-    url_pattern = HTTPS_PREFIX + r"helscans.com/manga/(?P<NovelID>[\w\d-]+)/?"
+    url_pattern = HTTPS_PREFIX + r"helscans.com/(?:manga|novel)/(?P<NovelID>[\w\d-]+)/?"
     title_selector = Selector(".infox h1.entry-title")
     status_map = {"ongoing": NovelStatus.ONGOING, "completed": NovelStatus.COMPLETED}
     cover_image_url_selector = Selector(".thumbook img", attribute="src")
