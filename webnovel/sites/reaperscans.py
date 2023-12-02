@@ -176,7 +176,7 @@ class ReaperScansScraper(NovelScraperBase):
     """Scraper for ReaperScans.com."""
 
     site_name = SITE_NAME
-    url_pattern = r"https?://(?:www\.)?reaperscans\.com/novels/(?P<NovelID>\d+-[\w-]+)"
+    url_pattern = r"https?://(?:www\.)?reaper(?:scans|comics)\.com/novels/(?P<NovelID>\d+-[\w-]+)"
     title_selector = Selector("main > div > div > div:nth-child(1) h1")
     summary_selector = Selector("main > div > section > div:first-child > div > p")
     chapter_selector = Selector(r"main div[wire\:id]")
@@ -274,7 +274,9 @@ class ReaperScansChapterScraper(ChapterScraperBase):
     """Scraper for ReaperScans.com chapter content."""
 
     site_name = SITE_NAME
-    url_pattern = HTTPS_PREFIX + r"reaperscans.com/novels/(?P<NovelID>[\w\d-]+)/chapters/(?P<ChapterID>[\d\w-]+)"
+    url_pattern = (
+        HTTPS_PREFIX + r"reaper(?:scans|comics).com/novels/(?P<NovelID>[\w\d-]+)/chapters/(?P<ChapterID>[\d\w-]+)"
+    )
     content_selector = Selector("ARTICLE.prose")
     content_filters = html.DEFAULT_FILTERS + ["remove_trailing_hrs"]  # + ["remove_reaperscans_banner"]
 
