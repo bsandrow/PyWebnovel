@@ -1,6 +1,7 @@
 [tool.poetry]
 name = "PyWebnovel"
 version = "1"
+license = "MIT"
 description = "Library for scraping and dealing with webnovels."
 authors = ["Brandy Sandrowicz <brandy@sandrowicz.org>"]
 packages = [
