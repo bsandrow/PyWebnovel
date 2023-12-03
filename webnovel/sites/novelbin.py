@@ -3,6 +3,7 @@
 import logging
 import re
 
+from bs4 import BeautifulSoup, Tag
 from pyrate_limiter import Limiter, RequestRate
 
 from webnovel import data, errors
@@ -85,15 +86,53 @@ class NovelScraper(NovelScraperBase):
 
     extra_css = ".desc-text { white-space: pre-line; }"
 
+    @staticmethod
+    def get_info_meta_section(page: BeautifulSoup, title: str) -> Tag | None:
+        """
+        Return the specified section from the .info-meta list.
+
+        A bunch of metadata is listed in a <ul> with the class .info-meta.  Each
+        of the <li>'s in that list has a <h3> header with the title of that
+        section. Search through those for a matching section and return it.
+
+        Example::
+
+            <ul class="info-meta">
+                <li>
+                    <h3>Author:</h3>
+                    <a href="URL">Author Name</a>
+                </li>
+                <li>
+                    <h3>Genre:</h3>
+                    <a href="URL">Genre 1</a>
+                    <a href="URL">Genre 2</a>
+                    <a href="URL">Genre 3</a>
+                </li>
+            </ul>
+        """
+        sections = page.select("ul.info-meta li")
+        for section in sections:
+            h3 = section.find("h3")
+            section_title = h3.text.strip().lower().rstrip(":")
+            if section_title == title.lower().strip():
+                return section
+        return None
+
     def get_author(self, page):
         """Extract the author from the page content."""
-        metainfo = page.select_one("UL.info-meta")
-        for infoitem in metainfo("li"):
-            if "Author" in infoitem.text:
-                author_link = infoitem.find("a")
-                author_name = author_link.text.strip()
-                author_url = author_link.get("href")
-                return data.Person(name=author_name, url=author_url)
+        section = self.get_info_meta_section(page, "Author")
+        if section:
+            author_link = section.find("a")
+            author_name = author_link.text.strip()
+            author_url = author_link.get("href")
+            return data.Person(name=author_name, url=author_url)
+        return None
+
+    def get_genres(self, page: BeautifulSoup) -> list[str]:
+        """Return the list of genres for the novel."""
+        genres_section = self.get_info_meta_section(page, "genre")
+        if genres_section:
+            return [a.text.strip() for a in genres_section.select("a")]
         return None
 
     @classmethod
