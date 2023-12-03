@@ -7,7 +7,7 @@ import requests_mock
 from webnovel.data import Chapter, Image, Novel, NovelStatus
 from webnovel.sites import reaperscans
 
-from .helpers import get_test_data
+from ..helpers import get_test_data
 
 NOVEL_PAGE = get_test_data("reaperscans/novel.html")
 JSON_P1 = get_test_data("reaperscans/chlist_p1.json")
