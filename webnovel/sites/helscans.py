@@ -59,7 +59,7 @@ class NovelScraper(NovelScraperBase):
         """Extract the author from the page content."""
         author_content = None
         for fmed_element in page.select(".fmed"):
-            author_content = fmed_element.find("h2", text=re.compile("Author"))
+            author_content = fmed_element.find("h2", string=re.compile("Author"))
             if author_content:
                 break
         if not author_content:
