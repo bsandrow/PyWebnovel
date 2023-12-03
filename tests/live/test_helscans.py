@@ -118,10 +118,21 @@ class ChapterScraperTestCase(TestCase):
         scraper = helscans.ChapterScraper()
         scraper.process_chapter(chapter)
 
+        # Make sure that we don't end up with nothing
         self.assertIsNotNone(chapter.original_html)
-        self.assertNotEqual(chapter.original_html, "")
-        self.assertIn("Lee Jaehun was an undeniable villain that no one could refute", chapter.original_html)
-
         self.assertIsNotNone(chapter.html)
+        self.assertNotEqual(chapter.original_html, "")
         self.assertNotEqual(chapter.html, "")
+
+        # Check if a known block of text that should be there exists in the
+        # content.
+        self.assertIn("Lee Jaehun was an undeniable villain that no one could refute", chapter.original_html)
         self.assertIn("Lee Jaehun was an undeniable villain that no one could refute", chapter.html)
+
+        # Make sure that the ad blocks don't show up.
+        self.assertNotIn("ezoic-pub-ad-", chapter.original_html)
+        self.assertNotIn("ezoic-pub-ad-", chapter.html)
+
+        # Make sure no <script> elements are in the content:
+        self.assertNotIn("<script>", chapter.original_html)
+        self.assertNotIn("<script>", chapter.html)
