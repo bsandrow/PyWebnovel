@@ -15,6 +15,11 @@ pywn = "webnovel.cli:pywn"
 # name = "private pypi"
 # url = "https://devpi.example.com/example/example/+simple/"
 
+[tool.pytest.ini_options]
+markers = [
+  "live: marks tests as requiring an Internet connection because they hit live websites."
+]
+
 [tool.poetry.dependencies]
 python = "~3.10"
 requests = "^2.28.1"
