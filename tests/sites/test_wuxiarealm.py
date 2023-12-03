@@ -7,7 +7,7 @@ import requests_mock
 from webnovel import data
 from webnovel.sites import wuxiarealm
 
-from .helpers import get_test_data
+from ..helpers import get_test_data
 
 NOVEL_URL = "https://wuxiarealm.com/novel/creepy-story-club/"
 NOVEL_PAGE = get_test_data("wuxiarealm/novel.html")

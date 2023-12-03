@@ -8,7 +8,7 @@ from webnovel.data import Chapter, Image, NovelStatus, Person
 from webnovel.html import remove_element
 from webnovel.sites import novelcool
 
-from .helpers import get_test_data
+from ..helpers import get_test_data
 
 NOVEL_PAGE = get_test_data("novelcool/novel.html")
 CHAPTER_PAGE = get_test_data("novelcool/chapter.html")

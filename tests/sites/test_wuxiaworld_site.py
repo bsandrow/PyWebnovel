@@ -5,7 +5,7 @@ import requests_mock
 from webnovel.data import Chapter, Image, Novel, NovelStatus, Person
 from webnovel.sites import wuxiaworld_site
 
-from .helpers import get_test_data
+from ..helpers import get_test_data
 
 
 @skip

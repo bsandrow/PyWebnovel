@@ -7,7 +7,7 @@ from webnovel.data import Chapter, Image, Novel, NovelStatus, Person
 from webnovel.html import remove_element
 from webnovel.sites import novelbin
 
-from .helpers import get_test_data
+from ..helpers import get_test_data
 
 NOVEL_PAGE = get_test_data("novelbin/novel.html")
 CHAPTER_PAGE = get_test_data("novelbin/chapter.html")

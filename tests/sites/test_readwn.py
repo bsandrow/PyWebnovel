@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from webnovel import data, html
 from webnovel.sites import readwn
 
-from .helpers import get_test_data
+from ..helpers import get_test_data
 
 NOVEL_INFO = get_test_data("readwn/novel_info.html")
 
