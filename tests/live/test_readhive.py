@@ -16,22 +16,6 @@ URL2 = "https://readhive.org/series/43151/1/"
 class NovelScraperTestCase(TestCase):
     maxDiff = None
 
-    expected_synopsis = (
-        '<div class="entry-content entry-content-single" id="synopsis"'
-        ' itemprop="description" style="white-space: pre-line; width: 100%;">\n'
-        "						A theatrical regression life of an old-fashioned "
-        "villain who recalled his past life.\n"
-        "\n"
-        "\"There's nothing I won't do for a better life.\"\n"
-        "\n"
-        "———\n"
-        "\n"
-        "Survival in the ‘Otherworld’; a place where only the insane can set foot in.\n"
-        "\n"
-        " \n"
-        "            </div>"
-    )
-
     def test_title(self):
         scraper = readhive.NovelScraper()
         page = scraper.get_page(url=URL1)
