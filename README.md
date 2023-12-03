@@ -22,7 +22,11 @@ Running all tests:
 $ ./scripts/runtests.sh all
 ```
 
-_**Note:** `runtests.sh` is just a wrapper around `pytest` and any arguments passed to `runtests.sh` (other than the "live" or "all" args in the examples above) will be passed directly to `pytest`._
+_**Note:** `runtests.sh` is just a wrapper around `pytest` and any arguments passed to `runtests.sh` (other than the "live" or "all" args in the examples above) will be passed directly to `pytest`. For example, the following would work:_
+
+```shell
+$ ./scripts/runtests.sh tests/test_events.py
+```
 
 ## License
 
