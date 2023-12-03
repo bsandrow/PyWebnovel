@@ -1,12 +1,12 @@
 """NovelNext scrapers and utilities."""
 
 from webnovel.scraping import HTTPS_PREFIX
-from webnovel.sites.novelbin import NovelBinChapterScraper, NovelBinScraper
+from webnovel.sites import novelbin
 
 SITE_NAME = "NovelNext.org"
 
 
-class NovelNextScraper(NovelBinScraper):
+class NovelNextScraper(novelbin.NovelScraper):
     """Novel Scraper for NovelNext.org."""
 
     site_name = SITE_NAME
@@ -14,7 +14,7 @@ class NovelNextScraper(NovelBinScraper):
     url_pattern = HTTPS_PREFIX + r"novelnext\.org/novelnext/(?P<NovelID>[\w-]+)"
 
 
-class NovelNextChapterScraper(NovelBinChapterScraper):
+class NovelNextChapterScraper(novelbin.ChapterScraper):
     """Chapter Scraper for NovelNext.org."""
 
     site_name = SITE_NAME

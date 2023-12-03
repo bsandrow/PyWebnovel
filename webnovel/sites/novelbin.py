@@ -41,7 +41,7 @@ def check_back_soon_filter(html):
         remove_element(element)
 
 
-class NovelBinChapterScraper(ChapterScraperBase):
+class ChapterScraper(ChapterScraperBase):
     """Scraper for NovelBin.net chapter content."""
 
     site_name = SITE_NAME
@@ -71,7 +71,7 @@ class NovelBinChapterScraper(ChapterScraperBase):
             chapter.title = re.sub(r"(Chapter \d+)- ", r"\1: ", chapter.title, re.IGNORECASE)
 
 
-class NovelBinScraper(NovelScraperBase):
+class NovelScraper(NovelScraperBase):
     """Scraper for NovelBin.net."""
 
     site_name = SITE_NAME
@@ -133,7 +133,7 @@ class NovelBinScraper(NovelScraperBase):
                 url=(url := chapter_li.select_one("A").get("href")),
                 title=(title := Chapter.clean_title(chapter_li.select_one("A").get("title"))),
                 chapter_no=idx,
-                slug=NovelBinChapterScraper.get_chapter_slug(url),
+                slug=ChapterScraper.get_chapter_slug(url),
             )
             for idx, chapter_li in enumerate(page.select("UL.list-chapter > LI"))
         ]
