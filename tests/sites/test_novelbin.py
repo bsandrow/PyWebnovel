@@ -17,7 +17,7 @@ CHAPTER_LIST_PAGE = get_test_data("novelbin/chapterlist.html")
 class CheckBackSoonFilterTestCase(TestCase):
     html = (
         "<div>\n"
-        "<p>dkfjgnslekdgbdsflgkjdfskg</p>\n"
+        "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>\n"
         '<div class="schedule-text">The Novel will be updated first on this website. Come back and\n'
         " continue reading tomorrow, everyone!</div>\n"
         "</div>"
@@ -26,7 +26,7 @@ class CheckBackSoonFilterTestCase(TestCase):
     def test_removes_message(self):
         html = BeautifulSoup(self.html, "html.parser")
         novelbin.check_back_soon_filter(html)
-        self.assertEqual(str(html), ("<div>\n" "<p>dkfjgnslekdgbdsflgkjdfskg</p>\n\n" "</div>"))
+        self.assertEqual(str(html), "<div>\n<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>\n\n</div>")
 
 
 class NovelBinChapterScraperTestCase(TestCase):
