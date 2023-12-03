@@ -18,19 +18,23 @@ def update(app: App) -> None:
     )
     events.register(
         event=events.Event.WEBNOVEL_DIR_SKIP_PAUSED_NOVEL,
-        callback=lambda ctx: click.secho(f"{ctx.novel.path.name} [paused]", fg="black", bold=True),
+        callback=lambda ctx: click.echo(f"{ctx.novel.path.name} " + click.style("[paused]", fg="black", bold=True)),
     )
     events.register(
         event=events.Event.WEBNOVEL_DIR_SKIP_COMPLETE_NOVEL,
-        callback=lambda ctx: click.secho(f"{ctx.novel.path.name} [complete]", fg="black", bold=True),
+        callback=lambda ctx: click.echo(f"\r{ctx.novel.path.name} " + click.style("[complete]", fg="black", bold=True)),
     )
     events.register(
         event=events.Event.WN_UPDATE_NO_NEW_CHAPTERS,
-        callback=lambda ctx: click.secho(f"\r{ctx.path.name} [no updates]", fg="black", bold=True, nl=False),
+        callback=lambda ctx: click.echo(
+            f"\r{ctx.path.name} " + click.style("[no updates]", fg="black", bold=True), nl=False
+        ),
     )
     events.register(
         event=events.Event.WN_UPDATE_NEW_CHAPTER_COUNT,
-        callback=lambda ctx: click.secho(f"\r{ctx.path.name} [New Chapters: {ctx.new}]...", fg="green"),
+        callback=lambda ctx: click.echo(
+            f"\r{ctx.path.name} " + click.style(f"[new: {ctx.new}]", fg="green", bold=True)
+        ),
     )
     events.register(event=events.Event.WN_CHAPTER_BATCH_START, callback=handle_chapter_batch)
     events.register(event=events.Event.WEBNOVEL_DIR_NOVEL_UPDATE_END, callback=lambda ctx: click.echo("", nl=True))
