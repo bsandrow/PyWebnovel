@@ -136,3 +136,17 @@ class ChapterScraperTestCase(TestCase):
 
         self.assertIn("Quinn thought the whole thing was a joke", chapter.original_html)
         self.assertIn("Quinn thought the whole thing was a joke", chapter.html)
+
+    def test_removal_of_check_back_later_banner(self):
+        scraper = novelbin.NovelScraper()
+        page = scraper.get_page(url=URL1)
+        chapters = scraper.get_chapters(page=page, url=URL1)
+        most_recent_chapter = chapters[-1]
+        scraper = novelbin.ChapterScraper()
+        scraper.process_chapter(most_recent_chapter)
+
+        # Check that it's in the unfiltered HTML
+        self.assertIn("The Novel will be updated first on this website.", most_recent_chapter.original_html)
+
+        # Check that it's removed after the filters are applied.
+        self.assertNotIn("The Novel will be updated first on this website.", most_recent_chapter.html)
