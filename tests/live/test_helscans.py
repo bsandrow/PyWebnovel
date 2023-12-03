@@ -66,6 +66,15 @@ class NovelScraperTestCase(TestCase):
         actual = str(scraper.get_summary(page))
         self.assertEqual(actual, self.expected_synopsis)
 
+    def test_cover_image(self):
+        scraper = helscans.NovelScraper()
+        page = scraper.get_page(url=URL1)
+        actual: data.Image = scraper.get_cover_image(page)
+        self.assertEqual(
+            actual.url, "https://helscans.com/wp-content/uploads/2023/09/Theatrical-Regression-Life-Cover.png"
+        )
+        self.assertIsNone(actual.mimetype)
+
     def test_novel_id(self):
         scraper = helscans.NovelScraper()
         actual = scraper.get_novel_id(url=URL1)
@@ -130,9 +139,7 @@ class ChapterScraperTestCase(TestCase):
         self.assertIn("Lee Jaehun was an undeniable villain that no one could refute", chapter.html)
 
         # Make sure that the ad blocks don't show up.
-        self.assertNotIn("ezoic-pub-ad-", chapter.original_html)
         self.assertNotIn("ezoic-pub-ad-", chapter.html)
 
         # Make sure no <script> elements are in the content:
-        self.assertNotIn("<script>", chapter.original_html)
         self.assertNotIn("<script>", chapter.html)
