@@ -80,6 +80,85 @@ class NovelScraper(scraping.NovelScraperBase):
     }
     """
 
+    def get_novel_data_from_section(self, page: BeautifulSoup, pattern):
+        """
+        Fetch a list of chapters from a chapter section.
+
+        :params page: The HTML tree of the page.
+        :params pattern: A pattern to match against the section header. Only
+                         returns results from matching sections.
+        """
+        pattern = re.compile(pattern, re.IGNORECASE)
+        result = []
+
+        for section in page.select("section"):
+            header = section.find("h3")
+            header_str = self._text(header)
+
+            if not (match := pattern.match(header_str)):
+                continue
+
+            novel_data = None
+            novel_data_raw = section.get("x-data")
+
+            #
+            # Handle Chapters as a List
+            #
+            # {
+            #   expanded: 1,
+            #   sortOrder: 'desc',
+            #   chapters: (function(data) {
+            #       if (!Array.isArray(data)) {
+            #           data = Object.values(data);
+            #       }
+            #       return data;
+            #   })([{"full_title":"Ep.19: Skill [...] "has_images":false}])
+            # }
+            #
+            if match := re.search(r"\}\)\((\[.*\}\])\)\s*\}", novel_data_raw):
+                novel_data_list = json.loads(match.group(1))
+                novel_data = reversed(novel_data_list)
+
+            #
+            # Handle Chapters as a mapping (list index to chapter data)
+            #
+            # {
+            #   expanded: 1,
+            #   sortOrder: 'desc',
+            #   chapters: (function(data) {
+            #           if (!Array.isArray(data)) {
+            #               data = Object.values(data);
+            #           }
+            #           return data;
+            #   })({"19":{"full_title": [...] "is_mature":false,"has_images":false}})
+            # }
+            #
+            if match := re.search(r"return data;\s*\}\)\((\{.*\}\})\)\s*\}", novel_data_raw):
+                novel_data_map = json.loads(match.group(1))
+                novel_data = [novel_data_map[str(key)] for key in reversed(list(map(int, novel_data_map.keys())))]
+
+            if novel_data is None:
+                logger.warn('Unable to extra chapter data from x-data="%s"', novel_data_raw)
+                continue
+
+            result.extend(novel_data)
+
+        #
+        # {
+        #   "full_title": "Ep.1: The First Chapter",
+        #   "slug": "name-of-chapter-slug",
+        #   "project": {
+        #       "slug": "name-of-novel-slug","
+        #       "is_mature": false
+        #   },
+        #   "views":15182,
+        #   "posted_at": "2021-12-11",
+        #   "is_mature": false,
+        #   "has_images": false
+        # }
+        #
+        return result
+
     def get_status(self, page) -> data.NovelStatus:
         """Extract the novel's status from the page."""
         items = page.select("header > div > p > span")
@@ -144,6 +223,22 @@ class NovelScraper(scraping.NovelScraperBase):
         # from their site.
         novel.translator = data.Person(name="SkyDemonOrder", url="https://skydemonorder.com/")
 
+        #
+        # The list of paid chapters has the "posted_at" date set to the date that
+        # the chapter is scheduled to roll over from Paid-Only to Free, so by
+        # scraping the Paid Episodes section we effectively get a tentative
+        # release schedule for all episodes that have already been translated.
+        #
+        paid_chapters = self.get_novel_data_from_section(page, r"Paid\s+(Chapters|Episodes)")
+        novel.extras["release_schedule"] = [
+            {
+                "title": chapter["full_title"],
+                "release_date": self._date(chapter["posted_at"]),
+                "url": urllib.parse.urljoin(base=url, url=f"/projects/{chapter['project']['slug']}/{chapter['slug']}"),
+            }
+            for chapter in paid_chapters
+        ]
+
     def get_cover_image(self, page):
         """Get cover image url."""
         images = page.select("main img")
@@ -153,81 +248,14 @@ class NovelScraper(scraping.NovelScraperBase):
 
     def get_chapters(self, page, url):
         """Return the list of chapters from the page."""
-        sections = page.select("section")
         chapters = []
+        novel_data = self.get_novel_data_from_section(page, r"(Free\s+)?(Chapters|Episodes)")
 
-        for section in sections:
-            # Note: novels with paid & free chapters will have the free chapters
-            #       listed as "Free Chapters", but for novels with no paid
-            #       chapters the section will just be labelled "Chapters". If
-            #       the section doesn't look like that, we skip it.
-            h3 = section.find("h3")
-            section_title = self._text(h3)
-            if not (match := re.match(f"(Free\s+)?(Chapters|Episodes)", section_title, re.I)):
-                continue
-
-            novel_data = None
-            novel_data_raw = section.get("x-data")
-
-            #
-            # Handle Chapters as a List
-            #
-            # {
-            #   expanded: 1,
-            #   sortOrder: 'desc',
-            #   chapters: (function(data) {
-            #       if (!Array.isArray(data)) {
-            #           data = Object.values(data);
-            #       }
-            #       return data;
-            #   })([{"full_title":"Ep.19: Skill [...] "has_images":false}])
-            # }
-            #
-            if match := re.search(r"\}\)\((\[.*\}\])\)\s*\}", novel_data_raw):
-                novel_data_list = json.loads(match.group(1))
-                novel_data = reversed(novel_data_list)
-
-            #
-            # Handle Chapters as a mapping (list index to chapter data)
-            #
-            # {
-            #   expanded: 1,
-            #   sortOrder: 'desc',
-            #   chapters: (function(data) {
-            #           if (!Array.isArray(data)) {
-            #               data = Object.values(data);
-            #           }
-            #           return data;
-            #   })({"19":{"full_title": [...] "is_mature":false,"has_images":false}})
-            # }
-            #
-            if match := re.search(r"return data;\s*\}\)\((\{.*\}\})\)\s*\}", novel_data_raw):
-                novel_data_map = json.loads(match.group(1))
-                novel_data = [novel_data_map[str(key)] for key in reversed(list(map(int, novel_data_map.keys())))]
-
-            if novel_data is None:
-                logger.warn('Unable to extra chapter data from x-data="%s"', novel_data_raw)
-                return []
-
-            #
-            # {
-            #   "full_title": "Ep.1: The First Chapter",
-            #   "slug": "name-of-chapter-slug",
-            #   "project": {
-            #       "slug": "name-of-novel-slug","
-            #       "is_mature": false
-            #   },
-            #   "views":15182,
-            #   "posted_at": "2021-12-11",
-            #   "is_mature": false,
-            #   "has_images":false
-            # }
-            #
-            for idx, chapter in enumerate(novel_data):
-                logger.debug("Chapter [%d] Data: %s", idx, chapter)
-                url = urllib.parse.urljoin(base=url, url=f"/projects/{chapter['project']['slug']}/{chapter['slug']}")
-                title = chapter["full_title"]
-                pub_date = self._date(chapter["posted_at"])
-                chapters.append(data.Chapter(chapter_no=idx, title=title, url=url, pub_date=pub_date))
+        for idx, chapter in enumerate(novel_data):
+            logger.debug("Chapter [%d] Data: %s", idx, chapter)
+            url = urllib.parse.urljoin(base=url, url=f"/projects/{chapter['project']['slug']}/{chapter['slug']}")
+            title = chapter["full_title"]
+            pub_date = self._date(chapter["posted_at"])
+            chapters.append(data.Chapter(chapter_no=idx, title=title, url=url, pub_date=pub_date))
 
         return chapters
