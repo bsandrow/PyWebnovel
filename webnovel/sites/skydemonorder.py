@@ -6,7 +6,9 @@ import logging
 import re
 import urllib.parse
 
-from webnovel import data, errors, html, logs, scraping
+from bs4 import BeautifulSoup, Tag
+
+from webnovel import data, logs, scraping
 
 SITE_NAME = "SkyDemonOrder.org"
 logger = logging.getLogger(__name__)
@@ -209,11 +211,12 @@ class NovelScraper(scraping.NovelScraperBase):
         novel.extras = novel.extras or {}
         description = self._find_description_heading(page)
         if description is not None:
-            for div in description.find_all("div", recursive=False):
+            divs: list[Tag] = description.parent.find_all("div", recursive=False)
+            for div in divs[1].find_all("div", recursive=False):
                 name = div.find("strong").text.strip()
                 value = div.find("span").text.strip()
                 if name == "Views":
-                    novel.extras["Views"] = f"{value} view(s) (as of {datetime.date.today:%Y-%m-%d})"
+                    novel.extras["Views"] = f"{value} view(s) (as of {datetime.date.today():%Y-%m-%d})"
                 if name == "Last Update":
                     novel.published_on = datetime.datetime.strptime(value, "%Y-%m-%d").date()
 
