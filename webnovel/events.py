@@ -62,6 +62,11 @@ LOGGING_MAP = {
         ctx.batch[-1].title,
         ctx.batch_size,
     ),
+    Event.WN_UPDATE_START: lambda ctx: (
+        ("Updating %s", ctx.path.name)
+        if ctx.ignore_path and ctx.path.parent == ctx.ignore_path
+        else ("Updating %s (%s)", ctx.path.name, ctx.path.parent)
+    ),
 }
 
 

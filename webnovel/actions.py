@@ -251,14 +251,9 @@ class App:
         """Update ebook."""
         ebook = Path(ebook)
         context = {"path": ebook}
-        ignore_path = Path(ignore_path) if ignore_path else None
+        ignore_path = context["ignore_path"] = Path(ignore_path) if ignore_path else None
+        events.trigger(event=events.Event.WN_UPDATE_START, context=context, logger=logger)
 
-        if ignore_path and ebook.parent == ignore_path:
-            logger.info("Updating %s", ebook.name)
-        else:
-            logger.info("Updating %s (%s)", ebook.name, ebook.parent)
-
-        ignore_path = Path(ignore_path) if ignore_path else None
         pkg = context["pkg"] = epub.EpubPackage.load(ebook)
 
         novel_url = pkg.metadata.novel_url
