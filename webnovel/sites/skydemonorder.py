@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 timer = logs.LogTimer(logger)
 
 
-class SkyDemonOrderChapterScraper(scraping.ChapterScraperBase):
+class ChapterScraper(scraping.ChapterScraperBase):
     """Chapter Scraper for SkyDemonOrder.com Content."""
 
     site_name = SITE_NAME
@@ -21,7 +21,7 @@ class SkyDemonOrderChapterScraper(scraping.ChapterScraperBase):
     content_selector = scraping.Selector("main .prose")
 
 
-class SkyDemonOrderNovelScraper(scraping.NovelScraperBase):
+class NovelScraper(scraping.NovelScraperBase):
     """Novel Scraper for SkyDemonOrder.com Content."""
 
     site_name = SITE_NAME
