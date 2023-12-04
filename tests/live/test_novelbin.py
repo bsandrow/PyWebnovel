@@ -1,6 +1,5 @@
 """Live tests for NovelBin.net."""
 
-import datetime
 from unittest import TestCase
 
 import pytest

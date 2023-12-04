@@ -1,6 +1,5 @@
 """Live tests for Readhive.org."""
 
-import datetime
 from unittest import TestCase
 
 import pytest
