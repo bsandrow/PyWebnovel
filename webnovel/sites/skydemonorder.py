@@ -82,10 +82,10 @@ class NovelScraper(scraping.NovelScraperBase):
 
     def get_status(self, page) -> data.NovelStatus:
         """Extract the novel's status from the page."""
-        for item in page.select("header > div > p"):
-            if match := re.match(r"Status:\s+(\w+)", item.text, re.IGNORECASE):
-                return self.status_map.get(match.group(1).lower(), data.NovelStatus.UNKNOWN)
-        return data.NovelStatus.UNKNOWN
+        items = page.select("header > div > p > span")
+        assert len(items) == 1
+        item = items[0]
+        return self.status_map.get(item.text.strip().lower(), data.NovelStatus.UNKNOWN)
 
     def get_author(self, page):
         """
