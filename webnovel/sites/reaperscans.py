@@ -2,6 +2,7 @@
 
 import logging
 import re
+import urllib.parse
 
 from bs4 import BeautifulSoup, Tag
 from pyrate_limiter import Limiter, RequestRate
@@ -239,8 +240,10 @@ class ReaperScansScraper(NovelScraperBase):
         csrf_token = get_csrf_token(page)
         wire_id = get_wire_id(chapter_list)
         # print(f"wire_id={wire_id!r} . csrf_token={csrf_token!r}")
+
+        _url = urllib.parse.urlparse(url)
         api = ChapterListAPI(
-            app_url="https://reaperscans.com/",
+            app_url=f"{_url.scheme}://{_url.netloc}/",
             wire_id=wire_id,
             element=chapter_list,
             csrf_token=csrf_token,
