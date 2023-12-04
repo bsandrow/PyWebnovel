@@ -5,7 +5,7 @@ import click
 from webnovel import events
 from webnovel.actions import App
 
-from ..base import pass_app
+from ..base import CliUIBase, pass_app
 
 
 @click.command()
@@ -14,46 +14,6 @@ def update(app: App) -> None:
     """Update webnovel directory."""
     CliUI()
     app.dir_update(app.settings.directory_options.directory)
-
-
-class CliUIBase:
-    """
-    Base class for Command-line Interface UI.
-
-    Allows for "packaging" a bunch of event handlers into a single class. This
-    allows the event handlers to have a shared state between each other.
-    """
-
-    event_map = {event: event.name.lower() for event in events.Event}
-
-    def __init__(self, delay_registry: bool = False) -> None:
-        """
-        Initialize the Cli UI.
-
-        :param delay_registry: A boolean that controls if callbacks should be
-                               registered to events during __init__, or if the
-                               caller will register them manually later.
-                               Defaults to False.
-        """
-        if not delay_registry:
-            self.register()
-
-    def register(self):
-        """
-        Register methods in event_map to their matching events.
-
-        methods can be either direct references to a callable, or a string with
-        the name of a method on self.
-        """
-        for event, callable_or_method_name in self.event_map.items():
-            if isinstance(callable_or_method_name, str):
-                method = getattr(self, callable_or_method_name, None)
-                if method is not None and callable(method):
-                    events.register(event=event, callback=method)
-            elif callable(callable_or_method_name):
-                events.register(event=event, callback=method)
-            else:
-                raise ValueError(f"{callable_or_method_name!r} needs to either be a string or a callable.")
 
 
 class CliUI(CliUIBase):
