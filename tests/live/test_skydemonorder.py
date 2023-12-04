@@ -37,6 +37,23 @@ class NovelScraperTestCase(TestCase):
         "tent.length &gt; maxLength\" x-text=\"isCollapsed ? 'Less' : 'More'\"></span>\n</div>"
     )
 
+    def test_novel(self):
+        novel = self.scraper.scrape(URL1)
+        self.assertEqual(novel.title, "The Genius Assassin Who Takes it All")
+        self.assertEqual(novel.status, data.NovelStatus.ONGOING)
+        self.assertEqual(novel.summary, self.scraper.get_summary(self.page))
+        self.assertIsNone(novel.genres)
+        self.assertIsNone(novel.author)
+        self.assertIsNone(novel.tags)
+        self.assertGreaterEqual(len(novel.chapters), 24)
+        self.assertIsNotNone(novel.published_on)
+        self.assertIn("Views", novel.extras)
+
+        # Check the "release_schedule" extras
+        self.assertIn("release_schedule", novel.extras)
+        self.assertGreater(len(novel.extras), 0)
+        self.assertTrue(all(ch["release_date"] > datetime.datetime.today() for ch in novel.extras["release_schedule"]))
+
     def test_title(self):
         actual_title = self.scraper.get_title(self.page)
         expected_title = "The Genius Assassin Who Takes it All"
