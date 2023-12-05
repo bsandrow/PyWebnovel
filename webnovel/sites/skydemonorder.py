@@ -14,6 +14,24 @@ SITE_NAME = "SkyDemonOrder.org"
 logger = logging.getLogger(__name__)
 timer = logs.LogTimer(logger)
 
+TITLE_AUTHOR_MAP = {
+    "Your Majesty, Please Don't Kill Me Again": None,
+    "Questioning Heaven, Desiring the Way": data.Person(name="雾非雪"),
+    "Hell’s Handbook": data.Person(name="年末"),
+    "The Shadowed Legacy of the Soulless Messenger": data.Person(name="Hong Jung-Hoon (홍정훈)"),
+    "Requiem of Subdued Souls": data.Person(name="정연"),
+    "Clearing the Game at the End of the World": data.Person(name="첨G"),
+    "The Return of the Crazy Demon": data.Person(name="yu jinsung (유진성)"),
+    "Absolute Sword Sense": data.Person(name="한중월야"),
+    "Invincible Mumu": data.Person(name="한중월야"),
+    "Return of the Mount Hua Sect": data.Person(name="비가"),
+    "The Dark Magician Transmigrates After 66666 Years": data.Person(name="화봉"),
+    "Heavenly Demon Cultivation Simulation": data.Person(name="조형근"),
+    "The Heavenly Demon Can’t Live a Normal Life": data.Person(name="Sancheon"),
+    "Reformation of the Deadbeat Noble": data.Person(name="이등별"),
+    "Descent of the Demon God": data.Person(name="한중월야"),
+}
+
 
 class ChapterScraper(scraping.ChapterScraperBase):
     """Chapter Scraper for SkyDemonOrder.com Content."""
@@ -176,23 +194,7 @@ class NovelScraper(scraping.NovelScraperBase):
         the authors here.
         """
         title = self.get_title(page)
-        return {
-            "Your Majesty, Please Don't Kill Me Again": None,
-            "Questioning Heaven, Desiring the Way": data.Person(name="雾非雪"),
-            "Hell’s Handbook": data.Person(name="年末"),
-            "The Shadowed Legacy of the Soulless Messenger": data.Person(name="Hong Jung-Hoon (홍정훈)"),
-            "Requiem of Subdued Souls": data.Person(name="정연"),
-            "Clearing the Game at the End of the World": data.Person(name="첨G"),
-            "The Return of the Crazy Demon": data.Person(name="yu jinsung (유진성)"),
-            "Absolute Sword Sense": data.Person(name="한중월야"),
-            "Invincible Mumu": data.Person(name="한중월야"),
-            "Return of the Mount Hua Sect": data.Person(name="비가"),
-            "The Dark Magician Transmigrates After 66666 Years": data.Person(name="화봉"),
-            "Heavenly Demon Cultivation Simulation": data.Person(name="조형근"),
-            "The Heavenly Demon Can’t Live a Normal Life": data.Person(name="Sancheon"),
-            "Reformation of the Deadbeat Noble": data.Person(name="이등별"),
-            "Descent of the Demon God": data.Person(name="한중월야"),
-        }.get(title)
+        return TITLE_AUTHOR_MAP.get(title)
 
     def get_summary(self, page):
         """Extract the novel's summary from the page."""
