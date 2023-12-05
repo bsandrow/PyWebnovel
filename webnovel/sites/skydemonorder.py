@@ -115,7 +115,7 @@ class NovelScraper(scraping.NovelScraperBase):
             header = section.find("h3")
             header_str = self._text(header)
 
-            if not (match := pattern.match(header_str)):
+            if not header_str or not (match := pattern.match(header_str)):
                 continue
 
             novel_data = None
