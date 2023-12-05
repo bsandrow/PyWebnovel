@@ -1,0 +1,31 @@
+<header>
+  <div>
+    <h1>{{title}}</h1>
+    <p><span>{{status}}</span></p>
+  </div>
+</header>
+<main>
+  <div><script></script></div>
+  <div>
+    <div>
+      <div><div><img src="{{cover_image_url}}" alt="{{title}}"/></div></div>
+      <div>
+        <h2>Description</h2>
+        <div class="prose"><span>{{summary|safe}}</span></div>
+        <div>
+          <div><strong>Episodes</strong><span>3</span></div>
+          <div><strong>Last Update</strong><span>2006-01-01</span></div>
+          <div><strong>Views</strong><span>10,601</span></div>
+        </div>
+      </div>
+    </div>
+    {% for section_title, section_data in sections %}
+    <section x-data="{{section_data|e}}">
+        <h3>{{section_title}}</h3>
+        <div></div>
+    </section>
+    {% endfor %}
+    <section>
+    </section>
+  </div>
+</main>
