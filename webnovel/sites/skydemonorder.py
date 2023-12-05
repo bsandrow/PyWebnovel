@@ -10,6 +10,16 @@ from bs4 import BeautifulSoup, Tag
 
 from webnovel import data, logs, scraping
 
+# TODO Process "Extras" / "Collection of Illustrations" section.
+#      Example at: https://skydemonorder.com/projects/reincarnated-user-manual/extras/collection-of-illustrations
+#
+#      I guess I could process this as a chapter? Add like "Appendix 1:
+#      Collection of Illustrations" to the end of the chapters list?  But how do
+#      I deal with the updates?  Are these sections static on the site, or do
+#      they (e.g.) continue to add illustrations to this section as they are
+#      released with the source material? Do I need special options for
+#      refreshing "extras" updates?
+
 SITE_NAME = "SkyDemonOrder.org"
 logger = logging.getLogger(__name__)
 timer = logs.LogTimer(logger)
