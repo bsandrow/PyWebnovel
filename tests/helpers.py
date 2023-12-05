@@ -1,15 +1,18 @@
 from contextlib import contextmanager
 import pathlib
+import pkgutil
 import shutil
 import tempfile
 from typing import Iterable, Union
 from unittest import TestCase as TestCase_orig
 from zipfile import ZipFile
 
+from bs4 import BeautifulSoup
 from freezegun import freeze_time
+import jinja2
 from requests_mock import Mocker as RequestsMocker
 
-from webnovel import data, epub
+from webnovel import data, epub, utils
 
 TEST_DATA_DIR = pathlib.Path(__file__).parent / "data"
 
@@ -196,3 +199,34 @@ class TestCase(TestCase_orig):
                     f"==============\n"
                 ),
             )
+
+
+class ScraperTestCase(TestCase_orig):
+    """Base Class for all Scraper Test Cases."""
+
+    template_defaults: dict[str, dict] = {}
+    default_template: str | None = None
+    jinja = jinja2.Environment(
+        loader=jinja2.FunctionLoader(lambda name: pkgutil.get_data("tests", f"data/templates/{name}").decode("utf-8")),
+        autoescape=jinja2.select_autoescape(),
+    )
+
+    def get_page(self, name: str | None = None, parser: str = "html.parser", **params) -> BeautifulSoup:
+        """
+        Return a BeautifulSoup HTML tree from a template, using the specified parameters.
+
+        :param name: (optional) The name of the template to load. Defaults to
+            the value of class attribute default_template.
+        :param parser: (optional) The parser for BeautifulSoup to use. Defaults to "html.parser".
+        :param params: All additional kwargs are passed directory to the template.
+        """
+        name = name or self.default_template
+        assert name, (
+            "A template name is required for get_page(). Please pass the"
+            "`name` param or define `default_template` on the class."
+        )
+        defaults = self.template_defaults.get(name, {})
+        params = utils.merge_dicts(defaults, params)
+        template = self.jinja.get_template(name)
+        page_text = template.render(**params)
+        return BeautifulSoup(page_text, parser)
