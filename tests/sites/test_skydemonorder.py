@@ -1,4 +1,6 @@
+import datetime
 import json
+from unittest import mock
 
 from bs4 import BeautifulSoup
 
@@ -8,6 +10,7 @@ from webnovel.sites import skydemonorder
 
 
 class NovelScraperTestCase(ScraperTestCase):
+    maxDiff = None
     template_defaults = {
         "skydemonorder-1.html.j2": {
             "status": "$STATUS$",
@@ -165,3 +168,79 @@ class NovelScraperTestCase(ScraperTestCase):
         actual = scraper.get_status(page)
         expected = data.NovelStatus.ONGOING
         self.assertEqual(actual, expected)
+
+    def test_post_processing(self):
+        scraper = skydemonorder.NovelScraper()
+        with mock.patch.object(scraper, "get_page") as m:
+            sections = [
+                self.generate_section(
+                    title="Paid Episodes", chapters=[{"title": "Ep 3 The Next Day", "posted_at": "2011-01-01"}]
+                ),
+                self.generate_section(
+                    title="Free Episodes",
+                    chapters=reversed([{"title": "Ep 1 The Beginning"}, {"title": "Ep 2 The Ending"}]),
+                ),
+            ]
+
+            m.return_value = self.get_page(sections=sections)
+            novel = scraper.scrape("https://skydemonorder.com/projects/novel-id")
+            self.assertEqual(novel.title, "$TITLE$")
+
+            today = datetime.date.today().strftime("%Y-%m-%d")
+            self.assertEqual(novel.extras["Views"], f"10,601 view(s) (as of {today})")
+            self.assertEqual(novel.translator, data.Person(name="SkyDemonOrder", url="https://skydemonorder.com/"))
+            self.assertEqual(novel.published_on, datetime.date(2006, 1, 1))
+            self.assertEqual(
+                novel.extras["release_schedule"],
+                [
+                    {
+                        "release_date": datetime.datetime(2011, 1, 1, 0, 0),
+                        "title": "Ep 3 The Next Day",
+                        "url": "https://skydemonorder.com/projects/name-of-novel-slug/ep-3-the-next-day",
+                    }
+                ],
+            )
+            self.assertEqual(
+                novel.chapters,
+                [
+                    data.Chapter(
+                        url="https://skydemonorder.com/projects/name-of-novel-slug/ep-1-the-beginning",
+                        title="Ep 1 The Beginning",
+                        chapter_no=0,
+                        pub_date=datetime.datetime(2021, 12, 11),
+                    ),
+                    data.Chapter(
+                        url="https://skydemonorder.com/projects/name-of-novel-slug/ep-2-the-ending",
+                        title="Ep 2 The Ending",
+                        chapter_no=1,
+                        pub_date=datetime.datetime(2021, 12, 11),
+                    ),
+                ],
+            )
+
+
+class ChapterScraperTestCase(ScraperTestCase):
+    default_template = "skydemonorder-2.html.j2"
+
+    def test_chapter_content(self):
+        scraper = skydemonorder.ChapterScraper()
+        with mock.patch.object(scraper, "get_page") as m:
+            m.return_value = self.get_page()
+            chapter = data.Chapter(
+                url="doesnotmatter",
+                title="Does Not Matter",
+            )
+            scraper.process_chapter(chapter)
+            self.assertEqual(
+                chapter.html,
+                (
+                    '<div class="prose">\n'
+                    '<div wire:effects="" wire:id="" wire:snapshot="" x-data="" x-init="">\n'
+                    '<div wire:ignore="">\n'
+                    "<p>Example</p>\n"
+                    "<p>Content</p>\n"
+                    "</div>\n"
+                    "</div>\n"
+                    "</div>"
+                ),
+            )
