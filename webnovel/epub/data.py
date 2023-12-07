@@ -3,10 +3,13 @@
 from dataclasses import asdict, dataclass, field, fields
 import datetime
 from enum import Enum
-from typing import TYPE_CHECKING, Any
+import functools
+import logging
+from typing import TYPE_CHECKING, Any, Callable
 
 from bs4 import Tag
 
+from webnovel import errors
 from webnovel.data import Chapter, Novel, NovelStatus, Person
 from webnovel.utils import filter_dict
 
@@ -14,11 +17,21 @@ if TYPE_CHECKING:
     from webnovel.epub.pkg import NovelInfo
 
 
+logger = logging.getLogger(__name__)
+
+
 class SummaryType(Enum):
     """Indicate whether the summary string is text or html."""
 
     html = "html"
     text = "text"
+
+
+class MetadataVersion(Enum):
+    """The version of the metadata format."""
+
+    v1 = 1
+    v2 = 2
 
 
 @dataclass
@@ -115,6 +128,86 @@ class EpubMetadata:
     last_updated_on: datetime.date | None = None
     extras: dict | None = None
     change_log: list[ChangeLog] | None = field(default_factory=ChangeLog)
+
+    #: The version of the metadata. This is necessary to allow changes to
+    #: metadata structure while allowing handling of epubs created with previous
+    #: metadata formats.
+    version: MetadataVersion = field(default_factory=lambda: EpubMetadata.CURRENT_VERSION)
+
+    #: The current "default" version of the metadata.  This is used as the
+    #: default version when creating new metadata, and also as the target
+    #: version (for conversion) when loading older versions of the metadata.
+    CURRENT_VERSION: MetadataVersion = MetadataVersion.v2
+
+    #: A mapping that maps a version of the metadata to the method that will be
+    #: used to convert it to the next metadata version above it.  For example::
+    #:
+    #:    {v1: "convert_to_v2"}
+    #:
+    #: Would call convert_to_v2 to convert metadata from v1 format to v2 format.
+    VERSION_CONVERSION_MAP = {}
+
+    @staticmethod
+    def detect_version(data: dict) -> MetadataVersion:
+        """
+        Extract the version (as a MetadataVersion) from data.
+
+        Version could either be a string or an int, but ultimately should be
+        convertible to an integer (and mapped to a version in the enum).
+
+        ..note:
+            "version" didn't exist in v1, so if it's missing assume that this is
+            metadata v1.
+        """
+        version_raw = data.get("version", "1")
+        try:
+            return MetadataVersion(int(version_raw))
+        except ValueError:
+            raise errors.EpubParseError(f"Bad version value in epub metadata: {version_raw}")
+
+    @classmethod
+    def build_conversion_path(cls, data: dict, target_version: MetadataVersion) -> list[Callable]:
+        """
+        Build a sequence of functions to convert data to target_version.
+
+        :params data: Raw metadata
+        :params target_version: The metadata version to convert to.
+        """
+        assert isinstance(target_version, MetadataVersion)
+        conversion_path = []
+        current_version = cls.detect_version(data)
+        logger.debug("Building conversion path from %s to %s", current_version.name, target_version.name)
+
+        while current_version.value < target_version.value:
+            next_version = MetadataVersion(current_version.value + 1)
+            conversion_func = cls.VERSION_CONVERSION_MAP.get(current_version)
+            logger.debug("Fetching conversion function (%s -> %s).", current_version.name, next_version.name)
+
+            if not conversion_func:
+                raise errors.EpubError("No function to convert from {current_version} to {next_version}")
+            current_version = next_version
+            conversion_path.append(conversion_func)
+
+        return conversion_path
+
+    @classmethod
+    def convert_to_version(cls, data: dict, target_version: MetadataVersion) -> dict:
+        """
+        Convert raw metadata into target version.
+
+        :params data: Raw metadata
+        :params target_version: The version to convert the metadata into
+        """
+        return functools.reduce(lambda d, f: f(d), cls.build_conversion_path(data, target_version), data)
+
+    @classmethod
+    def convert_to_current_version(cls, data: dict) -> dict:
+        """
+        Convert raw metadata into the default version.
+
+        :params data: Raw metadata
+        """
+        return cls.convert_to_version(data, cls.CURRENT_VERSION)
 
     @classmethod
     def from_novel(cls, novel: Novel) -> "EpubMetadata":

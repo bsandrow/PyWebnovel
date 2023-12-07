@@ -14,6 +14,14 @@ class ParseError(ValueError, PyWebnovelError):
     """An error caused due to a failure during parsing."""
 
 
+class EpubError(ValueError, PyWebnovelError):
+    """An error related to handling an epub package."""
+
+
+class EpubParseError(EpubError):
+    """An error caused while parsing an epub package."""
+
+
 class NoMatchingNovelScraper(ValueError, PyWebnovelError):
     """An error caused when a scraper is needed, but no scraper matches the URL provided."""
 
