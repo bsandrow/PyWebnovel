@@ -1,4 +1,5 @@
 from collections import defaultdict
+from dataclasses import dataclass
 import datetime
 from io import BytesIO, TextIOWrapper
 from unittest import TestCase, mock
@@ -236,3 +237,138 @@ class BatcherIterTestCase(TestCase):
         batches = list(utils.batcher_iter(iter("abcdefghijk"), batch_size=4))
         expected = [["a", "b", "c", "d"], ["e", "f", "g", "h"], ["i", "j", "k"]]
         self.assertEqual(batches, expected)
+
+
+class DataclassSerializationMixinTestCase(TestCase):
+    def test_from_json(self):
+        @dataclass
+        class T(utils.DataclassSerializationMixin):
+            pass
+
+        with (mock.patch.object(T, "from_dict") as from_dict_mock, mock.patch("json.loads") as json_loads_mock):
+            json_loads_mock.return_value = {"a": 1}
+
+            T.from_json("$TEST$")
+
+            json_loads_mock.assert_called_once_with("$TEST$")
+            from_dict_mock.assert_called_once_with({"a": 1})
+
+    def test_to_json(self):
+        @dataclass
+        class T(utils.DataclassSerializationMixin):
+            pass
+
+        t = T()
+
+        with (mock.patch.object(t, "to_dict") as to_dict_mock, mock.patch("json.dumps") as dumps_mock):
+            dumps_mock.return_value = "$TEST$"
+            to_dict_mock.return_value = {"a": 1}
+
+            return_value = t.to_json()
+
+            self.assertEqual(return_value, "$TEST$")
+
+            to_dict_mock.assert_called_once_with()
+            dumps_mock.assert_called_once_with({"a": 1})
+
+    def test_to_dict(self):
+        @dataclass
+        class T(utils.DataclassSerializationMixin):
+            string_test: str
+            integer_test: int
+
+        t = T(string_test="$TEST$", integer_test=123)
+
+        actual = t.to_dict()
+        expected = {"string_test": "$TEST$", "integer_test": 123}
+
+        self.assertEqual(actual, expected)
+
+    def test_from_dict(self):
+        @dataclass
+        class T(utils.DataclassSerializationMixin):
+            string_test: str
+            integer_test: int
+
+        actual = T.from_dict({"string_test": "$TEST$", "integer_test": 123})
+        expected = T(string_test="$TEST$", integer_test=123)
+
+        self.assertEqual(actual, expected)
+
+    def test_from_dict_handles_ignore_unknown_fields_on(self):
+        @dataclass
+        class T(utils.DataclassSerializationMixin):
+            ignore_unknown_fields = True
+
+            string_test: str
+            integer_test: int
+
+        actual = T.from_dict({"string_test": "$TEST$", "integer_test": 123, "unknown_field": 341})
+        expected = T(string_test="$TEST$", integer_test=123)
+
+        self.assertEqual(actual, expected)
+
+    def test_from_dict_handles_ignore_unknown_fields_off(self):
+        @dataclass
+        class T(utils.DataclassSerializationMixin):
+            ignore_unknown_fields = False
+
+            string_test: str
+            integer_test: int
+
+        with self.assertRaises(ValueError):
+            T.from_dict({"string_test": "$TEST$", "integer_test": 123, "unknown_field": 341})
+
+    def test_from_dict_handles_missing_required_fields(self):
+        @dataclass
+        class T(utils.DataclassSerializationMixin):
+            required_fields = ["string_test", "integer_test"]
+
+            string_test: str
+            integer_test: int
+
+        with self.assertRaises(ValueError):
+            T.from_dict({"string_test": "$TEST$"})
+
+    def test_convert_passes_unmapped_to_type(self):
+        """Check that the default fall-through behaviour is to pass value to field_type."""
+        self.assertNotIn(int, utils.DataclassSerializationMixin.default_type_map)
+        self.assertNotIn(int, utils.DataclassSerializationMixin.import_type_map)
+        actual = utils.DataclassSerializationMixin._convert("123", int)
+        expected = 123
+        self.assertEqual(actual, expected)
+
+    def test_convert_uses_default_type_map(self):
+        """Check that default_type_map is used if there is an entry."""
+        with mock.patch.object(utils.DataclassSerializationMixin, "default_type_map", new={int: lambda x: int(x) + 1}):
+            # utils.DataclassSerializationMixin.default_type_map[int] = lambda x: int(x) + 1
+            self.assertIn(int, utils.DataclassSerializationMixin.default_type_map)
+            self.assertNotIn(int, utils.DataclassSerializationMixin.import_type_map)
+            actual = utils.DataclassSerializationMixin._convert("123", int)
+            expected = 124
+            self.assertEqual(actual, expected)
+
+    def test_convert_import_type_map_overrides_default(self):
+        """Check that matching entry in import_type_map overrides default_type_map."""
+        with (
+            mock.patch.object(utils.DataclassSerializationMixin, "default_type_map", new={int: lambda x: int(x) + 1}),
+            mock.patch.object(utils.DataclassSerializationMixin, "import_type_map", new={int: lambda x: int(x) + 2}),
+        ):
+            # utils.DataclassSerializationMixin.default_type_map[int] = lambda x: int(x) + 1
+            # utils.DataclassSerializationMixin.import_type_map[int] = lambda x: int(x) + 2
+            self.assertIn(int, utils.DataclassSerializationMixin.default_type_map)
+            self.assertIn(int, utils.DataclassSerializationMixin.import_type_map)
+            actual = utils.DataclassSerializationMixin._convert("123", int)
+            expected = 125
+            self.assertEqual(actual, expected)
+
+    def test_convert_handles_other_mixin_classes(self):
+        class T(utils.DataclassSerializationMixin):
+            pass
+
+        with mock.patch.object(T, "from_dict") as from_dict:
+            from_dict.return_value = "$RETURN$"
+            actual = utils.DataclassSerializationMixin._convert("$INPUT$", T)
+            expected = "$RETURN$"
+            self.assertEqual(actual, expected)
+            from_dict.assert_called_once_with("$INPUT$")

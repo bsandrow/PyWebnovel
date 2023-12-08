@@ -1,7 +1,8 @@
 """General Utilities - written in support of the rest of the code."""
 
-from dataclasses import fields, is_dataclass
+from dataclasses import MISSING, fields, is_dataclass
 import datetime
+import decimal
 import io
 import itertools
 import json
@@ -10,6 +11,8 @@ import re
 import string
 from time import perf_counter
 from typing import IO, Any, Callable, ClassVar, Container, Iterator, Sequence, TypeVar, Union
+
+from apptk.coerce import to_datetime
 
 BASE_DIGITS = string.digits + string.ascii_letters
 
@@ -226,6 +229,35 @@ class DataclassSerializationMixin:
     #: converts it into what this dataclass needs it to be.
     import_type_map: ClassVar[dict[type, Callable[[Any], Any]]] = {}
 
+    #: Some common types need special handling, and it's a mess to required the
+    #: user to add overrides everytime. Use import_type_map to override this.
+    default_type_map: ClassVar[dict[type, Callable[[Any], Any]]] = {
+        datetime.date: lambda value: to_datetime(value).date(),
+        datetime.datetime: to_datetime,
+    }
+
+    @classmethod
+    def get_required_fields(cls: type[T]) -> set[str]:
+        """Return a set of the field names that are required to convert a dict into an instance."""
+        required_fields = set()
+
+        for field in fields(cls):
+            field_has_no_default = field.default is MISSING and field.default_factory is MISSING
+            has_required_fields = bool(cls.required_fields)
+
+            if field_has_no_default or (has_required_fields and field.name in cls.required_fields):
+                required_fields.add(field.name)
+
+        # Check if any of the required fields in "required_fields" are not
+        # returned by fields(), if there are any, then we need to raise an error
+        # here.
+        if has_required_fields:
+            bad_fields = set(cls.required_fields) - required_fields
+            if bad_fields:
+                raise ValueError(f"Fields in required_fields that aren't in fields(): {tuple(bad_fields)!r}")
+
+        return required_fields
+
     @classmethod
     def from_dict(cls: type[T], data: dict) -> T:
         """
@@ -244,18 +276,43 @@ class DataclassSerializationMixin:
                 f"Cannot convert dict to {cls.__name__}: Following unknown fields encountered: {fields_str}"
             )
 
-        if cls.required_fields:
-            missing_required_fields = set(cls.required_fields) - input_fields
+        if required_fields := cls.get_required_fields():
+            missing_required_fields = set(required_fields) - input_fields
             if missing_required_fields:
                 fields_str = ", ".join(map(repr, missing_required_fields))
                 raise ValueError(f"Cannot convert dict to {cls.__name__}: Missing required fields: {fields_str}")
 
         kwargs = {
-            key: (cls.import_type_map[field_type](value) if field_type in cls.import_type_map else value)
+            key: cls._convert(value, field_type)
             for key, value in data.items()
             if (field_type := field_types_map.get(key))
         }
         return cls(**kwargs)
+
+    @classmethod
+    def _convert(cls, value, field_type: type[T]) -> T:
+        """
+        Convert a field value into a field_type.
+
+        :params value: The value to convert.
+        :params field_type: The type of the field.
+        """
+        # If there are any overrides to import handling, deal with them here.
+        if field_type in cls.import_type_map:
+            return cls.import_type_map[field_type](value)
+
+        # if the target class is a subclass of this mixin, then use from_dict.
+        # This allows for nesting of dataclasses.
+        if issubclass(field_type, DataclassSerializationMixin):
+            return field_type.from_dict(value)
+
+        # Builtin handling of common use-cases.
+        if field_type in cls.default_type_map:
+            return cls.default_type_map[field_type](value)
+
+        # This should handle a bunch of common use-cases, like converting a
+        # string into a number class.
+        return field_type(value)
 
     def to_dict(self) -> dict:
         """
