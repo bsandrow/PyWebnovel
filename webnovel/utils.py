@@ -4,13 +4,16 @@ from dataclasses import fields, is_dataclass
 import datetime
 import io
 import itertools
+import json
 from pathlib import Path
 import re
 import string
 from time import perf_counter
-from typing import IO, Any, Callable, ClassVar, Container, Iterator, Sequence, Union
+from typing import IO, Any, Callable, ClassVar, Container, Iterator, Sequence, TypeVar, Union
 
 BASE_DIGITS = string.digits + string.ascii_letters
+
+T = TypeVar("T")
 
 
 def clean_filename(filename: str, replace_chars: Sequence[str] = "/?:@#!$%^", sub_char: str = "_"):
@@ -208,26 +211,28 @@ class Timer:
 class DataclassSerializationMixin:
     """A Mixin to add to_dict/from_dict to dataclasses."""
 
-    # When initializing from a dictionary, ignore any fields that don't
-    # correspond with fields on the dataclass. If this is set to false, then the
-    # conversion will raise an exception.
+    #: When initializing from a dictionary, ignore any fields that don't
+    #: correspond with fields on the dataclass. If this is set to false, then the
+    #: conversion will raise an exception.
     ignore_unknown_fields: ClassVar[bool] = True
 
-    # A list of fields that are required during conversion from a dictionary. If
-    # any of these fields are not present in the dictionary, conversion will
-    # fail with an exception.
+    #: A list of fields that are required during conversion from a dictionary. If
+    #: any of these fields are not present in the dictionary, conversion will
+    #: fail with an exception.
     required_fields: ClassVar[list[str] | None] = None
 
-    #
-    # A mapping of type to a callable that takes a single value an returns a
-    # value. This allows specific classes/types to be mapped to a function that
-    # converts it into what this dataclass needs it to be.
-    #
+    #: A mapping of type to a callable that takes a single value an returns a
+    #: value. This allows specific classes/types to be mapped to a function that
+    #: converts it into what this dataclass needs it to be.
     import_type_map: ClassVar[dict[type, Callable[[Any], Any]]] = {}
 
     @classmethod
-    def from_dict(cls, data: dict):
-        """Intialize an instance from a dictionary."""
+    def from_dict(cls: type[T], data: dict) -> T:
+        """
+        Intialize an instance from a dictionary.
+
+        :params data: dictionary of data to parse.
+        """
         field_types_map = {field.name: field.type for field in fields(cls)}
         valid_fields = set(field_types_map.keys())
         input_fields = set(data.keys())
@@ -263,6 +268,19 @@ class DataclassSerializationMixin:
             types. For example, converting a datetime instance into a string.
         """
         return {field.name: getattr(self, field.name) for field in fields(self)}
+
+    def to_json(self) -> str:
+        """Convert dataclass instance to a JSON string."""
+        return json.dumps(self.to_dict())
+
+    @classmethod
+    def from_json(cls: type[T], data: str) -> T:
+        """
+        Load dataclass instance from a JSON string.
+
+        :param data: The JSON string to parse.
+        """
+        return cls.from_dict(json.loads(data))
 
 
 class Namespace(dict):
