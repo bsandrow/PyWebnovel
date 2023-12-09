@@ -11,7 +11,7 @@ from bs4 import Tag
 
 from webnovel import errors
 from webnovel.data import Chapter, Novel, NovelStatus, Person
-from webnovel.utils import filter_dict
+from webnovel.utils import DataclassSerializationMixin, filter_dict
 
 if TYPE_CHECKING:
     from webnovel.epub.pkg import NovelInfo
@@ -35,7 +35,7 @@ class MetadataVersion(Enum):
 
 
 @dataclass
-class EpubOptions:
+class EpubOptions(DataclassSerializationMixin):
     """Collection of settings for the novel."""
 
     include_toc_page: bool = True
@@ -43,44 +43,15 @@ class EpubOptions:
     include_images: bool = True
     epub_version: str = "3.0"
 
-    @classmethod
-    def from_dict(cls, data: dict) -> "EpubOptions":
-        """Load EpubOptions from a dict."""
-        field_names = tuple(field.name for field in fields(cls))
-        return EpubOptions(**{key: value for key, value in data.items() if key in field_names})
-
-    def to_dict(self) -> dict:
-        """Convert EpubOptions to a dict."""
-        return asdict(self)
-
 
 @dataclass
-class ChangeLogEntry:
+class ChangeLogEntry(DataclassSerializationMixin):
     """An entry in the ChangeLog."""
 
     message: str
     created: datetime.datetime = field(default_factory=lambda: datetime.datetime.utcnow())
     new_value: Any | None = None
     old_value: Any | None = None
-
-    @classmethod
-    def from_dict(cls, data: dict) -> "ChangeLogEntry":
-        """Load from dictionary."""
-        kwargs = {}
-        kwargs["new_value"] = data["new_value"] if "new_value" in data else None
-        kwargs["old_value"] = data["old_value"] if "old_value" in data else None
-        kwargs["message"] = data["message"]
-        kwargs["created"] = datetime.datetime.fromisoformat(data["created"])
-        return cls(**kwargs)
-
-    def to_dict(self) -> dict:
-        """Convert to dictionary."""
-        return {
-            "message": self.message,
-            "created": self.created.isoformat(),
-            "new_value": self.new_value,
-            "old_value": self.old_value,
-        }
 
 
 @dataclass

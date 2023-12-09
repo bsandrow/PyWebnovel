@@ -1,3 +1,4 @@
+import datetime
 from unittest import TestCase, mock
 
 from webnovel import errors
@@ -98,4 +99,44 @@ class EpubMetadataTestCase(TestCase):
         metadata = data.EpubMetadata(novel_url="A", novel_id="B", site_id="C")
         expected = data.EpubMetadata(novel_url="A", novel_id="B", site_id="C")
         actual = data.EpubMetadata.from_dict(metadata.to_dict())
+        self.assertEqual(actual, expected)
+
+
+class ChangeLogEntryTestCase(TestCase):
+    def test_to_dict(self):
+        log_entry = data.ChangeLogEntry(message="$MSG$", created=datetime.datetime(2001, 1, 1))
+        actual = log_entry.to_dict()
+        expected = {"message": "$MSG$", "created": "2001-01-01T00:00:00", "new_value": None, "old_value": None}
+        self.assertEqual(actual, expected)
+
+    def test_to_dict_with_new_old_values(self):
+        log_entry = data.ChangeLogEntry(
+            message="$MSG$",
+            created=datetime.datetime(2001, 1, 1),
+            new_value={"a": 1},
+            old_value={"b": 2},
+        )
+        actual = log_entry.to_dict()
+        expected = {"message": "$MSG$", "created": "2001-01-01T00:00:00", "new_value": {"a": 1}, "old_value": {"b": 2}}
+        self.assertEqual(actual, expected)
+
+    def test_from_dict(self):
+        actual = data.ChangeLogEntry.from_dict({"message": "$MSG$", "created": "2001-01-01T00:00:00"})
+        expected = data.ChangeLogEntry(message="$MSG$", created=datetime.datetime(2001, 1, 1))
+        self.assertEqual(actual, expected)
+
+        actual = data.ChangeLogEntry.from_dict(
+            {
+                "message": "$MSG$",
+                "created": "2001-01-01T00:00:00",
+                "new_value": {"a": 1},
+                "old_value": {"b": 2},
+            }
+        )
+        expected = data.ChangeLogEntry(
+            message="$MSG$",
+            created=datetime.datetime(2001, 1, 1),
+            new_value={"a": 1},
+            old_value={"b": 2},
+        )
         self.assertEqual(actual, expected)
