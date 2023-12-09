@@ -3,6 +3,7 @@
 from dataclasses import MISSING, fields, is_dataclass
 import datetime
 import decimal
+import inspect
 import io
 import itertools
 import json
@@ -290,7 +291,7 @@ class DataclassSerializationMixin:
         return cls(**kwargs)
 
     @classmethod
-    def _convert(cls, value, field_type: type[T]) -> T:
+    def _parse_field_value(cls, value, field_type: type[T]) -> T:
         """
         Convert a field value into a field_type.
 
@@ -303,7 +304,7 @@ class DataclassSerializationMixin:
 
         # if the target class is a subclass of this mixin, then use from_dict.
         # This allows for nesting of dataclasses.
-        if issubclass(field_type, DataclassSerializationMixin):
+        if inspect.isclass(field_type) and issubclass(field_type, DataclassSerializationMixin):
             return field_type.from_dict(value)
 
         # Builtin handling of common use-cases.
@@ -312,7 +313,28 @@ class DataclassSerializationMixin:
 
         # This should handle a bunch of common use-cases, like converting a
         # string into a number class.
-        return field_type(value)
+        return field_type(value) if inspect.isclass(field_type) else value
+
+    @classmethod
+    def _export_field_value(cls, value) -> Any:
+        """
+        Serialize the field value.
+
+        Based on the type of `value`, convert it into an easy to JSON-ify
+        format. For example, convert dates or datetimes into ISO format.
+
+        :params value: The value to serialize
+        """
+        if isinstance(value, DataclassSerializationMixin):
+            return value.to_dict()
+
+        if isinstance(value, (datetime.datetime, datetime.date)):
+            return value.isoformat()
+
+        if isinstance(value, decimal.Decimal):
+            return str(value)
+
+        return value
 
     def to_dict(self) -> dict:
         """
@@ -324,7 +346,7 @@ class DataclassSerializationMixin:
             some flexibility in converting certain datatypes into json-ified
             types. For example, converting a datetime instance into a string.
         """
-        return {field.name: getattr(self, field.name) for field in fields(self)}
+        return {field.name: self._export_field_value(getattr(self, field.name)) for field in fields(self)}
 
     def to_json(self) -> str:
         """Convert dataclass instance to a JSON string."""

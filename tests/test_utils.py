@@ -334,7 +334,7 @@ class DataclassSerializationMixinTestCase(TestCase):
         """Check that the default fall-through behaviour is to pass value to field_type."""
         self.assertNotIn(int, utils.DataclassSerializationMixin.default_type_map)
         self.assertNotIn(int, utils.DataclassSerializationMixin.import_type_map)
-        actual = utils.DataclassSerializationMixin._convert("123", int)
+        actual = utils.DataclassSerializationMixin._parse_field_value("123", int)
         expected = 123
         self.assertEqual(actual, expected)
 
@@ -344,7 +344,7 @@ class DataclassSerializationMixinTestCase(TestCase):
             # utils.DataclassSerializationMixin.default_type_map[int] = lambda x: int(x) + 1
             self.assertIn(int, utils.DataclassSerializationMixin.default_type_map)
             self.assertNotIn(int, utils.DataclassSerializationMixin.import_type_map)
-            actual = utils.DataclassSerializationMixin._convert("123", int)
+            actual = utils.DataclassSerializationMixin._parse_field_value("123", int)
             expected = 124
             self.assertEqual(actual, expected)
 
@@ -358,7 +358,7 @@ class DataclassSerializationMixinTestCase(TestCase):
             # utils.DataclassSerializationMixin.import_type_map[int] = lambda x: int(x) + 2
             self.assertIn(int, utils.DataclassSerializationMixin.default_type_map)
             self.assertIn(int, utils.DataclassSerializationMixin.import_type_map)
-            actual = utils.DataclassSerializationMixin._convert("123", int)
+            actual = utils.DataclassSerializationMixin._parse_field_value("123", int)
             expected = 125
             self.assertEqual(actual, expected)
 
@@ -368,7 +368,7 @@ class DataclassSerializationMixinTestCase(TestCase):
 
         with mock.patch.object(T, "from_dict") as from_dict:
             from_dict.return_value = "$RETURN$"
-            actual = utils.DataclassSerializationMixin._convert("$INPUT$", T)
+            actual = utils.DataclassSerializationMixin._parse_field_value("$INPUT$", T)
             expected = "$RETURN$"
             self.assertEqual(actual, expected)
             from_dict.assert_called_once_with("$INPUT$")
