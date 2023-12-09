@@ -325,15 +325,15 @@ class DataclassSerializationMixin:
 
         :params value: The value to serialize
         """
-        if isinstance(value, DataclassSerializationMixin):
-            return value.to_dict()
-
-        if isinstance(value, (datetime.datetime, datetime.date)):
-            return value.isoformat()
-
-        if isinstance(value, decimal.Decimal):
-            return str(value)
-
+        export_mapping = {
+            DataclassSerializationMixin: lambda value: value.to_dict(),
+            datetime.datetime: lambda value: value.isoformat(),
+            datetime.date: lambda value: value.isoformat(),
+            decimal.Decimal: str,
+        }
+        for type_, callable in export_mapping.items():
+            if isinstance(value, type_):
+                return callable(value)
         return value
 
     def to_dict(self) -> dict:
