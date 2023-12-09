@@ -284,7 +284,7 @@ class DataclassSerializationMixin:
                 raise ValueError(f"Cannot convert dict to {cls.__name__}: Missing required fields: {fields_str}")
 
         kwargs = {
-            key: cls._convert(value, field_type)
+            key: cls._parse_field_value(value, field_type)
             for key, value in data.items()
             if (field_type := field_types_map.get(key))
         }
