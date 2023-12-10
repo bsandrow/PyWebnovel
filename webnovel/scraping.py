@@ -331,6 +331,9 @@ class WpMangaNovelInfoMixin(NovelScraperBase):
     post_content_item_class = "post-content_item"
     post_content_item_heading_class = "summary-heading"
     post_content_item_content_class = "summary-content"
+
+    #: The date format (past to strptime) used to parse the post date from
+    #: chapter list entries.
     chapter_date_format: str | None = None
 
     status_section_name = "Status"
@@ -343,7 +346,10 @@ class WpMangaNovelInfoMixin(NovelScraperBase):
     #: .free-chap selector when a site has paid / free chapters.
     chapter_selector = ".wp-manga-chapter.free-chap"
 
+    #: The mapping of status values on the page, to NovelStatus values.
     status_map = {"ongoing": NovelStatus.ONGOING, "completed": NovelStatus.COMPLETED}
+
+    #: The function used to exctract the slug for the chapter.
     get_chapter_slug: None | Callable = None
 
     def get_title(self, page: BeautifulSoup) -> str:
