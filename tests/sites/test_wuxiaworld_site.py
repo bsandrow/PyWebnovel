@@ -46,22 +46,22 @@ class WuxiaWorldDotSiteScraperTestCase(TestCase):
         self.requests_mock.stop()
 
     def test_get_title(self):
-        scraper = wuxiaworld_site.WuxiaWorldDotSiteScraper()
+        scraper = wuxiaworld_site.NovelScraper()
         soup = scraper.get_soup(self.novel_page)
         self.assertEqual(scraper.get_title(soup), "Global Game: AFK In The Zombie Apocalypse Game")
 
     def test_get_status(self):
-        scraper = wuxiaworld_site.WuxiaWorldDotSiteScraper()
+        scraper = wuxiaworld_site.NovelScraper()
         soup = scraper.get_soup(self.novel_page)
         self.assertEqual(scraper.get_status(soup), NovelStatus.ONGOING)
 
     def test_get_genres(self):
-        scraper = wuxiaworld_site.WuxiaWorldDotSiteScraper()
+        scraper = wuxiaworld_site.NovelScraper()
         soup = scraper.get_soup(self.novel_page)
         self.assertEqual(scraper.get_genres(soup), ["Video Games"])
 
     def test_get_author(self):
-        scraper = wuxiaworld_site.WuxiaWorldDotSiteScraper()
+        scraper = wuxiaworld_site.NovelScraper()
         soup = scraper.get_soup(self.novel_page)
         self.assertEqual(
             scraper.get_author(soup),
@@ -69,7 +69,7 @@ class WuxiaWorldDotSiteScraperTestCase(TestCase):
         )
 
     def test_get_cover_image(self):
-        scraper = wuxiaworld_site.WuxiaWorldDotSiteScraper()
+        scraper = wuxiaworld_site.NovelScraper()
         soup = scraper.get_soup(self.novel_page)
         self.assertEqual(
             scraper.get_cover_image(soup),
@@ -80,7 +80,7 @@ class WuxiaWorldDotSiteScraperTestCase(TestCase):
 
     def test_get_summary(self):
         self.maxDiff = None
-        scraper = wuxiaworld_site.WuxiaWorldDotSiteScraper()
+        scraper = wuxiaworld_site.NovelScraper()
         soup = scraper.get_soup(self.novel_page)
         self.assertEqual(
             scraper.get_summary(soup),
@@ -104,7 +104,7 @@ class WuxiaWorldDotSiteScraperTestCase(TestCase):
 
     def test_scrape(self):
         url = "https://wuxiaworld.site/novel/global-game-afk-in-the-zombie-apocalypse-game-wuxia-dao-novel/"
-        scraper = wuxiaworld_site.WuxiaWorldDotSiteScraper()
+        scraper = wuxiaworld_site.NovelScraper()
         novel = scraper.scrape(url)
 
         expected_novel = Novel(
