@@ -421,7 +421,7 @@ class WpMangaNovelInfoMixin(NovelScraperBase):
         """Extract the cover image from the wp-manga header."""
         img = page.select_one(".summary_image img")
         if img:
-            image_url = img.get("src")
+            image_url = img.get("data-src") or img.get("src")
             return Image(url=image_url)
         return None
 
