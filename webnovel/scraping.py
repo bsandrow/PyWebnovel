@@ -338,9 +338,9 @@ class WpMangaNovelInfoMixin(NovelScraperBase):
     tags_section_name = "Tag(s)"
     genres_section_name = "Genre(s)"
 
-    # CSS Selector for the <li> elements in the ajax response containing the
-    # full list of chapters.  Usually .wp-manga-chapter works, but needs the
-    # .free-chap selector when a site has paid / free chapters.
+    #: CSS Selector for the <li> elements in the ajax response containing the
+    #: full list of chapters.  Usually .wp-manga-chapter works, but needs the
+    #: .free-chap selector when a site has paid / free chapters.
     chapter_selector = ".wp-manga-chapter.free-chap"
 
     status_map = {"ongoing": NovelStatus.ONGOING, "completed": NovelStatus.COMPLETED}
