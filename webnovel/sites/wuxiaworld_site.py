@@ -49,15 +49,6 @@ def style_element_filter(element: Tag) -> None:
         element.decompose()
 
 
-class NovelScraper(WpMangaNovelInfoMixin, NovelScraperBase):
-    """Scraper for WuxiaWorld.site."""
-
-    site_name = SITE_NAME
-    url_pattern = HTTPS_PREFIX + r"wuxiaworld\.site/novel/(?P<NovelID>[\w-]+)/"
-    chapter_date_format = "%B %d, %Y"
-    chapter_selector = ".wp-manga-chapter"
-
-
 class ChapterScraper(ChapterScraperBase):
     """Scraper for WuxiaWorld.site chapter content."""
 
@@ -108,3 +99,13 @@ class ChapterScraper(ChapterScraperBase):
             chapter.title = Chapter.clean_title(match.group(0))
             html.remove_element(results[0])
         chapter.title = chapter.title.replace(" - : ", ": ") if chapter.title else None
+
+
+class NovelScraper(WpMangaNovelInfoMixin, NovelScraperBase):
+    """Scraper for WuxiaWorld.site."""
+
+    site_name = SITE_NAME
+    url_pattern = HTTPS_PREFIX + r"wuxiaworld\.site/novel/(?P<NovelID>[\w-]+)/"
+    chapter_date_format = "%B %d, %Y"
+    chapter_selector = ".wp-manga-chapter"
+    get_chapter_slug = ChapterScraper.get_chapter_slug
