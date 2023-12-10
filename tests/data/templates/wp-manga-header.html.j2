@@ -1,0 +1,90 @@
+<div>
+  <div class="c-breadcrumb-wrapper"></div>
+  <div class="post-title"><h1>{{title}}</h1></div>
+  <div class="tab-summary">
+    <div class="summary_image">
+      <a href="$NOVEL_URL$">
+        <img style="" src="{{cover_image_url}}" alt="$COVER_IMAGE_TEXT$" />
+      </a>
+    </div>
+
+    <div class="summary_content_wrap">
+      <div class="summary_content">
+        <div class="post-content">
+          <div class="loader-inner ball-pulse">
+            <div></div>
+            <div></div>
+            <div></div>
+          </div>
+          <div class="post-content_item">
+            <div class="summary-heading"><h5>Rank</h5></div>
+            <div class="summary-content">6th, it has 28.1K monthly views</div>
+          </div>
+          <div class="post-content_item">
+            <div class="summary-heading"><h5>Alternative</h5></div>
+            <div class="summary-content">Alternative Title for Novel</div>
+          </div>
+          <div class="post-content_item">
+            <div class="summary-heading"><h5>Author(s)</h5></div>
+            <div class="summary-content">
+              <div class="author-content">
+                <a href="{{author.url}}" rel="tag">{{author.name}}</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="post-content_item">
+            <div class="summary-heading"><h5>Tag(s)</h5></div>
+            <div class="summary-content">
+              <div class="genres-content">
+                {% for tag in tags %}
+                <a href="{{tag.url}}" rel="tag">{{tag.name}}</a>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+
+          <div class="post-content_item">
+            <div class="summary-heading"><h5>Genre(s)</h5></div>
+            <div class="summary-content">
+              <div class="genres-content">
+                {% for genre in genres %}
+                <a href="{{genre.url}}" rel="tag">{{genre.name}}</a>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="post-status">
+          <div class="post-content_item">
+            <div class="summary-heading"><h5>Release</h5></div>
+            <div class="summary-content"><a href="$RELEASEURL$" rel="tag">2022</a></div>
+          </div>
+          <div class="post-content_item">
+            <div class="summary-heading"><h5>Status</h5></div>
+            <div class="summary-content">{{status}}</div>
+          </div>
+          <div class="manga-action">
+            <div class="count-comment">
+              <div class="action_icon"><a href="#manga-discussion"><i class="icon ion-md-chatbubbles"></i></a></div>
+              <div class="action_detail"><span>1 comment</span></div>
+            </div>
+            <div class="add-bookmark">
+              <div class="action_icon">
+                <script type="text/javascript"> var requireLogin2BookMark = true; </script>
+                <a href="#" class="wp-manga-action-button" data-action="bookmark" data-post="13321" data-chapter="" data-page="1" title="Bookmark"><i class="icon ion-ios-bookmark"></i></a>
+              </div>
+              <div class="action_detail"><span>256 Users bookmarked This</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="init-links" class="nav-links">
+          <a href="#" id="btn-read-last" class="c-btn c-btn_style-1">Read First</a>
+          <a href="#" id="btn-read-first" class="c-btn c-btn_style-1">Read Last</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

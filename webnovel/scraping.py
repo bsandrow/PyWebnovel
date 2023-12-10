@@ -1,6 +1,7 @@
 """Base Functionality for Scraping Webnovel Content."""
 
 import datetime
+import itertools
 import logging
 import re
 from typing import Union
@@ -301,3 +302,161 @@ class ChapterScraperBase(ScraperBase):
                 chapter.title,
                 self.__class__,
             )
+
+
+class WpMangaNovelInfoMixin(NovelScraperBase):
+    """
+    A mixin for getting novel info from sites that use "wp-manga" WordPress plugin.
+
+    There seems to be a "wp-manga" WordPress plugin that a lot of sites use to
+    display parts of novels. Using this mixin reduces the duplication of code
+    when sites using this plugin have commonalities for the novel information
+    section (i.e. they haven't modified it too heavily)
+    """
+
+    # <div class="summary_content">
+    #   <div class="post-status">
+    #     <div class="post-content_item">
+    #       <div class="summary-heading"><h5>Project</h5></div>
+    #       <div class="summary-content"><a href="$URL$" rel="tag">Active</a></div>
+    #     </div>
+    #     <div class="post-content_item">
+    #       <div class="summary-heading"><h5>Novel</h5></div>
+    #       <div class="summary-content">OnGoing</div>
+    #     </div>
+    #     <div class="manga-action">
+    # </div>
+    post_content_classes = ["post-content", "post-status"]
+    post_content_item_class = "post-content_item"
+    post_content_item_heading_class = "summary-heading"
+    post_content_item_content_class = "summary-content"
+
+    status_map = {"ongoing": NovelStatus.ONGOING, "completed": NovelStatus.COMPLETED}
+
+    def get_title(self, page: BeautifulSoup) -> str:
+        """Extract the title from the wp-manga Header."""
+        title_html = page.select_one(".post-title")
+        if title_html:
+            return title_html.text.strip()
+        return None
+
+    def post_processing(self, page: BeautifulSoup, url: str, novel: Novel):
+        """
+        Process extra information and use it to modify the novel.
+
+        In this case, add additional things to Novel.extras that can be scraped
+        from the site.
+        """
+        super().post_processing(page, url, novel)
+        novel.extras = novel.extras or {}
+        new_extras = self.get_extras(page)
+
+        # Before overwriting any pre-existing data where key collisions happen,
+        # do a quick check if any collisions exist, and log a warning. There's
+        # no point in completely bailing out of the operation over these
+        # collisions, but this way they aren't just being silently ignored
+        # either.
+        previous_keys = set(novel.extras.keys())
+        new_keys = set(new_extras.keys())
+        if collisions := previous_keys & new_keys:
+            logger.warn("Key collisions while building extras: %s", collisions)
+
+        novel.extras.update(new_extras)
+
+    def get_author(self, page: BeautifulSoup) -> Person | None:
+        """Extract the author."""
+        sections = self.get_status_section(page)
+        author_section = sections.get("Author(s)")
+        if author_section:
+            authors = [
+                Person(name=author.text.strip(), url=author.get("href")) for author in author_section.select("a")
+            ]
+            # !! Warn about this until multiple authors are supported
+            if len(authors) > 1:
+                logger.warn("Found multiple authors: %s", authors)
+
+            return authors[0] if len(authors) > 0 else None
+
+        # Some sites don't bother to put the authors on there. It's unfortunate,
+        # but there's no way to automatically remedy this.
+        return None
+
+    def get_tags(self, page: BeautifulSoup) -> list[str]:
+        """Extract tags from page."""
+        tags = None
+        sections = self.get_status_section(page)
+        tags_section = sections.get("Tag(s)")
+        if tags_section:
+            tags = [tag.text.strip() for tag in tags_section.select("a")]
+        return tags
+
+    def get_genres(self, page: BeautifulSoup) -> list[str] | None:
+        """Extract genres from page."""
+        genres = None
+        sections = self.get_status_section(page)
+        genres_section = sections.get("Genre(s)")
+        print(f"---\n{genres_section!r}\n---")
+        if genres_section:
+            genres = [genre.text.strip() for genre in genres_section.select("a")]
+        return genres
+
+    def get_cover_image(self, page: BeautifulSoup) -> Image | None:
+        """Extract the cover image from the wp-manga header."""
+        img = page.select_one(".summary_image img")
+        if img:
+            image_url = img.get("src")
+            return Image(url=image_url)
+        return None
+
+    def get_status_section(self, page: Tag) -> dict[str, Tag]:
+        """
+        Extract the items on the right side of the novel summary section.
+
+        These items are usually: Status, Release (release year), Project
+        (active, dropped, etc).
+
+        Returns a mapping of the section title to the HTML tree that holds the
+        section content. Some sections are just text, but others could contain
+        links. Returning the section's HTML tree allows the caller to decide
+        what to do with the information.
+
+        :params page: The HTML tree to parse for this section.
+        """
+        sections = {}
+        post_status_sections = [page.select_one(f"div.{_class}") for _class in self.post_content_classes]
+        post_content_items = itertools.chain.from_iterable(
+            post_status_section.select(f"div.{self.post_content_item_class}")
+            for post_status_section in post_status_sections
+        )
+
+        for post_content_item in post_content_items:
+            if (heading := post_content_item.select_one(f"div.{self.post_content_item_heading_class}")) and (
+                content := post_content_item.select_one(f"div.{self.post_content_item_content_class}")
+            ):
+                sections[heading.text.strip()] = content
+
+        return sections
+
+    def get_extras(self, page: Tag) -> dict:
+        """Extract any extra (i.e. non-core) information."""
+        extras = {}
+
+        for heading, section in self.get_status_section(page).items():
+            if section not in (
+                "Status",
+                "Author(s)",
+                "Genre(s)",
+                "Tag(s)",
+            ):
+                extras[heading] = self._text(section)
+                if link := section.find("a"):
+                    extras[heading] = {"link": link.get("href"), "text": self._text(section)}
+
+        return extras
+
+    def get_status(self, page: Tag) -> NovelStatus:
+        """Extract the novel's status from the page."""
+        status_sections = self.get_status_section(page)
+        status_content = status_sections.get("Status")
+        status_text = self._text(status_content) or ""
+        return self.status_map.get(status_text.lower(), NovelStatus.UNKNOWN)
