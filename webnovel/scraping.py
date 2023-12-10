@@ -4,7 +4,8 @@ import datetime
 import itertools
 import logging
 import re
-from typing import Union
+from typing import Callable, Union
+import urllib.parse
 
 from apptk.html import Selector
 from bs4 import BeautifulSoup, Tag
@@ -330,12 +331,19 @@ class WpMangaNovelInfoMixin(NovelScraperBase):
     post_content_item_class = "post-content_item"
     post_content_item_heading_class = "summary-heading"
     post_content_item_content_class = "summary-content"
+    chapter_date_format: str | None = None
+
+    status_section_name = "Status"
+    author_section_name = "Author(s)"
+    tags_section_name = "Tag(s)"
+    genres_section_name = "Genre(s)"
 
     status_map = {"ongoing": NovelStatus.ONGOING, "completed": NovelStatus.COMPLETED}
+    get_chapter_slug: None | Callable = None
 
     def get_title(self, page: BeautifulSoup) -> str:
         """Extract the title from the wp-manga Header."""
-        title_html = page.select_one(".post-title")
+        title_html = page.select_one(".post-title h1")
         if title_html:
             return title_html.text.strip()
         return None
@@ -366,7 +374,7 @@ class WpMangaNovelInfoMixin(NovelScraperBase):
     def get_author(self, page: BeautifulSoup) -> Person | None:
         """Extract the author."""
         sections = self.get_status_section(page)
-        author_section = sections.get("Author(s)")
+        author_section = sections.get(self.author_section_name)
         if author_section:
             authors = [
                 Person(name=author.text.strip(), url=author.get("href")) for author in author_section.select("a")
@@ -385,7 +393,7 @@ class WpMangaNovelInfoMixin(NovelScraperBase):
         """Extract tags from page."""
         tags = None
         sections = self.get_status_section(page)
-        tags_section = sections.get("Tag(s)")
+        tags_section = sections.get(self.tags_section_name)
         if tags_section:
             tags = [tag.text.strip() for tag in tags_section.select("a")]
         return tags
@@ -394,11 +402,15 @@ class WpMangaNovelInfoMixin(NovelScraperBase):
         """Extract genres from page."""
         genres = None
         sections = self.get_status_section(page)
-        genres_section = sections.get("Genre(s)")
+        genres_section = sections.get(self.genres_section_name)
         print(f"---\n{genres_section!r}\n---")
         if genres_section:
             genres = [genre.text.strip() for genre in genres_section.select("a")]
         return genres
+
+    def get_summary(self, page: BeautifulSoup) -> str | Tag:
+        """Extract the summary from the page."""
+        return page.select_one(".c-page__content > .description-summary > .summary__content")
 
     def get_cover_image(self, page: BeautifulSoup) -> Image | None:
         """Extract the cover image from the wp-manga header."""
@@ -443,10 +455,10 @@ class WpMangaNovelInfoMixin(NovelScraperBase):
 
         for heading, section in self.get_status_section(page).items():
             if section not in (
-                "Status",
-                "Author(s)",
-                "Genre(s)",
-                "Tag(s)",
+                self.status_section_name,
+                self.author_section_name,
+                self.genres_section_name,
+                self.tags_section_name,
             ):
                 extras[heading] = self._text(section)
                 if link := section.find("a"):
@@ -457,6 +469,26 @@ class WpMangaNovelInfoMixin(NovelScraperBase):
     def get_status(self, page: Tag) -> NovelStatus:
         """Extract the novel's status from the page."""
         status_sections = self.get_status_section(page)
-        status_content = status_sections.get("Status")
+        status_content = status_sections.get(self.status_section_name)
         status_text = self._text(status_content) or ""
         return self.status_map.get(status_text.lower(), NovelStatus.UNKNOWN)
+
+    def get_chapters(self, page: BeautifulSoup, url: str) -> list:
+        """Get the list of chapters from the novel page."""
+        novel_id = self.get_novel_id(url)
+        ajax_url = urllib.parse.urljoin(url, f"/novel/{novel_id}/ajax/chapters/")
+        ajax_page = self.get_page(ajax_url, method="post")
+        assert self.chapter_date_format is not None
+        return [
+            Chapter(
+                url=(url := chapter_li.select_one("A").get("href")),
+                title=Chapter.clean_title(chapter_li.select_one("A").text.strip()),
+                chapter_no=idx,
+                pub_date=self._date(
+                    self._text(chapter_li.select_one(".chapter-release-date")),
+                    date_format=self.chapter_date_format,
+                ),
+                slug=(self.get_chapter_slug(url) if self.get_chapter_slug else None),
+            )
+            for idx, chapter_li in enumerate(reversed(ajax_page.select(".wp-manga-chapter.free-chap")))
+        ]
