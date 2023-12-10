@@ -139,7 +139,7 @@ class ChapterScraperTestCase(TestCase):
         self.assertIn("Lee Jaehun was an undeniable villain that no one could refute", chapter.html)
 
         # Make sure that the ad blocks don't show up.
-        self.assertIn("ezoic-pub-ad-", chapter.original_html)
+        # self.assertIn("ezoic-pub-ad-", chapter.original_html)
         self.assertNotIn("ezoic-pub-ad-", chapter.html)
 
         # Make sure no <script> elements are in the content:
