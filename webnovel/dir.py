@@ -27,6 +27,7 @@ class WebNovelStatus(enum.Enum):
 
     ONGOING = "ongoing"
     PAUSED = "paused"
+    DROPPED = "dropped"
     COMPLETE = "complete"
 
 
@@ -163,6 +164,9 @@ class WebNovelDirectory:
                         context={"dir": self, "novel": webnovel},
                         logger=logger,
                     )
+                    continue
+
+                if webnovel.status == WebNovelStatus.DROPPED:
                     continue
 
                 if webnovel.status == WebNovelStatus.PAUSED:
