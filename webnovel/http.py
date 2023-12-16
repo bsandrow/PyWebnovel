@@ -1,8 +1,12 @@
 """Central place for all HTTP-handling."""
 
+import json
+from pathlib import Path
+
 from apptk.http import HttpClient
 from requests_ratelimiter import LimiterAdapter
 
+COOKIES_JSON = Path("~/.config/pywebnovel/cookies.json").expanduser()
 DEFAULT_ADAPTER = LimiterAdapter(per_second=5)
 ADAPTERS = {
     "http://": DEFAULT_ADAPTER,
@@ -29,6 +33,13 @@ def get_client(*args, **kwargs) -> HttpClient:
     client = HttpClient(*args, **kwargs)
     if user_agent:
         client._session.headers["User-Agent"] = user_agent
+
+    if COOKIES_JSON.exists():
+        with COOKIES_JSON.open("r") as fh:
+            cookies = json.loads(fh.read())
+            for cookie in cookies:
+                client._session.cookies.set(**cookie)
+
     # for key, adapter in ADAPTERS.items():
     #     client._session.mount(key, adapter)
     return client
