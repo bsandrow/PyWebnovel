@@ -12,7 +12,7 @@ from freezegun import freeze_time
 import jinja2
 from requests_mock import Mocker as RequestsMocker
 
-from webnovel import data, epub, utils
+from webnovel import data, epub, scraping, utils
 
 TEST_DATA_DIR = pathlib.Path(__file__).parent / "data"
 
@@ -230,3 +230,79 @@ class ScraperTestCase(TestCase_orig):
         template = self.jinja.get_template(name)
         page_text = template.render(**params)
         return BeautifulSoup(page_text, parser)
+
+
+class WpMangaScraperTestCase(ScraperTestCase):
+
+    maxDiff = None
+
+    #: The novel URL to use for testing.
+    novel_url: str = None
+
+    #: The novel scraper class to test.
+    scraper_class: type[scraping.WpMangaNovelInfoMixin] = None
+
+    expected_synopsis: str = None
+    expected_status_section: dict = None
+    expected_cover_image_url: str = None
+    expected_author: data.Person = None
+    expected_status: data.NovelStatus = None
+    expected_title: str = None
+    expected_tags: list[str] = None
+    expected_genres: list[str] = None
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        assert cls.novel_url is not None, "Need to define a novel_url"
+        assert cls.scraper_class is not None, "Need to set the scraper class."
+
+        super().setUpClass()
+        # NOTE: doing this here to minimize the number of times we hit the site.
+        #       Some sites are very aggressive in their anti-DDOS measures, so
+        #       let's not trigger rate limiting if we don't have to.
+        cls.scraper: scraping.WpMangaNovelInfoMixin = cls.scraper_class()
+        cls.page = cls.scraper.get_page(url=cls.novel_url)
+
+    def test_get_status_section(self):
+        actual = self.scraper.get_status_section(self.page)
+        actual_ = {key: value.text.strip() for key, value in actual.items()}
+        self.assertEqual(actual_, self.expected_status_section)
+
+    def test_summary(self):
+        actual = str(self.scraper.get_summary(self.page))
+        self.assertEqual(actual, self.expected_synopsis)
+
+    def test_novel_id(self):
+        actual = self.scraper.get_novel_id(url=self.novel_url)
+        self.assertEqual(actual, self.expected_novel_id)
+
+    def test_cover_image(self):
+        actual: data.Image = self.scraper.get_cover_image(self.page)
+        self.assertEqual(actual.url, self.expected_cover_image_url)
+        self.assertIsNone(actual.mimetype)
+
+    def test_get_author(self):
+        actual = self.scraper.get_author(self.page)
+        self.assertEqual(actual, self.expected_author)
+
+    def test_status(self):
+        actual = self.scraper.get_status(self.page)
+        self.assertEqual(actual, self.expected_status)
+
+    def test_title(self):
+        actual_title = self.scraper.get_title(self.page)
+        self.assertEqual(actual_title, self.expected_title)
+
+    def test_get_tags(self):
+        actual = self.scraper.get_tags(self.page)
+        self.assertEqual(actual, self.expected_tags)
+
+    def test_get_genres(self):
+        actual = self.scraper.get_genres(self.page)
+        self.assertEqual(actual, self.expected_genres)
+
+    def test_chapters(self):
+        actual = self.scraper.get_chapters(page=self.page, url=self.novel_url)
+        self.assertEqual(
+            [(chapter.url, chapter.title, chapter.pub_date) for chapter in actual[:6]], self.expected_chapters
+        )
