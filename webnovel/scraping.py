@@ -414,7 +414,6 @@ class WpMangaNovelInfoMixin(NovelScraperBase):
         genres = None
         sections = self.get_status_section(page)
         genres_section = sections.get(self.genres_section_name)
-        print(f"---\n{genres_section!r}\n---")
         if genres_section:
             genres = [genre.text.strip() for genre in genres_section.select("a")]
         return genres
