@@ -348,9 +348,9 @@ class DataclassSerializationMixin:
         """
         return {field.name: self._export_field_value(getattr(self, field.name)) for field in fields(self)}
 
-    def to_json(self) -> str:
+    def to_json(self, **kwargs) -> str:
         """Convert dataclass instance to a JSON string."""
-        return json.dumps(self.to_dict())
+        return json.dumps(self.to_dict(), **kwargs)
 
     @classmethod
     def from_json(cls: type[T], data: str) -> T:

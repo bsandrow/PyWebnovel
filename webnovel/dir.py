@@ -12,7 +12,7 @@ import zipfile
 
 from requests import HTTPError
 
-from webnovel import events
+from webnovel import data, events, utils
 from webnovel.errors import DirectoryDoesNotExistError
 
 if TYPE_CHECKING:
@@ -20,6 +20,13 @@ if TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
+
+
+class WNDVersion(enum.Enum):
+    """WebNovelDirectory version."""
+
+    v1 = 1
+    v2 = 2
 
 
 class WebNovelStatus(enum.Enum):
@@ -67,26 +74,18 @@ def is_pywebnovel_epub(path: Union[str, Path]) -> bool:
 
 
 @dataclass
-class WebNovelDirectoryStatus:
+class WebNovelDirectoryStatus(utils.DataclassSerializationMixin):
     """Representation of the status of a WebNovelDirectory."""
 
+    #: All of the webnovels
     webnovels: list[WebNovel] = field(default_factory=list)
-    last_run: Optional[datetime.datetime] = None
 
-    @classmethod
-    def from_json(cls, data: dict) -> "WebNovelDirectoryStatus":
-        """Load from dict."""
-        return cls(
-            webnovels=[WebNovel.from_json(a) for a in data["webnovels"]],
-            last_run=datetime.datetime.fromisoformat(data["last_run"]) if data.get("last_run") else None,
-        )
+    #: The last time that an update was run.
+    last_run: datetime.datetime | None = None
 
-    def to_json(self) -> dict:
-        """Convert to dict."""
-        return {
-            "webnovels": [wn.to_json() for wn in self.webnovels],
-            "last_run": self.last_run.isoformat() if self.last_run else None,
-        }
+    #: Status version. Used for dealing with changes to the format when it comes
+    #: to loading/saving.
+    version: WNDVersion | None = WNDVersion.v1
 
 
 class WebNovelDirectory:
@@ -108,9 +107,9 @@ class WebNovelDirectory:
         if self.status_file.exists():
             with self.status_file.open("r") as fh:
                 string_data = fh.read()
-                if string_data.strip():
-                    data = json.loads(string_data)
-                    return WebNovelDirectoryStatus.from_json(data)
+                string_data = string_data.strip()
+                if string_data:
+                    return WebNovelDirectoryStatus.from_json(string_data)
 
         webnovels = []
         for epub_file in self.directory.glob("*.epub"):
@@ -122,8 +121,7 @@ class WebNovelDirectory:
         """Save the status of the WebNovelDirectory."""
         events.trigger(event=events.Event.WEBNOVEL_DIR_SAVE_START, context={"dir": self}, logger=logger)
         with self.status_file.open("w") as fh:
-            data = self.status.to_json()
-            fh.write(json.dumps(data, sort_keys=True, indent=2))
+            fh.write(self.status.to_json(sort_keys=True, indent=2))
         events.trigger(event=events.Event.WEBNOVEL_DIR_SAVE_END, context={"dir": self}, logger=logger)
 
     @classmethod
