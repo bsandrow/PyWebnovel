@@ -420,7 +420,13 @@ class WpMangaNovelInfoMixin(NovelScraperBase):
 
     def get_summary(self, page: BeautifulSoup) -> str | Tag:
         """Extract the summary from the page."""
-        return page.select_one(".c-page__content > .description-summary > .summary__content")
+        summary_content = page.select_one(".c-page__content > .description-summary > .summary__content")
+        for ad in itertools.chain(
+            summary_content.select(".code-block"),
+            summary_content.select(".wp-biographia-container-around"),
+        ):
+            html.remove_element(ad)
+        return summary_content
 
     def get_cover_image(self, page: BeautifulSoup) -> Image | None:
         """Extract the cover image from the wp-manga header."""
