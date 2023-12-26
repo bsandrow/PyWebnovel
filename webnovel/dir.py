@@ -4,12 +4,13 @@ from dataclasses import dataclass, field
 import datetime
 import enum
 from functools import cached_property
-import json
 import logging
+import os.path
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Union
 import zipfile
 
+from apptk.files import cwd
 from requests import HTTPError
 
 from webnovel import data, events, utils
@@ -51,14 +52,23 @@ class WNDItem(utils.DataclassSerializationMixin):
     #: The last time that this webnovel was updated
     last_updated: datetime.datetime | None = None
 
-    @classmethod
-    def from_json(cls: type["WebNovel"], data: dict) -> "WebNovel":
-        """Convert from dict."""
-        return cls(
-            path=Path(data["path"]),
-            status=WebNovelStatus(data["status"]) if data.get("status") else WebNovelStatus.ONGOING,
-            last_updated=datetime.datetime.fromisoformat(data["last_updated"]) if data.get("last_updated") else None,
-        )
+    @staticmethod
+    def normalize_path(wn_path: Path, base_dir: Path) -> Path:
+        """Make the path relative to the WebNovelDirectory."""
+        return Path(os.path.relpath(str(wn_path), start=str(base_dir))) if wn_path.is_absolute() else wn_path
+
+    def get_bucket_path(self) -> Path:
+        """Return the directory of the bucket."""
+        return Path(self.status.value)
+
+    def update_bucket(self, basedir: Path):
+        """Move the webnovel to the bucket for the current status."""
+        with cwd(basedir):
+            bucket = self.get_bucket_path()
+            bucket.mkdir(parents=True, exist_ok=True)
+            new_path = bucket / self.path.name
+            self.path.rename(new_path)
+            self.path = new_path
 
 
 def is_pywebnovel_epub(path: Union[str, Path]) -> bool:
@@ -74,6 +84,9 @@ def is_pywebnovel_epub(path: Union[str, Path]) -> bool:
 class WebNovelDirectory(utils.DataclassSerializationMixin):
     """Representation of the status of a WebNovelDirectory."""
 
+    #: Path
+    path: Path
+
     #: All of the webnovels
     webnovels: list[WNDItem] = field(default_factory=list)
 
@@ -84,42 +97,71 @@ class WebNovelDirectory(utils.DataclassSerializationMixin):
     #: to loading/saving.
     version: WNDVersion | None = WNDVersion.v1
 
+    @classmethod
+    def from_path(cls, path: Path | str) -> "WebNovelDirectory":
+        """
+        Create a WebNovelDirectory from a path to a directory.
+
+        :params path: The path to the webnovel directory.
+        """
+        path = Path(path)
+        file = path / "status.json"
+
+        if not path.is_dir():
+            raise ValueError(f"Not a directory: {path}")
+
+        if not file.exists():
+            return cls(path=path)
+
+        with file.open("r") as fh:
+            wnd = cls.from_json(fh.read())
+
+        wnd.path = path
+        return wnd
+
 
 class WNDController:
     """A directory of webnovel files for batch processing."""
 
-    directory: Path
+    directory: WebNovelDirectory
 
-    def __init__(self, directory: Union[str, Path]) -> None:
-        self.directory = Path(directory)
+    def __init__(self, directory: WebNovelDirectory) -> None:
+        self.directory = directory
+
+    @classmethod
+    def from_path(cls, path: Path | str) -> "WNDController":
+        """
+        Create a WNDController instance from a directory path.
+
+        Automatically creates the WebNovelDirectory instance that the controller wraps.
+
+        :params path: The path to the directory.
+        """
+        return cls(WebNovelDirectory.from_path(path))
 
     @property
     def status_file(self) -> Path:
         """Return a Path of the status file."""
-        return self.directory / "status.json"
+        return self.directory.path / "status.json"
 
-    @cached_property
-    def status(self) -> WebNovelDirectory:
-        """Return an instance of WebNovelDirectoryStatus either from file, or build a new one."""
-        if self.status_file.exists():
-            with self.status_file.open("r") as fh:
-                string_data = fh.read()
-                string_data = string_data.strip()
-                if string_data:
-                    return WebNovelDirectory.from_json(string_data)
-
-        webnovels = []
-        for epub_file in self.directory.glob("*.epub"):
-            if is_pywebnovel_epub(epub_file):
-                webnovels.append(WNDItem(path=epub_file))
-        return WebNovelDirectory(webnovels=webnovels)
+    def clean(self):
+        """Cleanup Various Aspects of the webnovel directory."""
+        for webnovel in self.directory.webnovels:
+            print(f"[0] webnovel.path = {webnovel.path}")
+            print(f"[0] self.directory.path = {self.directory.path}")
+            webnovel.path = webnovel.normalize_path(webnovel.path, self.directory.path)
+            print(f"[1] webnovel.path = {webnovel.path}")
+            webnovel.update_bucket(self.directory.path)
+            print(f"[2] webnovel.path = {webnovel.path}")
+        self.save()
 
     def save(self):
         """Save the status of the WebNovelDirectory."""
-        events.trigger(event=events.Event.WEBNOVEL_DIR_SAVE_START, context={"dir": self}, logger=logger)
+        events.trigger(event=events.Event.WEBNOVEL_DIR_SAVE_START, context={"dir": self.directory}, logger=logger)
         with self.status_file.open("w") as fh:
-            fh.write(self.status.to_json(sort_keys=True, indent=2))
-        events.trigger(event=events.Event.WEBNOVEL_DIR_SAVE_END, context={"dir": self}, logger=logger)
+            print(f"HERE: {self.status_file}")
+            fh.write(self.directory.to_json(sort_keys=True, indent=2))
+        events.trigger(event=events.Event.WEBNOVEL_DIR_SAVE_END, context={"dir": self.directory}, logger=logger)
 
     @classmethod
     def load(cls, directory: Union[str, Path]) -> "WNDController":
@@ -131,7 +173,7 @@ class WNDController:
         directory = Path(directory)
         if not directory.is_dir():
             raise DirectoryDoesNotExistError
-        return cls(directory)
+        return cls.from_path(directory)
 
     @classmethod
     def create(cls, directory: Union[str, Path]) -> "WNDController":
@@ -142,21 +184,21 @@ class WNDController:
         """
         directory = Path(directory)
         directory.mkdir(parents=True, exist_ok=True)
-        return cls(directory)
+        return cls.from_path(directory)
 
     def validate(self) -> bool:
         """Validate if this is a WebNovelDirectory or not."""
-        return self.directory.is_dir()
+        return self.directory.path.is_dir() and self.status_file.exists()
 
     def update(self, app: "App") -> None:
         """Run App.update on all of the webnovels in this directory."""
-        events.trigger(event=events.Event.WEBNOVEL_DIR_UPDATE_START, context={"dir": self})
+        events.trigger(event=events.Event.WEBNOVEL_DIR_UPDATE_START, context={"dir": self.directory})
         try:
-            for webnovel in self.status.webnovels:
+            for webnovel in self.directory.webnovels:
                 if webnovel.status == WebNovelStatus.COMPLETE:
                     events.trigger(
                         event=events.Event.WEBNOVEL_DIR_SKIP_COMPLETE_NOVEL,
-                        context={"dir": self, "novel": webnovel},
+                        context={"dir": self.directory, "novel": webnovel},
                         logger=logger,
                     )
                     continue
@@ -167,19 +209,19 @@ class WNDController:
                 if webnovel.status == WebNovelStatus.PAUSED:
                     events.trigger(
                         event=events.Event.WEBNOVEL_DIR_SKIP_PAUSED_NOVEL,
-                        context={"dir": self, "novel": webnovel},
+                        context={"dir": self.directory, "novel": webnovel},
                         logger=logger,
                     )
                     continue
 
                 events.trigger(
                     event=events.Event.WEBNOVEL_DIR_NOVEL_UPDATE_START,
-                    context={"dir": self, "novel": webnovel},
+                    context={"dir": self.directory, "novel": webnovel},
                     logger=logger,
                 )
 
                 try:
-                    chapters_added = app.update(ebook=webnovel.path, ignore_path=self.directory)
+                    chapters_added = app.update(ebook=webnovel.path, ignore_path=self.directory.path)
                     if chapters_added > 0:
                         webnovel.last_updated = datetime.datetime.now()
                     self.save()
@@ -190,28 +232,28 @@ class WNDController:
                 finally:
                     events.trigger(
                         event=events.Event.WEBNOVEL_DIR_NOVEL_UPDATE_END,
-                        context={"dir": self, "novel": webnovel},
+                        context={"dir": self.directory, "novel": webnovel},
                         logger=logger,
                     )
 
-            self.status.last_run = datetime.datetime.now()
+            self.directory.last_run = datetime.datetime.now()
         finally:
-            events.trigger(event=events.Event.WEBNOVEL_DIR_UPDATE_END, context={"dir": self})
+            events.trigger(event=events.Event.WEBNOVEL_DIR_UPDATE_END, context={"dir": self.directory})
 
     def add(self, epub_or_url: str, app: "App") -> None:
         """Add webnovel to directory."""
         if epub_or_url.startswith("http"):
-            filename = Path(app.create_ebook(novel_url=epub_or_url, directory=self.directory))
+            filename = Path(app.create_ebook(novel_url=epub_or_url, directory=self.directory.path))
         elif (path := Path(epub_or_url)) and path.exists():
             filename = path
         else:
             raise Exception()  # TODO better error here
 
         webnovel = WNDItem(path=filename, last_updated=datetime.datetime.now())
-        self.status.webnovels.append(webnovel)
+        self.directory.webnovels.append(webnovel)
         self.save()
         events.trigger(
             event=events.Event.WEBNOVEL_DIR_WEBNOVEL_ADDED,
-            context={"dir": self, "webnovel": webnovel, "path": filename},
+            context={"dir": self.directory, "webnovel": webnovel, "path": filename},
             logger=logger,
         )

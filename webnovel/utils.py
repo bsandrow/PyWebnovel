@@ -366,6 +366,7 @@ class DataclassSerializationMixin:
             enum.Enum: lambda value: value.value,
             decimal.Decimal: str,
             (Sequence, set): lambda value: value,
+            Path: lambda value: str(value),
         }
 
         if field:

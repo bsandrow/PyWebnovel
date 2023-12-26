@@ -384,6 +384,13 @@ class App:
         wn_dir.update(self)
         wn_dir.save()
 
+    def dir_clean(self, directory: str) -> None:
+        """Run WNDController.clean()."""
+        from webnovel.dir import WNDController
+
+        wnd_ctrl = WNDController.from_path(directory)
+        wnd_ctrl.clean()
+
     def dir_add(self, directory: str, epub_or_url: str) -> None:
         """Add a webnovel to directory."""
         directory = Path(directory)
