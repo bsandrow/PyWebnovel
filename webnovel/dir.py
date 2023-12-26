@@ -71,7 +71,7 @@ def is_pywebnovel_epub(path: Union[str, Path]) -> bool:
 
 
 @dataclass
-class WebNovelDirectoryStatus(utils.DataclassSerializationMixin):
+class WebNovelDirectory(utils.DataclassSerializationMixin):
     """Representation of the status of a WebNovelDirectory."""
 
     #: All of the webnovels
@@ -99,20 +99,20 @@ class WNDController:
         return self.directory / "status.json"
 
     @cached_property
-    def status(self) -> WebNovelDirectoryStatus:
+    def status(self) -> WebNovelDirectory:
         """Return an instance of WebNovelDirectoryStatus either from file, or build a new one."""
         if self.status_file.exists():
             with self.status_file.open("r") as fh:
                 string_data = fh.read()
                 string_data = string_data.strip()
                 if string_data:
-                    return WebNovelDirectoryStatus.from_json(string_data)
+                    return WebNovelDirectory.from_json(string_data)
 
         webnovels = []
         for epub_file in self.directory.glob("*.epub"):
             if is_pywebnovel_epub(epub_file):
                 webnovels.append(WebNovel(path=epub_file))
-        return WebNovelDirectoryStatus(webnovels=webnovels)
+        return WebNovelDirectory(webnovels=webnovels)
 
     def save(self):
         """Save the status of the WebNovelDirectory."""
