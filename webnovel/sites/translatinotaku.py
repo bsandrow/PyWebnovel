@@ -48,6 +48,11 @@ class ChapterScraper(ChapterScraperBase):
     }
     """
 
+    def post_process_content(self, chapter: Chapter, content: Tag) -> None:
+        """Post-Processing for Chapter Content."""
+        for tag in content.select(".wp-biographia-container-around"):
+            remove_element(tag)
+
 
 class NovelScraper(WpMangaNovelInfoMixin):
     """Scraper for TranslatinOtaku.net."""
