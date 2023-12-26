@@ -241,6 +241,7 @@ class DataclassSerializationMixin:
     def get_required_fields(cls: type[T]) -> set[str]:
         """Return a set of the field names that are required to convert a dict into an instance."""
         required_fields = set()
+        has_required_fields = False
 
         for field in fields(cls):
             field_has_no_default = field.default is MISSING and field.default_factory is MISSING
