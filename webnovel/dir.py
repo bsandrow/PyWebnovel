@@ -39,20 +39,17 @@ class WebNovelStatus(enum.Enum):
 
 
 @dataclass
-class WebNovel:
+class WebNovel(utils.DataclassSerializationMixin):
     """A Webnovel ebook inside of the WebNovelDirectory."""
 
+    #: The path to the webnovel (relative to the base directory).
     path: Path
-    status: WebNovelStatus = WebNovelStatus.ONGOING
-    last_updated: Optional[datetime.datetime] = None
 
-    def to_json(self) -> dict:
-        """Convert to dict."""
-        return {
-            "path": str(self.path),
-            "status": self.status.value,
-            "last_updated": self.last_updated.isoformat() if self.last_updated else None,
-        }
+    #: The current status of this webnovel.
+    status: WebNovelStatus = WebNovelStatus.ONGOING
+
+    #: The last time that this webnovel was updated
+    last_updated: datetime.datetime | None = None
 
     @classmethod
     def from_json(cls: type["WebNovel"], data: dict) -> "WebNovel":
