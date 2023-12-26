@@ -50,11 +50,11 @@ LOGGING_MAP = {
     Event.WN_UPDATE_NEW_CHAPTER_COUNT: lambda ctx: ("%s: %d New Chapter(s) Found.", ctx.path.name, ctx.new),
     Event.WEBNOVEL_DIR_SKIP_PAUSED_NOVEL: lambda ctx: ("Skipping paused webnovel: %s", ctx.novel.path.name),
     Event.WEBNOVEL_DIR_SKIP_COMPLETE_NOVEL: lambda ctx: ("Skipping completed webnovel: %s", ctx.novel.path.name),
-    Event.WEBNOVEL_DIR_SAVE_START: lambda ctx: ("Saving webnovel directory status (%s).", ctx.dir.directory),
+    Event.WEBNOVEL_DIR_SAVE_START: lambda ctx: ("Saving webnovel directory status (%s).", ctx.dir.path),
     Event.WEBNOVEL_DIR_WEBNOVEL_ADDED: lambda ctx: (
         "Webnovel %s added to directory (%s).",
         ctx.path.name,
-        ctx.dir.directory,
+        ctx.dir.path,
     ),
     Event.WN_CHAPTER_BATCH_START: lambda ctx: (
         "Processing chapters '%s' to '%s'. [%d chapter(s)]",

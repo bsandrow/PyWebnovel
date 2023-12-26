@@ -368,12 +368,12 @@ class App:
     def dir_update(self, directory: str) -> None:
         """Run the WebNovelDirectory command."""
         directory = Path(directory)
-        from webnovel.dir import WebNovelDirectory
+        from webnovel.dir import WNDController
 
         if directory.exists():
-            wn_dir = WebNovelDirectory.load(directory)
+            wn_dir = WNDController.load(directory)
         else:
-            wn_dir = WebNovelDirectory.create(directory)
+            wn_dir = WNDController.create(directory)
 
         logger.debug("Webnovel directory loaded.")
 
@@ -384,15 +384,22 @@ class App:
         wn_dir.update(self)
         wn_dir.save()
 
+    def dir_clean(self, directory: str) -> None:
+        """Run WNDController.clean()."""
+        from webnovel.dir import WNDController
+
+        wnd_ctrl = WNDController.from_path(directory)
+        wnd_ctrl.clean()
+
     def dir_add(self, directory: str, epub_or_url: str) -> None:
         """Add a webnovel to directory."""
         directory = Path(directory)
-        from webnovel.dir import WebNovelDirectory
+        from webnovel.dir import WNDController
 
         if directory.exists():
-            webnovel_directory = WebNovelDirectory.load(directory)
+            webnovel_directory = WNDController.load(directory)
         else:
-            webnovel_directory = WebNovelDirectory.create(directory)
+            webnovel_directory = WNDController.create(directory)
 
         logger.debug("Webnovel directory loaded.")
 

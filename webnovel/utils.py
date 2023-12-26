@@ -1,8 +1,9 @@
 """General Utilities - written in support of the rest of the code."""
 
-from dataclasses import MISSING, fields, is_dataclass
+from dataclasses import MISSING, Field, fields, is_dataclass
 import datetime
 import decimal
+import enum
 import inspect
 import io
 import itertools
@@ -11,7 +12,8 @@ from pathlib import Path
 import re
 import string
 from time import perf_counter
-from typing import IO, Any, Callable, ClassVar, Container, Iterator, Sequence, TypeVar, Union
+import types
+from typing import IO, Any, Callable, ClassVar, Container, Iterator, Sequence, TypeVar, Union, get_args, get_origin
 
 from apptk.coerce import to_datetime
 
@@ -212,6 +214,20 @@ class Timer:
         self.time = self.counter_end - self.counter_start
 
 
+class Namespace(dict):
+    """A simple wrapper around dict that allows accessing items as attributes."""
+
+    def __getattr__(self, name):
+        """Return items via __getitem__ if it's not a pre-existing attribute on self."""
+        if name in self:
+            return self[name]
+        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute {name!r}")
+
+    def __setattr__(self, name, value):
+        """Allow setting of attributes to be handled via __setitem__."""
+        self[name] = value
+
+
 class DataclassSerializationMixin:
     """A Mixin to add to_dict/from_dict to dataclasses."""
 
@@ -241,6 +257,7 @@ class DataclassSerializationMixin:
     def get_required_fields(cls: type[T]) -> set[str]:
         """Return a set of the field names that are required to convert a dict into an instance."""
         required_fields = set()
+        has_required_fields = False
 
         for field in fields(cls):
             field_has_no_default = field.default is MISSING and field.default_factory is MISSING
@@ -298,6 +315,22 @@ class DataclassSerializationMixin:
         :params value: The value to convert.
         :params field_type: The type of the field.
         """
+        # If the type is something like list[int], then treat `value` as a list,
+        # and the items in it as `int`.
+        #
+        # Note: This only works for single-typed containers. If Union/UnionType
+        #       are used to support multiple types, then which type to use
+        #       cannot be inferred.
+        if isinstance(field_type, types.GenericAlias):
+            container_type = get_origin(field_type)
+            items_type = get_args(field_type)[0]
+            assert get_origin(items_type) is not Union, "Cannot handle typing.Union currently."
+            assert type(items_type) is not types.UnionType, "Cannot handle types.UnionType currently."
+            if issubclass(container_type, (Sequence, set)):
+                assert isinstance(value, (Sequence, set)), "Need a sequence or a set"  # TODO better error-handling
+                generator = (cls._parse_field_value(val, items_type) for val in value)
+                return container_type(generator)
+
         # If there are any overrides to import handling, deal with them here.
         if field_type in cls.import_type_map:
             return cls.import_type_map[field_type](value)
@@ -316,7 +349,7 @@ class DataclassSerializationMixin:
         return field_type(value) if inspect.isclass(field_type) else value
 
     @classmethod
-    def _export_field_value(cls, value) -> Any:
+    def _export_field_value(cls, value, field: Field | Namespace) -> Any:
         """
         Serialize the field value.
 
@@ -324,16 +357,30 @@ class DataclassSerializationMixin:
         format. For example, convert dates or datetimes into ISO format.
 
         :params value: The value to serialize
+        :params field: The dataclasses.Field to export.  Namespace type is
+            allowed for recusive calls then decoding nested types.
         """
         export_mapping = {
             DataclassSerializationMixin: lambda value: value.to_dict(),
-            datetime.datetime: lambda value: value.isoformat(),
-            datetime.date: lambda value: value.isoformat(),
+            (datetime.datetime, datetime.date): lambda value: value.isoformat(),
+            enum.Enum: lambda value: value.value,
             decimal.Decimal: str,
+            (Sequence, set): lambda value: value,
+            Path: lambda value: str(value),
         }
+
+        if field:
+            origin_type = get_origin(field.type)
+            if origin_type and issubclass(origin_type, (Sequence, set)):
+                items_type = get_args(field.type)[0]
+                assert type(items_type) is not types.UnionType, "Cannot handle types.UnionType currently."
+                assert origin_type is not Union, "Cannot handle typing.Union currently."
+                return origin_type(map(lambda v: cls._export_field_value(v, Namespace(type=items_type)), value))
+
         for type_, callable in export_mapping.items():
             if isinstance(value, type_):
                 return callable(value)
+
         return value
 
     def to_dict(self) -> dict:
@@ -346,7 +393,7 @@ class DataclassSerializationMixin:
             some flexibility in converting certain datatypes into json-ified
             types. For example, converting a datetime instance into a string.
         """
-        return {field.name: self._export_field_value(getattr(self, field.name)) for field in fields(self)}
+        return {field.name: self._export_field_value(getattr(self, field.name), field) for field in fields(self)}
 
     def to_json(self, **kwargs) -> str:
         """Convert dataclass instance to a JSON string."""
@@ -360,17 +407,3 @@ class DataclassSerializationMixin:
         :param data: The JSON string to parse.
         """
         return cls.from_dict(json.loads(data))
-
-
-class Namespace(dict):
-    """A simple wrapper around dict that allows accessing items as attributes."""
-
-    def __getattr__(self, name):
-        """Return items via __getitem__ if it's not a pre-existing attribute on self."""
-        if name in self:
-            return self[name]
-        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute {name!r}")
-
-    def __setattr__(self, name, value):
-        """Allow setting of attributes to be handled via __setitem__."""
-        self[name] = value
