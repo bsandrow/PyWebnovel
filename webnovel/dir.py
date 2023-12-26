@@ -39,7 +39,7 @@ class WebNovelStatus(enum.Enum):
 
 
 @dataclass
-class WebNovel(utils.DataclassSerializationMixin):
+class WNDItem(utils.DataclassSerializationMixin):
     """A Webnovel ebook inside of the WebNovelDirectory."""
 
     #: The path to the webnovel (relative to the base directory).
@@ -75,7 +75,7 @@ class WebNovelDirectory(utils.DataclassSerializationMixin):
     """Representation of the status of a WebNovelDirectory."""
 
     #: All of the webnovels
-    webnovels: list[WebNovel] = field(default_factory=list)
+    webnovels: list[WNDItem] = field(default_factory=list)
 
     #: The last time that an update was run.
     last_run: datetime.datetime | None = None
@@ -111,7 +111,7 @@ class WNDController:
         webnovels = []
         for epub_file in self.directory.glob("*.epub"):
             if is_pywebnovel_epub(epub_file):
-                webnovels.append(WebNovel(path=epub_file))
+                webnovels.append(WNDItem(path=epub_file))
         return WebNovelDirectory(webnovels=webnovels)
 
     def save(self):
@@ -207,7 +207,7 @@ class WNDController:
         else:
             raise Exception()  # TODO better error here
 
-        webnovel = WebNovel(path=filename, last_updated=datetime.datetime.now())
+        webnovel = WNDItem(path=filename, last_updated=datetime.datetime.now())
         self.status.webnovels.append(webnovel)
         self.save()
         events.trigger(
