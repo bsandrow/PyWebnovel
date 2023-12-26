@@ -88,7 +88,7 @@ class WebNovelDirectoryStatus(utils.DataclassSerializationMixin):
     version: WNDVersion | None = WNDVersion.v1
 
 
-class WebNovelDirectory:
+class WNDController:
     """A directory of webnovel files for batch processing."""
 
     directory: Path
@@ -125,7 +125,7 @@ class WebNovelDirectory:
         events.trigger(event=events.Event.WEBNOVEL_DIR_SAVE_END, context={"dir": self}, logger=logger)
 
     @classmethod
-    def load(cls, directory: Union[str, Path]) -> "WebNovelDirectory":
+    def load(cls, directory: Union[str, Path]) -> "WNDController":
         """
         Load a WebNovelDirectory from an existing directory.
 
@@ -137,7 +137,7 @@ class WebNovelDirectory:
         return cls(directory)
 
     @classmethod
-    def create(cls, directory: Union[str, Path]) -> "WebNovelDirectory":
+    def create(cls, directory: Union[str, Path]) -> "WNDController":
         """
         Create a new WebNovelDirectory.
 
