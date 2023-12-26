@@ -2,6 +2,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 import datetime
 from io import BytesIO, TextIOWrapper
+import typing
 from unittest import TestCase, mock
 
 from freezegun import freeze_time
@@ -372,3 +373,110 @@ class DataclassSerializationMixinTestCase(TestCase):
             expected = "$RETURN$"
             self.assertEqual(actual, expected)
             from_dict.assert_called_once_with("$INPUT$")
+
+    def test_import_handles_single_typed_containers(self):
+        @dataclass
+        class T(utils.DataclassSerializationMixin):
+            field_a: list[int]
+
+        actual = T.from_dict({"field_a": ["1", "2"]})
+        expected = T(field_a=[1, 2])
+        self.assertEqual(actual, expected)
+
+    def test_export_handles_single_typed_containers(self):
+        @dataclass
+        class T(utils.DataclassSerializationMixin):
+            field_a: list[int]
+
+        actual = T(field_a=[1, 2]).to_dict()
+        expected = {"field_a": [1, 2]}
+        self.assertEqual(actual, expected)
+
+    def test_import_does_not_handle_multityped_containers(self):
+        @dataclass
+        class T(utils.DataclassSerializationMixin):
+            field_a: list[int | float]
+
+        with self.assertRaises(AssertionError):
+            T.from_dict({"field_a": ["1", "2"]})
+
+        @dataclass
+        class R(utils.DataclassSerializationMixin):
+            field_a: list[typing.Union[int, float]]
+
+        with self.assertRaises(AssertionError):
+            R.from_dict({"field_a": ["1", "2"]})
+
+    def test_import_gets_mismatched_type_for_sequences(self):
+        @dataclass
+        class T(utils.DataclassSerializationMixin):
+            field_a: list[int]
+
+        with self.assertRaises(AssertionError):
+            T.from_dict({"field_a": 1})
+
+    def test_handles_importing_sequence_of_mixin_types(self):
+        @dataclass
+        class T(utils.DataclassSerializationMixin):
+            field_a: str
+
+        @dataclass
+        class R(utils.DataclassSerializationMixin):
+            field_a: list[T]
+
+        actual = R.from_dict({"field_a": [{"field_a": "$A$"}, {"field_a": "$B$"}]})
+        expected = R(field_a=[T(field_a="$A$"), T(field_a="$B$")])
+        self.assertEqual(actual, expected)
+
+    def test_handles_exporting_sequence_of_mixin_types(self):
+        @dataclass
+        class T(utils.DataclassSerializationMixin):
+            field_a: str
+
+        @dataclass
+        class R(utils.DataclassSerializationMixin):
+            field_a: list[T]
+
+        instance = R(field_a=[T(field_a="$A$"), T(field_a="$B$")])
+        actual = instance.to_dict()
+        expected = {"field_a": [{"field_a": "$A$"}, {"field_a": "$B$"}]}
+        self.assertEqual(actual, expected)
+
+    def test_handles_exporting_nested_sequences_of_mixin_types(self):
+        @dataclass
+        class T(utils.DataclassSerializationMixin):
+            field_a: str
+
+        @dataclass
+        class R(utils.DataclassSerializationMixin):
+            field_a: list[list[T]]
+
+        instance = R(
+            field_a=[
+                [T(field_a="$A$"), T(field_a="$B$")],
+                [T(field_a="$C$"), T(field_a="$D$")],
+            ]
+        )
+        actual = instance.to_dict()
+        expected = {"field_a": [[{"field_a": "$A$"}, {"field_a": "$B$"}], [{"field_a": "$C$"}, {"field_a": "$D$"}]]}
+        self.assertEqual(actual, expected)
+
+    def test_handles_importing_nested_sequences_of_mixin_types(self):
+        @dataclass
+        class T(utils.DataclassSerializationMixin):
+            field_a: str
+
+        @dataclass
+        class R(utils.DataclassSerializationMixin):
+            field_a: list[list[T]]
+
+        actual = R.from_dict(
+            {"field_a": [[{"field_a": "$A$"}, {"field_a": "$B$"}], [{"field_a": "$C$"}, {"field_a": "$D$"}]]}
+        )
+        expected = R(
+            field_a=[
+                [T(field_a="$A$"), T(field_a="$B$")],
+                [T(field_a="$C$"), T(field_a="$D$")],
+            ]
+        )
+        self.assertEqual(actual, expected)
